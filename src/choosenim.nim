@@ -1,25 +1,10 @@
 import os
 
-import docopt
 import nimblepkg/[cli, tools, version]
 import nimblepkg/common as nimbleCommon
 import untar
 
-import choosenimpkg/[download, builder, options, switcher, common]
-
-let doc = """
-choosenim: The Nim toolchain installer.
-
-Usage:
-  choosenim <version>
-
-Options:
-  -h --help     Show this screen.
-  --version     Show version.
-"""
-
-const
-  chooseNimVersion = "0.1.0"
+import choosenimpkg/[download, builder, options, switcher, common, cliparams]
 
 proc parseVersion(versionStr: string): Version =
   try:
@@ -46,12 +31,12 @@ proc choose(versionStr: string) =
   switchTo(version)
 
 when isMainModule:
-  let args = docopt(doc, version = "choosenim v" & chooseNimVersion)
+  let params = getCliParams()
 
   var error = ""
   var hint = ""
   try:
-    choose($args["<version>"])
+    choose(params.version)
   except NimbleError:
     let currentExc = (ref NimbleError)(getCurrentException())
     (error, hint) = getOutputInfo(currentExc)
