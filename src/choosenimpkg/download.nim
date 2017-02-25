@@ -29,12 +29,16 @@ proc downloadFile(url, outputPath: string) =
 
   client.onProgressChanged = onProgressChanged
 
+  # Download to temporary file to prevent problems when choosenim crashes.
+  let tempOutputPath = outputPath & "_temp"
   try:
-    client.downloadFile(url, outputPath)
+    client.downloadFile(url, tempOutputPath)
   except HttpRequestError:
     raise newException(ChooseNimError,
                        "Couldn't download file from $1.\nResponse was: $2" %
                        [url, getCurrentExceptionMsg()])
+
+  moveFile(tempOutputPath, outputPath)
 
   showBar(1, 0)
   echo("")
