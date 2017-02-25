@@ -35,7 +35,7 @@ proc pick(versionStr: string) =
     # Build the compiler
     build(extractDir, version)
 
-switchTo(version)
+  switchTo(version)
 
 when isMainModule:
   let args = docopt(doc, version = "picknim v" & pickNimVersion)
