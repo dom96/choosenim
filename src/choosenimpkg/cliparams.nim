@@ -24,7 +24,8 @@ proc writeHelp() =
   quit(QuitFailure)
 
 proc writeVersion() =
-  echo("choosenim v$1 ($2 $3)" % [chooseNimVersion, CompileDate, CompileTime])
+  echo("choosenim v$1 ($2 $3) [$4/$5]" %
+       [chooseNimVersion, CompileDate, CompileTime, hostOS, hostCPU])
   quit(QuitSuccess)
 
 proc newCliParams(): CliParams =
