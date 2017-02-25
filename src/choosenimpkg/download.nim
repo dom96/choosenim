@@ -28,7 +28,7 @@ proc downloadFile(url, outputPath: string) =
   try:
     client.downloadFile(url, outputPath)
   except HttpRequestError:
-    raise newException(PicknimError,
+    raise newException(ChooseNimError,
                        "Couldn't download file from $1.\nResponse was: $2" %
                        [url, getCurrentExceptionMsg()])
 

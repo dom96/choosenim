@@ -1,12 +1,12 @@
 import os
 const
-  pickNimDir = getHomeDir() / ".picknim"
+  chooseNimDir = getHomeDir() / ".choosenim"
 
 proc getDownloadDir*(): string =
-  return pickNimDir / "downloads"
+  return chooseNimDir / "downloads"
 
 proc getInstallDir*(): string =
-  return pickNimDir / "toolchains"
+  return chooseNimDir / "toolchains"
 
 proc getBinDir*(): string =
   # TODO: Grab this from Nimble's config.
@@ -16,4 +16,4 @@ proc getCurrentFile*(): string =
   ## Returns the path to the file which specifies the currently selected
   ## installation. The contents of this file is a path to the selected Nim
   ## directory.
-  return pickNimDir / "current"
+  return chooseNimDir / "current"

@@ -7,9 +7,9 @@ import strutils, os, osproc
 import nimblepkg/cli
 import nimblepkg/common as nimbleCommon
 import options
-from common import PicknimError
+from common import ChooseNimError
 
-proc getExePath(): string {.raises: [PicknimError, ValueError].} =
+proc getExePath(): string {.raises: [ChooseNimError, ValueError].} =
   # TODO: This code is disgusting. I wanted to make it as safe/informative as
   # possible but all these try statements are horrible.
 
@@ -18,26 +18,26 @@ proc getExePath(): string {.raises: [PicknimError, ValueError].} =
     path = getCurrentFile()
     if not fileExists(path):
       let msg = "No installation has been chosen. (File missing: $1)" % path
-      raise newException(PicknimError, msg)
+      raise newException(ChooseNimError, msg)
 
     result = readFile(path)
-  except PicknimError:
+  except ChooseNimError:
     raise
   except Exception as exc:
     let msg = "Unable to read $1. (Error was: $2)" % [path, exc.msg]
-    raise newException(PicknimError, msg)
+    raise newException(ChooseNimError, msg)
 
   try:
     let exeName = getAppFilename().extractFilename
     return result / "bin" / exeName
   except Exception as exc:
     let msg = "getAppFilename failed. (Error was: $1)" % exc.msg
-    raise newException(PicknimError, msg)
+    raise newException(ChooseNimError, msg)
 
-proc main() {.raises: [PicknimError, ValueError].} =
+proc main() {.raises: [ChooseNimError, ValueError].} =
   let exePath = getExePath()
   if not fileExists(exePath):
-    raise newException(PicknimError,
+    raise newException(ChooseNimError,
         "Requested executable is missing. (Path: $1)" % exePath)
 
   try:
@@ -47,7 +47,7 @@ proc main() {.raises: [PicknimError, ValueError].} =
     discard p.waitForExit()
     p.close()
   except Exception as exc:
-    raise newException(PicknimError,
+    raise newException(ChooseNimError,
         "Spawning of process failed. (Error was: $1)" % exc.msg)
 
 when isMainModule:

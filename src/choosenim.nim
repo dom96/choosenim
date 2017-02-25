@@ -4,13 +4,13 @@ import docopt
 import nimblepkg/[cli, tools, version, common]
 import untar
 
-import picknimpkg/[download, builder, options, switcher]
+import choosenimpkg/[download, builder, options, switcher]
 
 let doc = """
-picknim: The Nim toolchain installer.
+choosenim: The Nim toolchain installer.
 
 Usage:
-  picknim <version>
+  choosenim <version>
 
 Options:
   -h --help     Show this screen.
@@ -18,9 +18,9 @@ Options:
 """
 
 const
-  pickNimVersion = "0.1.0"
+  chooseNimVersion = "0.1.0"
 
-proc pick(versionStr: string) =
+proc choose(versionStr: string) =
   let version = newVersion(versionStr)
 
   if not isVersionInstalled(version):
@@ -38,12 +38,12 @@ proc pick(versionStr: string) =
   switchTo(version)
 
 when isMainModule:
-  let args = docopt(doc, version = "picknim v" & pickNimVersion)
+  let args = docopt(doc, version = "choosenim v" & chooseNimVersion)
 
   var error = ""
   var hint = ""
   try:
-    pick($args["<version>"])
+    choose($args["<version>"])
   except NimbleError:
     let currentExc = (ref NimbleError)(getCurrentException())
     (error, hint) = getOutputInfo(currentExc)

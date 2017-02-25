@@ -6,7 +6,7 @@ description   = "The Nim toolchain installer."
 license       = "MIT"
 
 srcDir = "src"
-bin = @["picknim"]
+bin = @["choosenim"]
 
 skipExt = @["nim"]
 
