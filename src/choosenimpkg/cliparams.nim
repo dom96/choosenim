@@ -14,6 +14,13 @@ Choose a job. Choose a mortgage. Choose life. Choose Nim.
 Usage:
   choosenim <version>
 
+Example:
+  choosenim 0.16.0
+    Installs (if necessary) and selects version 0.16.0 of Nim.
+  choosenim #head
+    Installs (if necessary) and selects the latest current commit of Nim.
+    Warning: Your shell may need quotes around `#head`: choosenim "#head".
+
 Options:
   -h --help     Show this screen.
   --version     Show version.
