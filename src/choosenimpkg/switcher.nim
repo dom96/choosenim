@@ -37,3 +37,4 @@ proc switchTo*(version: Version) =
   # Write selected path to "current file".
   writeFile(getCurrentFile(), getInstallationDir(version))
 
+  display("Switched", "to Nim " & $version, Success, HighPriority)
