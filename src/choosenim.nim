@@ -1,10 +1,11 @@
 import os
 
 import docopt
-import nimblepkg/[cli, tools, version, common]
+import nimblepkg/[cli, tools, version]
+import nimblepkg/common as nimbleCommon
 import untar
 
-import choosenimpkg/[download, builder, options, switcher]
+import choosenimpkg/[download, builder, options, switcher, common]
 
 let doc = """
 choosenim: The Nim toolchain installer.
@@ -20,8 +21,15 @@ Options:
 const
   chooseNimVersion = "0.1.0"
 
+proc parseVersion(versionStr: string): Version =
+  try:
+    result = newVersion(versionStr)
+  except:
+    let msg = "Invalid version. Try 0.16.0, #head or #commitHash."
+    raise newException(ChooseNimError, msg)
+
 proc choose(versionStr: string) =
-  let version = newVersion(versionStr)
+  let version = parseVersion(versionStr)
 
   if not isVersionInstalled(version):
     # Install the requested version.
