@@ -11,18 +11,22 @@ const
 const
   progressBarLength = 50
 
+proc showBar(fraction: float, speed: BiggestInt) =
+  eraseLine()
+  let hashes = repeat('#', int(fraction * progressBarLength))
+  let spaces = repeat(' ', progressBarLength - hashes.len)
+  stdout.write("[$1$2] $3% $4kb/s" % [
+                  hashes, spaces, formatFloat(fraction * 100, precision=4),
+                  $(speed div 1000)
+                ])
+  stdout.flushFile()
+
 proc downloadFile(url, outputPath: string) =
   var client = newHttpClient()
   proc onProgressChanged(total, progress, speed: BiggestInt) =
-    eraseLine()
-    let percent = progress.float / total.float
-    let hashes = repeat('#', int(percent * progressBarLength))
-    let spaces = repeat(' ', progressBarLength - hashes.len)
-    stdout.write("[$1$2] $3% $4kb/s" % [
-                    hashes, spaces, formatFloat(percent * 100, precision=4),
-                    $(speed div 1000)
-                 ])
-    stdout.flushFile()
+    let fraction = progress.float / total.float
+    showBar(fraction, speed)
+
   client.onProgressChanged = onProgressChanged
 
   try:
@@ -31,6 +35,9 @@ proc downloadFile(url, outputPath: string) =
     raise newException(ChooseNimError,
                        "Couldn't download file from $1.\nResponse was: $2" %
                        [url, getCurrentExceptionMsg()])
+
+  showBar(1, 0)
+  echo("")
 
 proc download*(version: Version): string =
   ## Returns the path of the downloaded .tar.gz file.
