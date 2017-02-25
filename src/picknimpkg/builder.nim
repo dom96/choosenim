@@ -6,7 +6,8 @@ import options
 
 proc buildCompiler() =
   ## Assumes that CWD contains the compiler (``build`` should have changed it).
-  if fileExists(getCurrentDir() / "bin" / "nim".addFileExt(ExeExt)):
+  let binDir = getCurrentDir() / "bin"
+  if fileExists(binDir / "nim".addFileExt(ExeExt)):
     display("Compiler: ", "Already built", priority = HighPriority)
     return
 
@@ -16,6 +17,9 @@ proc buildCompiler() =
       # TODO: How should we handle x86 vs amd64?
     else:
       doCmd("sh build.sh")
+  else:
+    discard
+    # TODO: Build from GitHub
 
 proc buildTools() =
   ## Assumes that CWD contains the compiler.

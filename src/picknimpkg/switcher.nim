@@ -18,7 +18,8 @@ proc getInstallationDir*(version: Version): string =
   return getInstallDir() / ("nim-$1" % $version)
 
 proc isVersionInstalled*(version: Version): bool =
-  return fileExists(getInstallDir() / getInstallationDir(version))
+  return fileExists(getInstallationDir(version) / "bin" /
+                    "nim".addFileExt(ExeExt))
 
 proc switchTo*(version: Version) =
   ## Writes the appropriate proxy into $nimbleDir/bin.
@@ -26,8 +27,12 @@ proc switchTo*(version: Version) =
 
   # Verify that the proxy executables are present.
   let nimProxyPath = getBinDir() / "nim".addFileExt(ExeExt)
-  if not fileExists(nimProxyPath):
-    writeFile(nimProxyPath, proxyExe)
+  writeFile(nimProxyPath, proxyExe)
+  # Make sure the exe has +x flag.
+  setFilePermissions(nimProxyPath,
+                     getFilePermissions(nimProxyPath) + {fpUserExec})
+
+  # TODO: Check whether `nimble` symlink exists, think about what to do.
 
   # Write selected path to "current file".
   writeFile(getCurrentFile(), getInstallationDir(version))
