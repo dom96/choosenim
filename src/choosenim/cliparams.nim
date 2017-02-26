@@ -1,5 +1,7 @@
 import parseopt2, strutils
 
+import nimblepkg/cli
+
 import common
 
 type
@@ -24,6 +26,8 @@ Example:
 Options:
   -h --help     Show this screen.
   --version     Show version.
+  --verbose     Show low (and higher) priority output.
+  --debug       Show debug (and higher) priority output.
 """
 
 proc writeHelp() =
@@ -49,6 +53,8 @@ proc getCliParams*(): CliParams =
       case key
       of "help", "h": writeHelp()
       of "version", "v": writeVersion()
+      of "verbose": setVerbosity(LowPriority)
+      of "debug": setVerbosity(DebugPriority)
       else: discard
     of cmdEnd: assert(false)
 

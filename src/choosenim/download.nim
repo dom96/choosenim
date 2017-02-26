@@ -56,17 +56,18 @@ proc downloadFile(url, outputPath: string) =
   try:
     client.downloadFile(url, tempOutputPath)
   except HttpRequestError:
-    raise newException(ChooseNimError,
-                       "Couldn't download file from $1.\nResponse was: $2" %
-                       [url, getCurrentExceptionMsg()])
+    echo("") # Skip line with progress bar.
+    let msg = "Couldn't download file from $1.\nResponse was: $2" %
+              [url, getCurrentExceptionMsg()]
+    display("Info:", msg, Warning, MediumPriority)
+    raise
 
   moveFile(tempOutputPath, outputPath)
 
   showBar(1, 0)
   echo("")
 
-proc download*(version: Version): string =
-  ## Returns the path of the downloaded .tar.gz file.
+proc downloadImpl(version: Version): string =
   let outputPath = getDownloadDir() / ("nim-$1.tar.gz" % $version)
   if outputPath.existsFile():
     # TODO: Verify sha256.
@@ -90,6 +91,14 @@ proc download*(version: Version): string =
             priority = HighPriority)
     downloadFile(websiteUrl % $version, outputPath)
     result = outputPath
+
+proc download*(version: Version): string =
+  ## Returns the path of the downloaded .tar.gz file.
+  try:
+    return downloadImpl(version)
+  except HttpRequestError:
+    raise newException(ChooseNimError, "Version $1 does not exist." %
+                       $version)
 
 proc downloadCSources*(): string =
   let outputPath = getDownloadDir() / "nim-csources.tar.gz"
