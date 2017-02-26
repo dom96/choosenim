@@ -21,18 +21,32 @@ proc isVersionInstalled*(version: Version): bool =
   return fileExists(getInstallationDir(version) / "bin" /
                     "nim".addFileExt(ExeExt))
 
+proc writeProxy(bin: string) =
+  let proxyPath = getBinDir() / bin.addFileExt(ExeExt)
+  if symlinkExists(proxyPath):
+    let msg = "Symlink for '$1' detected in '$2'. Can I remove it?" %
+              [bin, proxyPath.splitFile().dir]
+    if not prompt(dontForcePrompt, msg): return
+    let symlinkPath = expandSymlink(proxyPath)
+    removeFile(proxyPath)
+    display("Removed", "symlink pointing to $1" % symlinkPath,
+            priority = HighPriority)
+
+  writeFile(proxyPath, proxyExe)
+  # Make sure the exe has +x flag.
+  setFilePermissions(proxyPath,
+                     getFilePermissions(proxyPath) + {fpUserExec})
+  display("Installed", "component '$1'" % bin, priority = HighPriority)
+
 proc switchTo*(version: Version) =
   ## Writes the appropriate proxy into $nimbleDir/bin.
   assert isVersionInstalled(version), "Cannot switch to non-installed version"
 
-  # Verify that the proxy executables are present.
-  let nimProxyPath = getBinDir() / "nim".addFileExt(ExeExt)
-  writeFile(nimProxyPath, proxyExe)
-  # Make sure the exe has +x flag.
-  setFilePermissions(nimProxyPath,
-                     getFilePermissions(nimProxyPath) + {fpUserExec})
-
-  # TODO: Check whether `nimble` symlink exists, think about what to do.
+  # Create the proxy executables.
+  writeProxy("nim")
+  writeProxy("nimble")
+  writeProxy("nimgrep")
+  writeProxy("nimsuggest")
 
   # Write selected path to "current file".
   writeFile(getCurrentFile(), getInstallationDir(version))
