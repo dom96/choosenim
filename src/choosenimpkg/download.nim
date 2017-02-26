@@ -7,9 +7,24 @@ import options, common
 const
   githubUrl = "https://github.com/nim-lang/Nim/archive/$1.tar.gz"
   websiteUrl = "http://nim-lang.org/download/nim-$1.tar.gz"
+  csourcesUrl = "https://github.com/nim-lang/csources/archive/master.tar.gz"
 
 const
   progressBarLength = 50
+
+proc showIndeterminateBar(progress, speed: BiggestInt, lastPos: var int) =
+  eraseLine()
+  if lastPos >= progressBarLength:
+    lastPos = 0
+
+  var spaces = repeat(' ', progressBarLength)
+  spaces[lastPos] = '#'
+  lastPos.inc()
+  stdout.write("[$1] $2mb $3kb/s" % [
+                  spaces, $(progress div (1000*1000)),
+                  $(speed div 1000)
+                ])
+  stdout.flushFile()
 
 proc showBar(fraction: float, speed: BiggestInt) =
   eraseLine()
@@ -23,12 +38,19 @@ proc showBar(fraction: float, speed: BiggestInt) =
 
 proc downloadFile(url, outputPath: string) =
   var client = newHttpClient()
+
+  var lastProgressPos = 0
   proc onProgressChanged(total, progress, speed: BiggestInt) =
     let fraction = progress.float / total.float
-    showBar(fraction, speed)
+    if fraction == Inf:
+      showIndeterminateBar(progress, speed, lastProgressPos)
+    else:
+      showBar(fraction, speed)
 
   client.onProgressChanged = onProgressChanged
 
+  # Create outputPath's directory if it doesn't exist already.
+  createDir(outputPath.splitFile.dir)
   # Download to temporary file to prevent problems when choosenim crashes.
   let tempOutputPath = outputPath & "_temp"
   try:
@@ -51,8 +73,6 @@ proc download*(version: Version): string =
     display("Info:", "Nim $1 already downloaded" % $version,
             priority=HighPriority)
     return outputPath
-  # Create outputPath's directory if it doesn't exist already.
-  createDir(outputPath.splitFile.dir)
 
   if version.isSpecial():
     let reference =
@@ -71,4 +91,13 @@ proc download*(version: Version): string =
     downloadFile(websiteUrl % $version, outputPath)
     result = outputPath
 
-  
+proc downloadCSources*(): string =
+  let outputPath = getDownloadDir() / "nim-csources.tar.gz"
+  if outputPath.existsFile():
+    # TODO: Verify sha256.
+    display("Info:", "C sources already downloaded", priority=HighPriority)
+    return outputPath
+
+  display("Downloading", "Nim C sources from GitHub", priority = HighPriority)
+  downloadFile(csourcesUrl, outputPath)
+  return outputPath

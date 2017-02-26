@@ -2,9 +2,9 @@ import os
 
 import nimblepkg/[cli, tools, version]
 import nimblepkg/common as nimbleCommon
-import untar
 
 import choosenimpkg/[download, builder, options, switcher, common, cliparams]
+import choosenimpkg/utils
 
 proc parseVersion(versionStr: string): Version =
   try:
@@ -20,11 +20,8 @@ proc choose(versionStr: string) =
     # Install the requested version.
     let path = download(version)
     # Extract the downloaded file.
-    display("Extracting", path.extractFilename(), priority = HighPriority)
-    var file = newTarFile(path)
     let extractDir = getInstallationDir(version)
-    removeDir(extractDir)
-    file.extract(extractDir)
+    extract(path, extractDir)
     # Build the compiler
     build(extractDir, version)
 
