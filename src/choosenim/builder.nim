@@ -51,13 +51,20 @@ proc buildTools() =
     display("Tools: ", "Already built", priority = HighPriority)
     return
 
+  let msg = "tools (nimble, nimgrep, nimsuggest)"
+  display("Building", msg, priority = HighPriority)
   if fileExists(getCurrentDir() / "build.sh"):
     when defined(windows):
       doCmd("bin/nim c koch")
-      doCmd("koch tools")
+      doCmd("koch.exe tools -d:release")
     else:
       doCmd("./bin/nim c koch")
-      doCmd("./koch tools")
+      doCmd("./koch tools -d:release")
+  else:
+    when defined(windows):
+      doCmd("koch.exe tools -d:release")
+    else:
+      doCmd("./koch tools -d:release")
 
 proc build*(extractDir: string, version: Version) =
   let currentDir = getCurrentDir()
