@@ -3,8 +3,8 @@ import os
 import nimblepkg/[cli, tools, version]
 import nimblepkg/common as nimbleCommon
 
-import choosenimpkg/[download, builder, options, switcher, common, cliparams]
-import choosenimpkg/utils
+import choosenim/[download, builder, options, switcher, common, cliparams]
+import choosenim/utils
 
 proc parseVersion(versionStr: string): Version =
   try:
