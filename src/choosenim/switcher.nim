@@ -39,6 +39,17 @@ proc writeProxy(bin: string) =
                      getFilePermissions(proxyPath) + {fpUserExec})
   display("Installed", "component '$1'" % bin, priority = HighPriority)
 
+  # Check whether this is in the user's PATH.
+  let fromPATH = findExe(bin)
+  if fromPATH == "":
+    display("Hint:", ("Binary '$1' isn't in your PATH. Add '$2' to " &
+                     "your PATH.") % [bin, getBinDir()], Warning, HighPriority)
+  elif fromPATH != proxyPath:
+    display("Warning:", "Binary '$1' is shadowed by '$2'." %
+            [bin, fromPATH], Warning, HighPriority)
+    display("Hint:", "Ensure that '$1' is before '$2' in the PATH env var." %
+            [getBinDir(), fromPATH.splitFile.dir], Warning, HighPriority)
+
 proc switchTo*(version: Version) =
   ## Writes the appropriate proxy into $nimbleDir/bin.
   assert isVersionInstalled(version), "Cannot switch to non-installed version"
