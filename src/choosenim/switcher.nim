@@ -23,6 +23,7 @@ proc isVersionInstalled*(version: Version): bool =
 
 proc writeProxy(bin: string) =
   let proxyPath = getBinDir() / bin.addFileExt(ExeExt)
+
   if symlinkExists(proxyPath):
     let msg = "Symlink for '$1' detected in '$2'. Can I remove it?" %
               [bin, proxyPath.splitFile().dir]
@@ -42,13 +43,19 @@ proc switchTo*(version: Version) =
   ## Writes the appropriate proxy into $nimbleDir/bin.
   assert isVersionInstalled(version), "Cannot switch to non-installed version"
 
+  # Return early if this version is already selected.
+  if readFile(getCurrentFile()) == getInstallationDir(version):
+    display("Info:", "Version $1 already selected" % $version,
+            priority = HighPriority)
+    return
+  else:
+    # Write selected path to "current file".
+    writeFile(getCurrentFile(), getInstallationDir(version))
+
   # Create the proxy executables.
   writeProxy("nim")
   writeProxy("nimble")
   writeProxy("nimgrep")
   writeProxy("nimsuggest")
-
-  # Write selected path to "current file".
-  writeFile(getCurrentFile(), getInstallationDir(version))
 
   display("Switched", "to Nim " & $version, Success, HighPriority)
