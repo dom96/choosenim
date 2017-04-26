@@ -7,7 +7,7 @@ and development compilers.
 The aim of this tool is two-fold:
 
 * Provide an easy way to install the Nim compiler and tools.
-* Allow multiple Nim installations that can be selected on-demand.
+* Manage multiple Nim installations and allow them to be selected on-demand.
 
 ## Typical usage
 
