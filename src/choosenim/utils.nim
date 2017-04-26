@@ -1,12 +1,16 @@
-import os
+import os, strutils
 
 import nimblepkg/[cli, tools, version]
 import untar
 
-import switcher
+import switcher, common
 
 proc extract*(path: string, extractDir: string) =
   display("Extracting", path.extractFilename(), priority = HighPriority)
-  var file = newTarFile(path)
-  removeDir(extractDir)
-  file.extract(extractDir)
+  try:
+    var file = newTarFile(path)
+    removeDir(extractDir)
+    file.extract(extractDir)
+  except Exception as exc:
+    raise newException(ChooseNimError, "Unable to extract. Error was '$1'." %
+                       exc.msg)

@@ -1,8 +1,9 @@
 import os, strutils
 
 import nimblepkg/[version, cli, tools]
+import nimblepkg/common as nimble_common
 
-import options, download, utils
+import options, download, utils, common
 
 proc buildFromCSources() =
   when defined(windows):
@@ -73,7 +74,22 @@ proc build*(extractDir: string, version: Version) =
     setCurrentDir(currentDir)
 
   display("Building", "Nim " & $version, priority = HighPriority)
-  buildCompiler()
-  buildTools()
 
+  var success = false
+  try:
+    buildCompiler()
+    buildTools()
+    success = true
+  except NimbleError as exc:
+    # Display error and output from build separately.
+    let (error, hint) = getOutputInfo(exc)
+    display("Exception:", error, Error, HighPriority)
+    let newError = newException(ChooseNimError, "Build failed")
+    newError.hint = hint
+    raise newError
+  finally:
+    if not success:
+      # Perform clean up.
+      display("Cleaning", "failed build", priority = HighPriority)
+      removeDir(extractDir)
 
