@@ -58,11 +58,21 @@ when defined(curl):
         bytesWritten: int
         lastSpeedUpdate: float
         speed: BiggestInt
+        needsUpdate: bool
 
     # Set up progress callback.
     proc onProgress(userData: pointer, dltotal, dlnow, ultotal,
                     ulnow: float): cint =
+      result = 0 # Ensure download isn't terminated.
+
       let userData = cast[UserData](userData)
+
+      # Only update once per second.
+      if userData.needsUpdate:
+        userData.needsUpdate = false
+      else:
+        return
+
       let fraction = dlnow.float / dltotal.float
       if fraction.classify == fcNan:
         return
@@ -72,7 +82,6 @@ when defined(curl):
                             userData.lastProgressPos)
       else:
         showBar(fraction, userData.speed)
-      return 0
 
     doAssert curl.easy_setopt(OPT_PROGRESSFUNCTION, onProgress) == E_OK
 
@@ -85,11 +94,13 @@ when defined(curl):
       doAssert result == len
 
       # Handle speed measurement.
+      const updateInterval = 0.25
       userData.bytesWritten += result
-      if epochTime() - userData.lastSpeedUpdate > 1.0:
-        userData.speed = userData.bytesWritten
+      if epochTime() - userData.lastSpeedUpdate > updateInterval:
+        userData.speed = userData.bytesWritten * int(1/updateInterval)
         userData.bytesWritten = 0
         userData.lastSpeedUpdate = epochTime()
+        userData.needsUpdate = true
 
     doAssert curl.easy_setopt(OPT_WRITEFUNCTION, onWrite) == E_OK
 
