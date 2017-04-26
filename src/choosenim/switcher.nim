@@ -55,7 +55,10 @@ proc switchTo*(version: Version) =
   assert isVersionInstalled(version), "Cannot switch to non-installed version"
 
   # Return early if this version is already selected.
-  if readFile(getCurrentFile()) == getInstallationDir(version):
+  let selectedVersion =
+    if fileExists(getCurrentFile()): readFile(getCurrentFile())
+    else: ""
+  if selectedVersion == getInstallationDir(version):
     display("Info:", "Version $1 already selected" % $version,
             priority = HighPriority)
     return
