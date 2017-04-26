@@ -1,6 +1,8 @@
-import httpclient, strutils, os, terminal
+import httpclient, strutils, os, terminal, times, math
 
 import nimblepkg/[version, cli]
+when defined(curl):
+  import libcurl except Version
 
 import options, common
 
@@ -36,7 +38,79 @@ proc showBar(fraction: float, speed: BiggestInt) =
                 ])
   stdout.flushFile()
 
-proc downloadFile(url, outputPath: string) =
+when defined(curl):
+  proc downloadFileCurl(url, outputPath: string) =
+    # Based on: https://curl.haxx.se/libcurl/c/url2file.html
+    let curl = libcurl.easy_init()
+
+    # Enable progress bar.
+    #doAssert curl.easy_setopt(OPT_VERBOSE, 1) == E_OK
+    doAssert curl.easy_setopt(OPT_NOPROGRESS, 0) == E_OK
+
+    # Set which URL to download and tell curl to follow redirects.
+    doAssert curl.easy_setopt(OPT_URL, url) == E_OK
+    doAssert curl.easy_setopt(OPT_FOLLOWLOCATION, 1) == E_OK
+
+    type
+      UserData = ref object
+        file: File
+        lastProgressPos: int
+        bytesWritten: int
+        lastSpeedUpdate: float
+        speed: BiggestInt
+
+    # Set up progress callback.
+    proc onProgress(userData: pointer, dltotal, dlnow, ultotal,
+                    ulnow: float): cint =
+      let userData = cast[UserData](userData)
+      let fraction = dlnow.float / dltotal.float
+      if fraction.classify == fcNan:
+        return
+
+      if fraction == Inf:
+        showIndeterminateBar(dlnow.BiggestInt, userData.speed,
+                            userData.lastProgressPos)
+      else:
+        showBar(fraction, userData.speed)
+      return 0
+
+    doAssert curl.easy_setopt(OPT_PROGRESSFUNCTION, onProgress) == E_OK
+
+    # Set up write callback.
+    proc onWrite(data: ptr char, size: cint, nmemb: cint,
+                userData: pointer): cint =
+      let userData = cast[UserData](userData)
+      let len = size * nmemb
+      result = userData.file.writeBuffer(data, len).cint
+      doAssert result == len
+
+      # Handle speed measurement.
+      userData.bytesWritten += result
+      if epochTime() - userData.lastSpeedUpdate > 1.0:
+        userData.speed = userData.bytesWritten
+        userData.bytesWritten = 0
+        userData.lastSpeedUpdate = epochTime()
+
+    doAssert curl.easy_setopt(OPT_WRITEFUNCTION, onWrite) == E_OK
+
+    # Open file for writing and set up UserData.
+    let userData = UserData(
+      file: open(outputPath, fmWrite),
+      lastProgressPos: 0,
+      lastSpeedUpdate: epochTime(),
+      speed: 0
+    )
+    doAssert curl.easy_setopt(OPT_WRITEDATA, userData) == E_OK
+    doAssert curl.easy_setopt(OPT_PROGRESSDATA, userData) == E_OK
+
+    # Download the file.
+    doAssert curl.easy_perform() == E_OK
+
+    # Cleanup.
+    userData.file.close()
+    curl.easy_cleanup()
+
+proc downloadFileNim(url, outputPath: string) =
   var client = newHttpClient()
 
   var lastProgressPos = 0
@@ -49,13 +123,20 @@ proc downloadFile(url, outputPath: string) =
 
   client.onProgressChanged = onProgressChanged
 
+  client.downloadFile(url, outputPath)
+
+proc downloadFile(url, outputPath: string) =
   # Create outputPath's directory if it doesn't exist already.
   createDir(outputPath.splitFile.dir)
+
   # Download to temporary file to prevent problems when choosenim crashes.
   let tempOutputPath = outputPath & "_temp"
   try:
-    client.downloadFile(url, tempOutputPath)
-  except HttpRequestError:
+    when defined(curl):
+      downloadFileCurl(url, tempOutputPath)
+    else:
+      downloadFileNim(url, tempOutputPath)
+  except HttpRequestError, AssertionError:
     echo("") # Skip line with progress bar.
     let msg = "Couldn't download file from $1.\nResponse was: $2" %
               [url, getCurrentExceptionMsg()]
@@ -110,3 +191,7 @@ proc downloadCSources*(): string =
   display("Downloading", "Nim C sources from GitHub", priority = HighPriority)
   downloadFile(csourcesUrl, outputPath)
   return outputPath
+
+when isMainModule:
+
+  downloadFileCurl(websiteUrl % "0.16.0", "curl-test.tar.gz")
