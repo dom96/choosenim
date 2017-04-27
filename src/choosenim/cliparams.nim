@@ -6,7 +6,7 @@ import common
 
 type
   CliParams = ref object
-    version*: string
+    command*: string
 
 let doc = """
 choosenim: The Nim toolchain installer.
@@ -14,7 +14,7 @@ choosenim: The Nim toolchain installer.
 Choose a job. Choose a mortgage. Choose life. Choose Nim.
 
 Usage:
-  choosenim <version>
+  choosenim <version/path>
 
 Example:
   choosenim 0.16.0
@@ -22,6 +22,8 @@ Example:
   choosenim #head
     Installs (if necessary) and selects the latest current commit of Nim.
     Warning: Your shell may need quotes around `#head`: choosenim "#head".
+  choosenim ~/projects/nim
+    Selects the specified Nim installation.
 
 Options:
   -h --help     Show this screen.
@@ -41,14 +43,14 @@ proc writeVersion() =
 
 proc newCliParams(): CliParams =
   new result
-  result.version = ""
+  result.command = ""
 
 proc getCliParams*(): CliParams =
   result = newCliParams()
   for kind, key, val in getopt():
     case kind
     of cmdArgument:
-      result.version = key
+      result.command = key
     of cmdLongOption, cmdShortOption:
       case key
       of "help", "h": writeHelp()
@@ -58,5 +60,5 @@ proc getCliParams*(): CliParams =
       else: discard
     of cmdEnd: assert(false)
 
-  if result.version == "":
+  if result.command == "":
     writeHelp()

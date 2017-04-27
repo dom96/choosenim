@@ -2,7 +2,7 @@ import os, strutils
 
 import nimblepkg/[cli, version]
 
-import options
+import options, common
 
 static:
   when defined(release):
@@ -14,12 +14,23 @@ static:
 const
   proxyExe = staticRead("proxyexe".addFileExt(ExeExt))
 
+  proxies = [
+    "nim",
+    "nimble",
+    "nimgrep",
+    "nimsuggest"
+  ]
+
 proc getInstallationDir*(version: Version): string =
   return getInstallDir() / ("nim-$1" % $version)
 
 proc isVersionInstalled*(version: Version): bool =
   return fileExists(getInstallationDir(version) / "bin" /
                     "nim".addFileExt(ExeExt))
+
+proc getSelectedPath(): string =
+  if fileExists(getCurrentFile()): readFile(getCurrentFile())
+  else: ""
 
 proc getProxyPath(bin: string): string =
   return getBinDir() / bin.addFileExt(ExeExt)
@@ -69,32 +80,45 @@ proc writeProxy(bin: string) =
     display("Hint:", "Ensure that '$1' is before '$2' in the PATH env var." %
             [getBinDir(), fromPATH.splitFile.dir], Warning, HighPriority)
 
-proc switchTo*(version: Version) =
-  ## Writes the appropriate proxy into $nimbleDir/bin.
-  assert isVersionInstalled(version), "Cannot switch to non-installed version"
-
-  const proxies = [
-    "nim",
-    "nimble",
-    "nimgrep",
-    "nimsuggest"
-  ]
+proc switchToPath(filepath: string): bool =
+  ## Switches to the specified file path that should point to the root of
+  ## the Nim repo.
+  ##
+  ## Returns `false` when no switching occurs (because that version was
+  ## already selected).
+  result = true
+  if not fileExists(filepath / "bin" / "nim".addFileExt(ExeExt)):
+    let msg = "No 'nim' binary found in '$1'." % filepath / "bin"
+    raise newException(ChooseNimError, msg)
 
   # Return early if this version is already selected.
-  let selectedVersion =
-    if fileExists(getCurrentFile()): readFile(getCurrentFile())
-    else: ""
+  let selectedPath = getSelectedPath()
   let proxiesInstalled = areProxiesInstalled(proxies)
-  if selectedVersion == getInstallationDir(version) and proxiesInstalled:
-    display("Info:", "Version $1 already selected" % $version,
-            priority = HighPriority)
-    return
+  if selectedPath == filepath and proxiesInstalled:
+    return false
   else:
     # Write selected path to "current file".
-    writeFile(getCurrentFile(), getInstallationDir(version))
+    writeFile(getCurrentFile(), filepath)
 
   # Create the proxy executables.
   for proxy in proxies:
     writeProxy(proxy)
 
-  display("Switched", "to Nim " & $version, Success, HighPriority)
+proc switchTo*(version: Version) =
+  ## Switches to the specified version by writing the appropriate proxy
+  ## into $nimbleDir/bin.
+  assert isVersionInstalled(version), "Cannot switch to non-installed version"
+
+  if switchToPath(getInstallationDir(version)):
+    display("Switched", "to Nim " & $version, Success, HighPriority)
+  else:
+    display("Info:", "Version $1 already selected" % $version,
+            priority = HighPriority)
+
+proc switchTo*(filepath: string) =
+  ## Switches to an existing Nim installation.
+  if switchToPath(filepath):
+    display("Switched", "to Nim ($1)" % filepath, Success, HighPriority)
+  else:
+    display("Info:", "Path '$1' already selected" % filepath,
+            priority = HighPriority)

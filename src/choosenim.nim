@@ -13,19 +13,24 @@ proc parseVersion(versionStr: string): Version =
     let msg = "Invalid version. Try 0.16.0, #head or #commitHash."
     raise newException(ChooseNimError, msg)
 
-proc choose(versionStr: string) =
-  let version = parseVersion(versionStr)
+proc choose(command: string) =
+  if dirExists(command):
+    # Command is a file path likely pointing to an existing Nim installation.
+    switchTo(command)
+  else:
+    # Command is a version.
+    let version = parseVersion(command)
 
-  if not isVersionInstalled(version):
-    # Install the requested version.
-    let path = download(version)
-    # Extract the downloaded file.
-    let extractDir = getInstallationDir(version)
-    extract(path, extractDir)
-    # Build the compiler
-    build(extractDir, version)
+    if not isVersionInstalled(version):
+      # Install the requested version.
+      let path = download(version)
+      # Extract the downloaded file.
+      let extractDir = getInstallationDir(version)
+      extract(path, extractDir)
+      # Build the compiler
+      build(extractDir, version)
 
-  switchTo(version)
+    switchTo(version)
 
 when isMainModule:
   let params = getCliParams()
@@ -33,7 +38,7 @@ when isMainModule:
   var error = ""
   var hint = ""
   try:
-    choose(params.version)
+    choose(params.command)
   except NimbleError:
     let currentExc = (ref NimbleError)(getCurrentException())
     (error, hint) = getOutputInfo(currentExc)
