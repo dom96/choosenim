@@ -21,8 +21,27 @@ proc isVersionInstalled*(version: Version): bool =
   return fileExists(getInstallationDir(version) / "bin" /
                     "nim".addFileExt(ExeExt))
 
+proc getProxyPath(bin: string): string =
+  return getBinDir() / bin.addFileExt(ExeExt)
+
+proc areProxiesInstalled(proxies: openarray[string]): bool =
+  result = true
+  for proxy in proxies:
+    # Verify that proxy exists.
+    let path = getProxyPath(proxy)
+    if not fileExists(path):
+      return false
+
+    # Verify that proxy binary is up-to-date.
+    let contents = readFile(path)
+    if contents != proxyExe:
+      return false
+
 proc writeProxy(bin: string) =
-  let proxyPath = getBinDir() / bin.addFileExt(ExeExt)
+  # Create the ~/.nimble/bin dir in case it doesn't exist.
+  createDir(getBinDir())
+
+  let proxyPath = getProxypath(bin)
 
   if symlinkExists(proxyPath):
     let msg = "Symlink for '$1' detected in '$2'. Can I remove it?" %
@@ -54,11 +73,19 @@ proc switchTo*(version: Version) =
   ## Writes the appropriate proxy into $nimbleDir/bin.
   assert isVersionInstalled(version), "Cannot switch to non-installed version"
 
+  const proxies = [
+    "nim",
+    "nimble",
+    "nimgrep",
+    "nimsuggest"
+  ]
+
   # Return early if this version is already selected.
   let selectedVersion =
     if fileExists(getCurrentFile()): readFile(getCurrentFile())
     else: ""
-  if selectedVersion == getInstallationDir(version):
+  let proxiesInstalled = areProxiesInstalled(proxies)
+  if selectedVersion == getInstallationDir(version) and proxiesInstalled:
     display("Info:", "Version $1 already selected" % $version,
             priority = HighPriority)
     return
@@ -67,9 +94,7 @@ proc switchTo*(version: Version) =
     writeFile(getCurrentFile(), getInstallationDir(version))
 
   # Create the proxy executables.
-  writeProxy("nim")
-  writeProxy("nimble")
-  writeProxy("nimgrep")
-  writeProxy("nimsuggest")
+  for proxy in proxies:
+    writeProxy(proxy)
 
   display("Switched", "to Nim " & $version, Success, HighPriority)
