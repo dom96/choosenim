@@ -39,17 +39,23 @@ proc showBar(fraction: float, speed: BiggestInt) =
   stdout.flushFile()
 
 when defined(curl):
+  proc checkCurl(code: Code) =
+    if code != E_OK:
+      raise newException(AssertionError, "CURL failed: " & $easy_strerror(code))
+
   proc downloadFileCurl(url, outputPath: string) =
     # Based on: https://curl.haxx.se/libcurl/c/url2file.html
     let curl = libcurl.easy_init()
+    defer:
+      curl.easy_cleanup()
 
     # Enable progress bar.
-    #doAssert curl.easy_setopt(OPT_VERBOSE, 1) == E_OK
-    doAssert curl.easy_setopt(OPT_NOPROGRESS, 0) == E_OK
+    #checkCurl curl.easy_setopt(OPT_VERBOSE, 1)
+    checkCurl curl.easy_setopt(OPT_NOPROGRESS, 0)
 
     # Set which URL to download and tell curl to follow redirects.
-    doAssert curl.easy_setopt(OPT_URL, url) == E_OK
-    doAssert curl.easy_setopt(OPT_FOLLOWLOCATION, 1) == E_OK
+    checkCurl curl.easy_setopt(OPT_URL, url)
+    checkCurl curl.easy_setopt(OPT_FOLLOWLOCATION, 1)
 
     type
       UserData = ref object
@@ -83,7 +89,7 @@ when defined(curl):
       else:
         showBar(fraction, userData.speed)
 
-    doAssert curl.easy_setopt(OPT_PROGRESSFUNCTION, onProgress) == E_OK
+    checkCurl curl.easy_setopt(OPT_PROGRESSFUNCTION, onProgress)
 
     # Set up write callback.
     proc onWrite(data: ptr char, size: cint, nmemb: cint,
@@ -102,7 +108,7 @@ when defined(curl):
         userData.lastSpeedUpdate = epochTime()
         userData.needsUpdate = true
 
-    doAssert curl.easy_setopt(OPT_WRITEFUNCTION, onWrite) == E_OK
+    checkCurl curl.easy_setopt(OPT_WRITEFUNCTION, onWrite)
 
     # Open file for writing and set up UserData.
     let userData = UserData(
@@ -111,15 +117,20 @@ when defined(curl):
       lastSpeedUpdate: epochTime(),
       speed: 0
     )
-    doAssert curl.easy_setopt(OPT_WRITEDATA, userData) == E_OK
-    doAssert curl.easy_setopt(OPT_PROGRESSDATA, userData) == E_OK
+    defer:
+      userData.file.close()
+    checkCurl curl.easy_setopt(OPT_WRITEDATA, userData)
+    checkCurl curl.easy_setopt(OPT_PROGRESSDATA, userData)
 
     # Download the file.
-    doAssert curl.easy_perform() == E_OK
+    checkCurl curl.easy_perform()
 
-    # Cleanup.
-    userData.file.close()
-    curl.easy_cleanup()
+    # Verify the response code.
+    var responseCode: int
+    checkCurl curl.easy_getinfo(INFO_RESPONSE_CODE, addr responseCode)
+
+    doAssert responseCode == 200,
+             "Expected HTTP code $1 got $2" % [$200, $responseCode]
 
 proc downloadFileNim(url, outputPath: string) =
   var client = newHttpClient()
@@ -203,6 +214,43 @@ proc downloadCSources*(): string =
   downloadFile(csourcesUrl, outputPath)
   return outputPath
 
+proc retrieveUrl*(url: string): string =
+  when defined(curl):
+    # Based on: https://curl.haxx.se/libcurl/c/simple.html
+    let curl = libcurl.easy_init()
+
+    # Set which URL to retrieve and tell curl to follow redirects.
+    checkCurl curl.easy_setopt(OPT_URL, url)
+    checkCurl curl.easy_setopt(OPT_FOLLOWLOCATION, 1)
+
+    var res = ""
+    # Set up write callback.
+    proc onWrite(data: ptr char, size: cint, nmemb: cint,
+                 userData: pointer): cint =
+      var res = cast[ptr string](userData)
+      var buffer = newString(size * nmemb)
+      copyMem(addr buffer[0], data, buffer.len)
+      res[].add(buffer)
+      result = buffer.len.cint
+
+    checkCurl curl.easy_setopt(OPT_WRITEFUNCTION, onWrite)
+    checkCurl curl.easy_setopt(OPT_WRITEDATA, addr res)
+
+    # Download the file.
+    checkCurl curl.easy_perform()
+
+    # Verify the response code.
+    var responseCode: int
+    checkCurl curl.easy_getinfo(INFO_RESPONSE_CODE, addr responseCode)
+
+    doAssert responseCode == 200,
+             "Expected HTTP code $1 got $2" % [$200, $responseCode]
+
+    return res
+  else:
+    var client = newHttpClient()
+    return client.getContent(url)
+
 when isMainModule:
 
-  downloadFileCurl(websiteUrl % "0.16.0", "curl-test.tar.gz")
+  echo retrieveUrl("https://nim-lang.org")
