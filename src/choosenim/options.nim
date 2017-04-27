@@ -1,5 +1,5 @@
 import os
-const
+let
   chooseNimDir = getHomeDir() / ".choosenim"
 
 proc getDownloadDir*(): string =
