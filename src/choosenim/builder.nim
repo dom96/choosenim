@@ -3,7 +3,7 @@ import os, strutils
 import nimblepkg/[version, cli, tools]
 import nimblepkg/common as nimble_common
 
-import options, download, utils, common
+import cliparams, download, utils, common
 
 proc buildFromCSources() =
   when defined(windows):
@@ -12,7 +12,7 @@ proc buildFromCSources() =
   else:
     doCmd("sh build.sh")
 
-proc buildCompiler() =
+proc buildCompiler(params: CliParams) =
   ## Assumes that CWD contains the compiler (``build`` should have changed it).
   let binDir = getCurrentDir() / "bin"
   if fileExists(binDir / "nim".addFileExt(ExeExt)):
@@ -25,7 +25,7 @@ proc buildCompiler() =
     display("Warning:", "Building from latest C sources. They may not be " &
                         "compatible with the Nim version you have chosen to " &
                         "install.", Warning, HighPriority)
-    let path = downloadCSources()
+    let path = downloadCSources(params)
     let extractDir = getCurrentDir() / "csources"
     extract(path, extractDir)
 
@@ -67,7 +67,7 @@ proc buildTools() =
     else:
       doCmd("./koch tools -d:release")
 
-proc build*(extractDir: string, version: Version) =
+proc build*(extractDir: string, version: Version, params: CliParams) =
   let currentDir = getCurrentDir()
   setCurrentDir(extractDir)
   defer:
@@ -77,7 +77,7 @@ proc build*(extractDir: string, version: Version) =
 
   var success = false
   try:
-    buildCompiler()
+    buildCompiler(params)
     buildTools()
     success = true
   except NimbleError as exc:

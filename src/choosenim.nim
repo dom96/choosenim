@@ -3,7 +3,7 @@ import os
 import nimblepkg/[cli, tools, version]
 import nimblepkg/common as nimbleCommon
 
-import choosenim/[download, builder, options, switcher, common, cliparams]
+import choosenim/[download, builder, switcher, common, cliparams]
 import choosenim/utils
 
 proc parseVersion(versionStr: string): Version =
@@ -13,24 +13,24 @@ proc parseVersion(versionStr: string): Version =
     let msg = "Invalid version. Try 0.16.0, #head or #commitHash."
     raise newException(ChooseNimError, msg)
 
-proc choose(command: string) =
-  if dirExists(command):
+proc choose(params: CliParams) =
+  if dirExists(params.command):
     # Command is a file path likely pointing to an existing Nim installation.
-    switchTo(command)
+    switchTo(params.command, params)
   else:
     # Command is a version.
-    let version = parseVersion(command)
+    let version = parseVersion(params.command)
 
-    if not isVersionInstalled(version):
+    if not params.isVersionInstalled(version):
       # Install the requested version.
-      let path = download(version)
+      let path = download(version, params)
       # Extract the downloaded file.
-      let extractDir = getInstallationDir(version)
+      let extractDir = params.getInstallationDir(version)
       extract(path, extractDir)
       # Build the compiler
-      build(extractDir, version)
+      build(extractDir, version, params)
 
-    switchTo(version)
+    switchTo(version, params)
 
 when isMainModule:
   let params = getCliParams()
@@ -38,7 +38,7 @@ when isMainModule:
   var error = ""
   var hint = ""
   try:
-    choose(params.command)
+    choose(params)
   except NimbleError:
     let currentExc = (ref NimbleError)(getCurrentException())
     (error, hint) = getOutputInfo(currentExc)

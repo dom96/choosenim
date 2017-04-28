@@ -6,16 +6,17 @@ import strutils, os, osproc
 
 import nimblepkg/cli
 import nimblepkg/common as nimbleCommon
-import options
+import cliparams
 from common import ChooseNimError
 
-proc getExePath(): string {.raises: [ChooseNimError, ValueError].} =
+proc getExePath(params: CliParams): string
+  {.raises: [ChooseNimError, ValueError].} =
   # TODO: This code is disgusting. I wanted to make it as safe/informative as
   # possible but all these try statements are horrible.
 
   var path = ""
   try:
-    path = getCurrentFile()
+    path = params.getCurrentFile()
     if not fileExists(path):
       let msg = "No installation has been chosen. (File missing: $1)" % path
       raise newException(ChooseNimError, msg)
@@ -34,8 +35,8 @@ proc getExePath(): string {.raises: [ChooseNimError, ValueError].} =
     let msg = "getAppFilename failed. (Error was: $1)" % exc.msg
     raise newException(ChooseNimError, msg)
 
-proc main() {.raises: [ChooseNimError, ValueError].} =
-  let exePath = getExePath()
+proc main(params: CliParams) {.raises: [ChooseNimError, ValueError].} =
+  let exePath = getExePath(params)
   if not fileExists(exePath):
     raise newException(ChooseNimError,
         "Requested executable is missing. (Path: $1)" % exePath)
@@ -54,7 +55,8 @@ when isMainModule:
   var error = ""
   var hint = ""
   try:
-    main()
+    let params = getCliParams(proxyExeMode = true)
+    main(params)
   except NimbleError as exc:
     (error, hint) = getOutputInfo(exc)
 

@@ -2,7 +2,7 @@ import os, strutils
 
 import nimblepkg/[cli, version]
 
-import options, common
+import cliparams, common
 
 static:
   when defined(release):
@@ -21,25 +21,25 @@ const
     "nimsuggest"
   ]
 
-proc getInstallationDir*(version: Version): string =
-  return getInstallDir() / ("nim-$1" % $version)
+proc getInstallationDir*(params: CliParams, version: Version): string =
+  return params.getInstallDir() / ("nim-$1" % $version)
 
-proc isVersionInstalled*(version: Version): bool =
-  return fileExists(getInstallationDir(version) / "bin" /
+proc isVersionInstalled*(params: CliParams, version: Version): bool =
+  return fileExists(params.getInstallationDir(version) / "bin" /
                     "nim".addFileExt(ExeExt))
 
-proc getSelectedPath(): string =
-  if fileExists(getCurrentFile()): readFile(getCurrentFile())
+proc getSelectedPath(params: CliParams): string =
+  if fileExists(params.getCurrentFile()): readFile(params.getCurrentFile())
   else: ""
 
-proc getProxyPath(bin: string): string =
-  return getBinDir() / bin.addFileExt(ExeExt)
+proc getProxyPath(params: CliParams, bin: string): string =
+  return params.getBinDir() / bin.addFileExt(ExeExt)
 
-proc areProxiesInstalled(proxies: openarray[string]): bool =
+proc areProxiesInstalled(params: CliParams, proxies: openarray[string]): bool =
   result = true
   for proxy in proxies:
     # Verify that proxy exists.
-    let path = getProxyPath(proxy)
+    let path = params.getProxyPath(proxy)
     if not fileExists(path):
       return false
 
@@ -48,11 +48,11 @@ proc areProxiesInstalled(proxies: openarray[string]): bool =
     if contents != proxyExe:
       return false
 
-proc writeProxy(bin: string) =
+proc writeProxy(bin: string, params: CliParams) =
   # Create the ~/.nimble/bin dir in case it doesn't exist.
-  createDir(getBinDir())
+  createDir(params.getBinDir())
 
-  let proxyPath = getProxypath(bin)
+  let proxyPath = params.getProxypath(bin)
 
   if symlinkExists(proxyPath):
     let msg = "Symlink for '$1' detected in '$2'. Can I remove it?" %
@@ -72,15 +72,15 @@ proc writeProxy(bin: string) =
   # Check whether this is in the user's PATH.
   let fromPATH = findExe(bin)
   if fromPATH == "":
-    display("Hint:", ("Binary '$1' isn't in your PATH. Add '$2' to " &
-                     "your PATH.") % [bin, getBinDir()], Warning, HighPriority)
+    display("Hint:", "Binary '$1' isn't in your PATH. Add '$2' to your PATH." %
+            [bin, params.getBinDir()], Warning, HighPriority)
   elif fromPATH != proxyPath:
     display("Warning:", "Binary '$1' is shadowed by '$2'." %
             [bin, fromPATH], Warning, HighPriority)
     display("Hint:", "Ensure that '$1' is before '$2' in the PATH env var." %
-            [getBinDir(), fromPATH.splitFile.dir], Warning, HighPriority)
+            [params.getBinDir(), fromPATH.splitFile.dir], Warning, HighPriority)
 
-proc switchToPath(filepath: string): bool =
+proc switchToPath(filepath: string, params: CliParams): bool =
   ## Switches to the specified file path that should point to the root of
   ## the Nim repo.
   ##
@@ -92,32 +92,33 @@ proc switchToPath(filepath: string): bool =
     raise newException(ChooseNimError, msg)
 
   # Return early if this version is already selected.
-  let selectedPath = getSelectedPath()
-  let proxiesInstalled = areProxiesInstalled(proxies)
+  let selectedPath = params.getSelectedPath()
+  let proxiesInstalled = params.areProxiesInstalled(proxies)
   if selectedPath == filepath and proxiesInstalled:
     return false
   else:
     # Write selected path to "current file".
-    writeFile(getCurrentFile(), filepath)
+    writeFile(params.getCurrentFile(), filepath)
 
   # Create the proxy executables.
   for proxy in proxies:
-    writeProxy(proxy)
+    writeProxy(proxy, params)
 
-proc switchTo*(version: Version) =
+proc switchTo*(version: Version, params: CliParams) =
   ## Switches to the specified version by writing the appropriate proxy
   ## into $nimbleDir/bin.
-  assert isVersionInstalled(version), "Cannot switch to non-installed version"
+  assert params.isVersionInstalled(version),
+         "Cannot switch to non-installed version"
 
-  if switchToPath(getInstallationDir(version)):
+  if switchToPath(params.getInstallationDir(version), params):
     display("Switched", "to Nim " & $version, Success, HighPriority)
   else:
     display("Info:", "Version $1 already selected" % $version,
             priority = HighPriority)
 
-proc switchTo*(filepath: string) =
+proc switchTo*(filepath: string, params: CliParams) =
   ## Switches to an existing Nim installation.
-  if switchToPath(filepath):
+  if switchToPath(filepath, params):
     display("Switched", "to Nim ($1)" % filepath, Success, HighPriority)
   else:
     display("Info:", "Path '$1' already selected" % filepath,

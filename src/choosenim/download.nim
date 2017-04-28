@@ -4,7 +4,7 @@ import nimblepkg/[version, cli]
 when defined(curl):
   import libcurl except Version
 
-import options, common
+import cliparams, common
 
 const
   githubUrl = "https://github.com/nim-lang/Nim/archive/$1.tar.gz"
@@ -170,8 +170,8 @@ proc downloadFile(url, outputPath: string) =
   showBar(1, 0)
   echo("")
 
-proc downloadImpl(version: Version): string =
-  let outputPath = getDownloadDir() / ("nim-$1.tar.gz" % $version)
+proc downloadImpl(version: Version, params: CliParams): string =
+  let outputPath = params.getDownloadDir() / ("nim-$1.tar.gz" % $version)
   if outputPath.existsFile():
     # TODO: Verify sha256.
     display("Info:", "Nim $1 already downloaded" % $version,
@@ -195,16 +195,16 @@ proc downloadImpl(version: Version): string =
     downloadFile(websiteUrl % $version, outputPath)
     result = outputPath
 
-proc download*(version: Version): string =
+proc download*(version: Version, params: CliParams): string =
   ## Returns the path of the downloaded .tar.gz file.
   try:
-    return downloadImpl(version)
+    return downloadImpl(version, params)
   except HttpRequestError:
     raise newException(ChooseNimError, "Version $1 does not exist." %
                        $version)
 
-proc downloadCSources*(): string =
-  let outputPath = getDownloadDir() / "nim-csources.tar.gz"
+proc downloadCSources*(params: CliParams): string =
+  let outputPath = params.getDownloadDir() / "nim-csources.tar.gz"
   if outputPath.existsFile():
     # TODO: Verify sha256.
     display("Info:", "C sources already downloaded", priority=HighPriority)
