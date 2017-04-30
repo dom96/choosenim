@@ -27,9 +27,9 @@ template beginTest() =
   removeDir(choosenimDir)
   createDir(choosenimDir)
 
-proc execChooseNim(args: varargs[string]): tuple[output: string, exitCode: int] =
+proc exec(args: varargs[string], exe=exePath): tuple[output: string, exitCode: int] =
   var quotedArgs = @args
-  quotedArgs.insert(exePath)
+  quotedArgs.insert(exe)
   quotedArgs.add("--nimbleDir:" & nimbleDir)
   quotedArgs.add("--chooseNimDir:" & choosenimDir)
   quotedArgs.add("--noColor")
@@ -49,10 +49,26 @@ proc hasLine(lines: seq[string], line: string): bool =
   for i in lines:
     if i.normalize.strip() == line.normalize(): return true
 
+test "refuses invalid path":
+  beginTest()
+  block:
+    let (output, exitCode) = exec(getTempDir() / "blahblah")
+    check exitCode == QuitFailure
+    check inLines(output.processOutput, "invalid")
+    check inLines(output.processOutput, "version")
+    check inLines(output.processOutput, "path")
+
+  block:
+    let (output, exitCode) = exec(getTempDir())
+    check exitCode == QuitFailure
+    check inLines(output.processOutput, "no")
+    check inLines(output.processOutput, "binary")
+    check inLines(output.processOutput, "found")
+
 test "can choose v0.16.0":
   beginTest()
   block:
-    let (output, exitCode) = execChooseNim("0.16.0")
+    let (output, exitCode) = exec("0.16.0")
     check exitCode == QuitSuccess
 
     check inLines(output.processOutput, "building")
@@ -60,7 +76,12 @@ test "can choose v0.16.0":
     check hasLine(output.processOutput, "switched to nim 0.16.0")
 
   block:
-    let (output, exitCode) = execChooseNim("0.16.0")
+    let (output, exitCode) = exec("0.16.0")
     check exitCode == QuitSuccess
 
     check hasLine(output.processOutput, "info: version 0.16.0 already selected")
+
+  block:
+    let (output, exitCode) = exec("--version", nimbleDir / "bin" / "nimble")
+    check exitCode == QuitSuccess
+    check inLines(output.processOutput, "v0.8.2")

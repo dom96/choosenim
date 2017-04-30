@@ -1,6 +1,6 @@
 import parseopt2, strutils, os
 
-import nimblepkg/[cli, options]
+import nimblepkg/[cli, options, config]
 import nimblepkg/common as nimble_common
 
 import common
@@ -54,6 +54,12 @@ proc newCliParams(): CliParams =
   new result
   result.command = ""
   result.choosenimDir = getHomeDir() / ".choosenim"
+  # Init nimble params.
+  try:
+    result.nimbleOptions = initOptions()
+    result.nimbleOptions.config = parseConfig()
+  except NimbleQuit:
+    discard
 
 proc getCliParams*(proxyExeMode = false): CliParams =
   result = newCliParams()
@@ -73,18 +79,14 @@ proc getCliParams*(proxyExeMode = false): CliParams =
       case normalised
       of "verbose": setVerbosity(LowPriority)
       of "debug": setVerbosity(DebugPriority)
+      of "nocolor": setShowColor(false)
       of "choosenimdir": result.choosenimDir = val
+      of "nimbledir": result.nimbleOptions.nimbleDir = val
       else: discard
     of cmdEnd: assert(false)
 
   if result.command == "" and not proxyExeMode:
     writeHelp()
-
-  # Read Nimble params.
-  try:
-    result.nimbleOptions = parseCmdLine()
-  except NimbleQuit:
-    discard
 
 proc getDownloadDir*(params: CliParams): string =
   return params.chooseNimDir / "downloads"

@@ -10,7 +10,7 @@ proc parseVersion(versionStr: string): Version =
   try:
     result = newVersion(versionStr)
   except:
-    let msg = "Invalid version. Try 0.16.0, #head or #commitHash."
+    let msg = "Invalid version or path. Try 0.16.0, #head or #commitHash."
     raise newException(ChooseNimError, msg)
 
 proc choose(params: CliParams) =
