@@ -63,6 +63,7 @@ proc newCliParams(): CliParams =
 
 proc getCliParams*(proxyExeMode = false): CliParams =
   result = newCliParams()
+
   for kind, key, val in getopt():
     case kind
     of cmdArgument:
@@ -70,19 +71,19 @@ proc getCliParams*(proxyExeMode = false): CliParams =
     of cmdLongOption, cmdShortOption:
       let normalised = key.normalize()
       # Don't want the proxyExe to return choosenim's help/version.
-      if not proxyExeMode:
-        case normalised
-        of "help", "h": writeHelp()
-        of "version", "v": writeVersion()
-        else: discard
 
       case normalised
+      of "help", "h":
+        if not proxyExeMode: writeHelp()
+      of "version", "v":
+        if not proxyExeMode: writeVersion()
       of "verbose": setVerbosity(LowPriority)
       of "debug": setVerbosity(DebugPriority)
       of "nocolor": setShowColor(false)
       of "choosenimdir": result.choosenimDir = val
       of "nimbledir": result.nimbleOptions.nimbleDir = val
-      else: discard
+      else:
+        raise newException(ChooseNimError, "Unknown flag: --" & key)
     of cmdEnd: assert(false)
 
   if result.command == "" and not proxyExeMode:

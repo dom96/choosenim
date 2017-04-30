@@ -33,11 +33,10 @@ proc choose(params: CliParams) =
     switchTo(version, params)
 
 when isMainModule:
-  let params = getCliParams()
-
   var error = ""
   var hint = ""
   try:
+    let params = getCliParams()
     choose(params)
   except NimbleError:
     let currentExc = (ref NimbleError)(getCurrentException())

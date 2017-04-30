@@ -65,6 +65,13 @@ test "refuses invalid path":
     check inLines(output.processOutput, "binary")
     check inLines(output.processOutput, "found")
 
+test "fails on bad flag":
+  beginTest()
+  let (output, exitCode) = exec("--qwetqsdweqwe")
+  check exitCode == QuitFailure
+  check inLines(output.processOutput, "unknown")
+  check inLines(output.processOutput, "flag")
+
 test "can choose v0.16.0":
   beginTest()
   block:
