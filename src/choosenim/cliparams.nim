@@ -33,6 +33,7 @@ Options:
   --version             Show version.
   --verbose             Show low (and higher) priority output.
   --debug               Show debug (and higher) priority output.
+  --noColor             Don't colorise output.
 
   --choosenimDir:<dir>  Specify the directory where toolchains should be
                         installed. Default: ~/.choosenim.
@@ -61,14 +62,15 @@ proc getCliParams*(proxyExeMode = false): CliParams =
     of cmdArgument:
       result.command = key
     of cmdLongOption, cmdShortOption:
+      let normalised = key.normalize()
       # Don't want the proxyExe to return choosenim's help/version.
       if not proxyExeMode:
-        case key
+        case normalised
         of "help", "h": writeHelp()
         of "version", "v": writeVersion()
         else: discard
 
-      case key
+      case normalised
       of "verbose": setVerbosity(LowPriority)
       of "debug": setVerbosity(DebugPriority)
       of "choosenimdir": result.choosenimDir = val

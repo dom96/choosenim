@@ -1,0 +1,9 @@
+nimcache
+bin/choosenim
+src/choosenim/proxyexe
+
+tests/nimcache
+tests/chooseNimDir
+tests/nimbleDir
+tests/tester
+

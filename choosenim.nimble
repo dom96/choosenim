@@ -15,3 +15,6 @@ skipExt = @["nim"]
 
 requires "nim >= 0.16.1", "nimble >= 0.8.0", "untar >= 0.1.0", "libcurl >= 1.0.0"
 
+task test, "Run the choosenim tester!":
+  withDir "tests":
+    exec "nim c -r tester"
