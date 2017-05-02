@@ -85,8 +85,12 @@ proc buildTools() =
 proc build*(extractDir: string, version: Version, params: CliParams) =
   let currentDir = getCurrentDir()
   setCurrentDir(extractDir)
+  # Add nimble dir to PATH so that MingW is found by `build.bat` script.
+  let pathEnv = getEnv("PATH")
+  putEnv("PATH", params.getBinDir() & PathSep & pathEnv)
   defer:
     setCurrentDir(currentDir)
+    putEnv("PATH", pathEnv)
 
   display("Building", "Nim " & $version, priority = HighPriority)
 
@@ -106,5 +110,8 @@ proc build*(extractDir: string, version: Version, params: CliParams) =
     if not success:
       # Perform clean up.
       display("Cleaning", "failed build", priority = HighPriority)
-      removeDir(extractDir)
+      try:
+        removeDir(extractDir)
+      except Exception as exc:
+        display("Warning:", "Cleaning failed: " & exc.msg, Warning)
 
