@@ -13,7 +13,7 @@ skipExt = @["nim"]
 
 # Dependencies
 
-requires "nim >= 0.16.1", "nimble >= 0.8.0", "untar >= 0.1.0", "libcurl >= 1.0.0"
+requires "nim >= 0.16.1", "nimble >= 0.8.5", "untar >= 0.1.0", "libcurl >= 1.0.0"
 
 task test, "Run the choosenim tester!":
   withDir "tests":

@@ -66,6 +66,6 @@ when isMainModule:
     if hint.len > 0:
       display("Hint:", hint, Warning, HighPriority)
 
-    display("Info:", "Please report this error to " &
+    display("Info:", "If unexpected, please report this error to " &
             "https://github.com/dom96/choosenim", Warning, HighPriority)
     quit(1)

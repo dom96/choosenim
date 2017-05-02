@@ -71,7 +71,6 @@ proc getCliParams*(proxyExeMode = false): CliParams =
     of cmdLongOption, cmdShortOption:
       let normalised = key.normalize()
       # Don't want the proxyExe to return choosenim's help/version.
-
       case normalised
       of "help", "h":
         if not proxyExeMode: writeHelp()
