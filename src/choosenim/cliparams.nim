@@ -82,7 +82,8 @@ proc getCliParams*(proxyExeMode = false): CliParams =
       of "choosenimdir": result.choosenimDir = val
       of "nimbledir": result.nimbleOptions.nimbleDir = val
       else:
-        raise newException(ChooseNimError, "Unknown flag: --" & key)
+        if not proxyExeMode:
+          raise newException(ChooseNimError, "Unknown flag: --" & key)
     of cmdEnd: assert(false)
 
   if result.command == "" and not proxyExeMode:

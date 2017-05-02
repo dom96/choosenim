@@ -26,7 +26,7 @@ proc getExePath(params: CliParams): string
   {.raises: [ChooseNimError, ValueError].} =
   try:
     let exeName = getAppFilename().extractFilename
-    if exeName in mingwProxies and defined(windows):
+    if exeName.splitFile.name in mingwProxies and defined(windows):
       return getMingwPath(params) / "bin" / exeName
     else:
       return getSelectedPath(params) / "bin" / exeName
