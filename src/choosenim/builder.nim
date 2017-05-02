@@ -56,7 +56,7 @@ proc buildTools() =
   display("Building", msg, priority = HighPriority)
   if fileExists(getCurrentDir() / "build.sh"):
     when defined(windows):
-      doCmd("bin/nim c koch")
+      doCmd("bin/nim.exe c koch")
       doCmd("koch.exe tools -d:release")
     else:
       doCmd("./bin/nim c koch")
