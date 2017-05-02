@@ -1,16 +1,31 @@
-import os, strutils
+import os, strutils, osproc
 
 import nimblepkg/[version, cli, tools]
 import nimblepkg/common as nimble_common
 
 import cliparams, download, utils, common
 
+proc doCmdRaw(cmd: string) =
+  # To keep output in sequence
+  stdout.flushFile()
+  stderr.flushFile()
+
+  displayDebug("Executing", cmd)
+  let (output, exitCode) = execCmdEx(cmd)
+  displayDebug("Finished", "with exit code " & $exitCode)
+  displayDebug("Output", output)
+
+  if exitCode != QuitSuccess:
+    raise newException(ChooseNimError,
+        "Execution failed with exit code $1\nCommand: $2\nOutput: $3" %
+        [$exitCode, cmd, output])
+
 proc buildFromCSources() =
   when defined(windows):
-    doCmd("build.bat")
+    doCmdRaw("build.bat")
     # TODO: How should we handle x86 vs amd64?
   else:
-    doCmd("sh build.sh")
+    doCmdRaw("sh build.sh")
 
 proc buildCompiler(params: CliParams) =
   ## Assumes that CWD contains the compiler (``build`` should have changed it).
@@ -35,14 +50,14 @@ proc buildCompiler(params: CliParams) =
     setCurrentDir(extractDir.parentDir()) # cd ..
     when defined(windows):
       display("Building", "koch", priority = HighPriority)
-      doCmd("bin/nim.exe c koch")
+      doCmdRaw("bin/nim.exe c koch")
       display("Building", "Nim", priority = HighPriority)
-      doCmd("koch.exe boot -d:release")
+      doCmdRaw("koch.exe boot -d:release")
     else:
       display("Building", "koch", priority = HighPriority)
-      doCmd("./bin/nim c koch")
+      doCmdRaw("./bin/nim c koch")
       display("Building", "Nim", priority = HighPriority)
-      doCmd("./koch boot -d:release")
+      doCmdRaw("./koch boot -d:release")
 
 proc buildTools() =
   ## Assumes that CWD contains the compiler.
@@ -56,16 +71,16 @@ proc buildTools() =
   display("Building", msg, priority = HighPriority)
   if fileExists(getCurrentDir() / "build.sh"):
     when defined(windows):
-      doCmd("bin/nim.exe c koch")
-      doCmd("koch.exe tools -d:release")
+      doCmdRaw("bin/nim.exe c koch")
+      doCmdRaw("koch.exe tools -d:release")
     else:
-      doCmd("./bin/nim c koch")
-      doCmd("./koch tools -d:release")
+      doCmdRaw("./bin/nim c koch")
+      doCmdRaw("./koch tools -d:release")
   else:
     when defined(windows):
-      doCmd("koch.exe tools -d:release")
+      doCmdRaw("koch.exe tools -d:release")
     else:
-      doCmd("./koch tools -d:release")
+      doCmdRaw("./koch tools -d:release")
 
 proc build*(extractDir: string, version: Version, params: CliParams) =
   let currentDir = getCurrentDir()
