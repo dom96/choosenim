@@ -102,3 +102,6 @@ proc getCurrentFile*(params: CliParams): string =
   ## installation. The contents of this file is a path to the selected Nim
   ## directory.
   return params.chooseNimDir / "current"
+
+proc getMingwPath*(params: CliParams): string =
+  return params.getInstallDir() / "mingw32"

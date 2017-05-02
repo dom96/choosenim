@@ -10,6 +10,7 @@ const
   githubUrl = "https://github.com/nim-lang/Nim/archive/$1.tar.gz"
   websiteUrl = "http://nim-lang.org/download/nim-$1.tar.gz"
   csourcesUrl = "https://github.com/nim-lang/csources/archive/master.tar.gz"
+  mingwUrl = "http://nim-lang.org/download/mingw32.tar.gz"
 
 const
   progressBarLength = 50
@@ -212,6 +213,18 @@ proc downloadCSources*(params: CliParams): string =
 
   display("Downloading", "Nim C sources from GitHub", priority = HighPriority)
   downloadFile(csourcesUrl, outputPath)
+  return outputPath
+
+proc downloadMingw32*(params: CliParams): string =
+  let outputPath = params.getDownloadDir() / "mingw32.tar.gz"
+  if outputPath.existsFile():
+    # TODO: Verify sha256.
+    display("Info:", "C compiler (Mingw32) already downloaded",
+            priority=HighPriority)
+    return outputPath
+
+  display("Downloading", "C compiler (Mingw32)", priority = HighPriority)
+  downloadFile(mingwUrl, outputPath)
   return outputPath
 
 proc retrieveUrl*(url: string): string =

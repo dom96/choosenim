@@ -14,13 +14,6 @@ static:
 const
   proxyExe = staticRead("proxyexe".addFileExt(ExeExt))
 
-  proxies = [
-    "nim",
-    "nimble",
-    "nimgrep",
-    "nimsuggest"
-  ]
-
 proc getInstallationDir*(params: CliParams, version: Version): string =
   return params.getInstallDir() / ("nim-$1" % $version)
 
@@ -48,11 +41,15 @@ proc areProxiesInstalled(params: CliParams, proxies: openarray[string]): bool =
     if contents != proxyExe:
       return false
 
+proc needsCC*(params: CliParams): bool =
+  ## Determines whether the system needs a C compiler.
+  return findExe("gcc") == "" and findExe("clang") == ""
+
 proc writeProxy(bin: string, params: CliParams) =
   # Create the ~/.nimble/bin dir in case it doesn't exist.
   createDir(params.getBinDir())
 
-  let proxyPath = params.getProxypath(bin)
+  let proxyPath = params.getProxyPath(bin)
 
   if symlinkExists(proxyPath):
     let msg = "Symlink for '$1' detected in '$2'. Can I remove it?" %
@@ -91,6 +88,17 @@ proc switchToPath(filepath: string, params: CliParams): bool =
     let msg = "No 'nim' binary found in '$1'." % filepath / "bin"
     raise newException(ChooseNimError, msg)
 
+  var proxiesToInstall = @proxies
+  # Handle MingW proxies.
+  when defined(windows):
+    if needsCC(params):
+      let mingwBin = getMingwPath(params) / "bin"
+      if not fileExists(mingwBin / "gcc"):
+        let msg = "No 'gcc' binary found in '$1'." % mingwBin
+        raise newException(ChooseNimError, msg)
+
+      proxiesToInstall.add(mingwProxies)
+
   # Return early if this version is already selected.
   let selectedPath = params.getSelectedPath()
   let proxiesInstalled = params.areProxiesInstalled(proxies)
@@ -101,7 +109,7 @@ proc switchToPath(filepath: string, params: CliParams): bool =
     writeFile(params.getCurrentFile(), filepath)
 
   # Create the proxy executables.
-  for proxy in proxies:
+  for proxy in proxiesToInstall:
     writeProxy(proxy, params)
 
 proc switchTo*(version: Version, params: CliParams) =

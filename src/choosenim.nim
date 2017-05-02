@@ -21,6 +21,17 @@ proc choose(params: CliParams) =
     # Command is a version.
     let version = parseVersion(params.command)
 
+    if params.needsCC:
+      when defined(windows):
+        # Install MingW.
+        let path = downloadMingw32(params)
+        extract(path, getMingwPath(params))
+      else:
+        display("Warning:", "No C compiler found. Nim compiler might fail.",
+                Warning, HighPriority)
+        display("Hint:", "Install clang or gcc using your favourite package manager.",
+                Warning, HighPriority)
+
     if not params.isVersionInstalled(version):
       # Install the requested version.
       let path = download(version, params)

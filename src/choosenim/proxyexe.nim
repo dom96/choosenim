@@ -7,13 +7,9 @@ import strutils, os, osproc
 import nimblepkg/cli
 import nimblepkg/common as nimbleCommon
 import cliparams
-from common import ChooseNimError
+from common import ChooseNimError, mingwProxies
 
-proc getExePath(params: CliParams): string
-  {.raises: [ChooseNimError, ValueError].} =
-  # TODO: This code is disgusting. I wanted to make it as safe/informative as
-  # possible but all these try statements are horrible.
-
+proc getSelectedPath(params: CliParams): string =
   var path = ""
   try:
     path = params.getCurrentFile()
@@ -22,15 +18,18 @@ proc getExePath(params: CliParams): string
       raise newException(ChooseNimError, msg)
 
     result = readFile(path)
-  except ChooseNimError:
-    raise
   except Exception as exc:
     let msg = "Unable to read $1. (Error was: $2)" % [path, exc.msg]
     raise newException(ChooseNimError, msg)
 
+proc getExePath(params: CliParams): string
+  {.raises: [ChooseNimError, ValueError].} =
   try:
     let exeName = getAppFilename().extractFilename
-    return result / "bin" / exeName
+    if exeName in mingwProxies and defined(windows):
+      return getMingwPath(params) / "bin" / exeName
+    else:
+      return getSelectedPath(params) / "bin" / exeName
   except Exception as exc:
     let msg = "getAppFilename failed. (Error was: $1)" % exc.msg
     raise newException(ChooseNimError, msg)
