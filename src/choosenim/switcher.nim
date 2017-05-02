@@ -92,7 +92,7 @@ proc switchToPath(filepath: string, params: CliParams): bool =
   # Handle MingW proxies.
   when defined(windows):
     if needsCC(params):
-      let mingwBin = getMingwPath(params) / "bin"
+      let mingwBin = getMingwBin(params)
       if not fileExists(mingwBin / "gcc".addFileExt(ExeExt)):
         let msg = "No 'gcc' binary found in '$1'." % mingwBin
         raise newException(ChooseNimError, msg)

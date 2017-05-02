@@ -59,6 +59,9 @@ proc buildCompiler(params: CliParams) =
       display("Building", "Nim", priority = HighPriority)
       doCmdRaw("./koch boot -d:release")
 
+  if not fileExists(binDir / "nim".addFileExt(ExeExt)):
+    raise newException(ChooseNimError, "Nim binary is missing. Build failed.")
+
 proc buildTools() =
   ## Assumes that CWD contains the compiler.
   let binDir = getCurrentDir() / "bin"
@@ -85,9 +88,9 @@ proc buildTools() =
 proc build*(extractDir: string, version: Version, params: CliParams) =
   let currentDir = getCurrentDir()
   setCurrentDir(extractDir)
-  # Add nimble dir to PATH so that MingW is found by `build.bat` script.
+  # Add MingW bin dir to PATH so that `build.bat` script can find gcc.
   let pathEnv = getEnv("PATH")
-  putEnv("PATH", params.getBinDir() & PathSep & pathEnv)
+  putEnv("PATH", params.getMingwBin() & PathSep & pathEnv)
   defer:
     setCurrentDir(currentDir)
     putEnv("PATH", pathEnv)
@@ -110,6 +113,8 @@ proc build*(extractDir: string, version: Version, params: CliParams) =
     if not success:
       # Perform clean up.
       display("Cleaning", "failed build", priority = HighPriority)
+      # TODO: Seems I cannot use a try inside a finally?
+      # Getting `no exception to reraise` on the following line.
       try:
         removeDir(extractDir)
       except Exception as exc:

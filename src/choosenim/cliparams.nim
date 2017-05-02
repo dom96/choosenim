@@ -106,3 +106,6 @@ proc getCurrentFile*(params: CliParams): string =
 
 proc getMingwPath*(params: CliParams): string =
   return params.getInstallDir() / "mingw32"
+
+proc getMingwBin*(params: CliParams): string =
+  return getMingwPath(params) / "bin"
