@@ -43,7 +43,10 @@ proc areProxiesInstalled(params: CliParams, proxies: openarray[string]): bool =
 
 proc needsCC*(params: CliParams): bool =
   ## Determines whether the system needs a C compiler.
-  return findExe("gcc") == "" and findExe("clang") == ""
+  let inPath = findExe("gcc") != "" and findExe("clang") != ""
+  let inMingwDir = fileExists(params.getMingwBin() / "gcc".addFileExt(ExeExt))
+  let isInstalled = inPath or inMingwDir
+  return not isInstalled
 
 proc needsDLLs*(params: CliParams): bool =
   ## Determines whether DLLs need to be installed (Windows-only).
