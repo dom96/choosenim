@@ -21,7 +21,7 @@ proc isVersionInstalled*(params: CliParams, version: Version): bool =
   return fileExists(params.getInstallationDir(version) / "bin" /
                     "nim".addFileExt(ExeExt))
 
-proc getSelectedPath(params: CliParams): string =
+proc getSelectedPath*(params: CliParams): string =
   if fileExists(params.getCurrentFile()): readFile(params.getCurrentFile())
   else: ""
 

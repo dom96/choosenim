@@ -2,6 +2,7 @@ import os, strutils
 
 import nimblepkg/[cli, tools, version]
 import nimblepkg/common as nimbleCommon
+from nimblepkg/packageinfo import getNameVersion
 
 import choosenim/[download, builder, switcher, common, cliparams]
 import choosenim/[utils, channel]
@@ -95,10 +96,26 @@ proc update(params: CliParams) =
   if getCurrentChannel(params) == channel:
     switchTo(version, params)
 
+proc show(params: CliParams) =
+  let channel = getCurrentChannel(params)
+  let path = getSelectedPath(params)
+  if channel.len > 0:
+    display("Channel:", channel, priority = HighPriority)
+  else:
+    display("Channel:", "No channel selected", priority = HighPriority)
+
+  let (name, version) = getNameVersion(path)
+  if version != "":
+    display("Version:", version, priority = HighPriority)
+
+  display("Path:", path, priority = HighPriority)
+
 proc performAction(params: CliParams) =
   case params.command.normalize
   of "update":
     update(params)
+  of "show":
+    show(params)
   else:
     choose(params)
 

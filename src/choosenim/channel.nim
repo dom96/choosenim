@@ -52,4 +52,6 @@ proc setCurrentChannel*(channel: string, params: CliParams) =
   writeFile(params.getCurrentChannelFile(), channel)
 
 proc getCurrentChannel*(params: CliParams): string =
+  if not fileExists(params.getCurrentChannelFile()):
+    return ""
   return readFile(params.getCurrentChannelFile()).strip()
