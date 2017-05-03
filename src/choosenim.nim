@@ -22,6 +22,11 @@ proc installVersion(version: Version, params: CliParams) =
   # Extract the downloaded file.
   let extractDir = params.getInstallationDir(version)
   extract(path, extractDir)
+  # A "special" version is downloaded from GitHub and thus needs a `.git`
+  # directory in order to let `koch` know that it should download a "devel"
+  # Nimble.
+  if version.isSpecial:
+    createDir(extractDir / ".git")
   # Build the compiler
   build(extractDir, version, params)
 
