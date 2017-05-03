@@ -12,7 +12,7 @@ The aim of this tool is two-fold:
 ## Typical usage
 
 ```
-$ choosenim 0.16.0
+$ choosenim stable
   Installed component 'nim'
   Installed component 'nimble'
   Installed component 'nimgrep'

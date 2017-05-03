@@ -119,6 +119,9 @@ proc getCurrentFile*(params: CliParams): string =
   ## directory.
   return params.chooseNimDir / "current"
 
+proc getCurrentChannelFile*(params: CliParams): string =
+  return params.chooseNimDir / "current-channel"
+
 proc getMingwPath*(params: CliParams): string =
   return params.getInstallDir() / "mingw32"
 

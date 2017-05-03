@@ -48,3 +48,8 @@ proc canUpdate*(version: Version, params: CliParams): bool =
 
   return not isVersionInstalled(params, version)
 
+proc setCurrentChannel*(channel: string, params: CliParams) =
+  writeFile(params.getCurrentChannelFile(), channel)
+
+proc getCurrentChannel*(params: CliParams): string =
+  return readFile(params.getCurrentChannelFile()).strip()

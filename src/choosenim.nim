@@ -63,6 +63,7 @@ proc choose(params: CliParams) =
 
       chooseVersion(version, params)
       pinChannelVersion(params.command, version, params)
+      setCurrentChannel(params.command, params)
     else:
       chooseVersion(params.command, params)
 
@@ -71,11 +72,11 @@ proc update(params: CliParams) =
     raise newException(ChooseNimError,
                         "Expected 1 parameter to 'update' command")
 
-  let param = params.commands[1]
-  display("Updating", param, priority = HighPriority)
+  let channel = params.commands[1]
+  display("Updating", channel, priority = HighPriority)
 
   # Retrieve the current version for the specified channel.
-  let version = getChannelVersion(param, params, live=true).newVersion
+  let version = getChannelVersion(channel, params, live=true).newVersion
 
   # Ensure that the version isn't already installed.
   if not canUpdate(version, params):
@@ -85,9 +86,14 @@ proc update(params: CliParams) =
 
   # Install the new version and pin it.
   installVersion(version, params)
-  pinChannelVersion(param, $version, params)
+  pinChannelVersion(channel, $version, params)
 
   display("Updated", "to " & $version, Success, HighPriority)
+
+  # If the currently selected channel is the one that was updated, switch to
+  # the new version.
+  if getCurrentChannel(params) == channel:
+    switchTo(version, params)
 
 proc performAction(params: CliParams) =
   case params.command.normalize
