@@ -52,19 +52,20 @@ In the future ``choosenim`` will download binaries whenever they are available.
 
 ## Dependencies
 
-* A C compiler (gcc or clang is recommended)
-  * On Windows this dependency is downloaded automatically.
-  * On Linux and macOS it is expected to be in your PATH.
-* zlib
+|            |           Windows             |        Linux       |        macOS (*)      |
+|------------|:-----------------------------:|:------------------:|:---------------------:|
+| C compiler | *Downloaded automatically*    |      gcc/clang     |      gcc/clang        |
+| OpenSSL    |          >= 1.0.2k            |      >= 1.0.2k     |         N/A           |
+| curl       |             N/A               |         N/A        | Any recent version    |
+| zlib       | *Statically linked in binary* | Any recent version | Any recent version    |
 
-Windows and Linux only:
+\* Many macOS dependencies should already be installed. You may need to install
+   a C compiler.
 
-* OpenSSL
-  * At least version 1.0.2k (you can check this by running ``openssl version``).
+The dependencies shown are recommendations only. You may need to install
+them, when you do ensure that they are in your PATH.
 
-macOS only:
-
-* curl (macOS ships with this so you shouldn't need to worry about installing it).
+OpenSSL version can be checked by executing ``openssl version``.
 
 ## Usage
 
