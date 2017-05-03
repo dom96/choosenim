@@ -21,7 +21,8 @@ proc choose(params: CliParams) =
     # Command is a version.
     let version = parseVersion(params.command)
 
-    if params.needsCC:
+    # Verify that C compiler is installed.
+    if params.needsCC():
       when defined(windows):
         # Install MingW.
         let path = downloadMingw32(params)
@@ -31,6 +32,13 @@ proc choose(params: CliParams) =
                 Warning, HighPriority)
         display("Hint:", "Install clang or gcc using your favourite package manager.",
                 Warning, HighPriority)
+
+    # Verify that DLLs (openssl primarily) are installed.
+    when defined(windows):
+      if params.needsDLLs():
+        # Install DLLs.
+        let path = downloadDLLs(params)
+        extract(path, getBinDir(params))
 
     if not params.isVersionInstalled(version):
       # Install the requested version.

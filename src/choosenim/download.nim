@@ -11,6 +11,7 @@ const
   websiteUrl = "http://nim-lang.org/download/nim-$1.tar.gz"
   csourcesUrl = "https://github.com/nim-lang/csources/archive/master.tar.gz"
   mingwUrl = "http://nim-lang.org/download/mingw32.tar.gz"
+  dllsUrl = "http://nim-lang.org/download/dlls.tar.gz"
 
 const
   progressBarLength = 50
@@ -225,6 +226,18 @@ proc downloadMingw32*(params: CliParams): string =
 
   display("Downloading", "C compiler (Mingw32)", priority = HighPriority)
   downloadFile(mingwUrl, outputPath)
+  return outputPath
+
+proc downloadDLLs*(params: CliParams): string =
+  let outputPath = params.getDownloadDir() / "dlls.tar.gz"
+  if outputPath.existsFile():
+    # TODO: Verify sha256.
+    display("Info:", "DLLs already downloaded",
+            priority=HighPriority)
+    return outputPath
+
+  display("Downloading", "DLLs (openssl, pcre, ...)", priority = HighPriority)
+  downloadFile(dllsUrl, outputPath)
   return outputPath
 
 proc retrieveUrl*(url: string): string =

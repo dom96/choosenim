@@ -45,6 +45,18 @@ proc needsCC*(params: CliParams): bool =
   ## Determines whether the system needs a C compiler.
   return findExe("gcc") == "" and findExe("clang") == ""
 
+proc needsDLLs*(params: CliParams): bool =
+  ## Determines whether DLLs need to be installed (Windows-only).
+  ##
+  ## TODO: In the future we can probably extend this and let the user
+  ## know what DLLs they are missing on all operating systems.
+  let inPath = findExe("libeay32", extensions=["dll"]) != "" and
+               findExe("ssleay32", extensions=["dll"]) != ""
+  let inNimbleBin = fileExists(params.getBinDir() / "libeay32.dll") and
+                    fileExists(params.getBinDir() / "ssleay32.dll")
+  let isInstalled = inPath or inNimbleBin
+  return not isInstalled
+
 proc writeProxy(bin: string, params: CliParams) =
   # Create the ~/.nimble/bin dir in case it doesn't exist.
   createDir(params.getBinDir())
