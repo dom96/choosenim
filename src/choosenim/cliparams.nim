@@ -50,54 +50,6 @@ Options:
                         placed. Default: ~/.nimble.
 """
 
-proc writeHelp() =
-  echo(doc)
-  quit(QuitFailure)
-
-proc writeVersion() =
-  echo("choosenim v$1 ($2 $3) [$4/$5]" %
-       [chooseNimVersion, CompileDate, CompileTime, hostOS, hostCPU])
-  quit(QuitSuccess)
-
-proc newCliParams(): CliParams =
-  new result
-  result.commands = @[]
-  result.choosenimDir = getHomeDir() / ".choosenim"
-  # Init nimble params.
-  try:
-    result.nimbleOptions = initOptions()
-    result.nimbleOptions.config = parseConfig()
-  except NimbleQuit:
-    discard
-
-proc getCliParams*(proxyExeMode = false): CliParams =
-  result = newCliParams()
-
-  for kind, key, val in getopt():
-    case kind
-    of cmdArgument:
-      result.commands.add(key)
-    of cmdLongOption, cmdShortOption:
-      let normalised = key.normalize()
-      # Don't want the proxyExe to return choosenim's help/version.
-      case normalised
-      of "help", "h":
-        if not proxyExeMode: writeHelp()
-      of "version", "v":
-        if not proxyExeMode: writeVersion()
-      of "verbose": setVerbosity(LowPriority)
-      of "debug": setVerbosity(DebugPriority)
-      of "nocolor": setShowColor(false)
-      of "choosenimdir": result.choosenimDir = val
-      of "nimbledir": result.nimbleOptions.nimbleDir = val
-      else:
-        if not proxyExeMode:
-          raise newException(ChooseNimError, "Unknown flag: --" & key)
-    of cmdEnd: assert(false)
-
-  if result.commands.len == 0 and not proxyExeMode:
-    writeHelp()
-
 proc command*(params: CliParams): string =
   return params.commands[0]
 
@@ -127,3 +79,58 @@ proc getMingwPath*(params: CliParams): string =
 
 proc getMingwBin*(params: CliParams): string =
   return getMingwPath(params) / "bin"
+
+proc writeHelp() =
+  echo(doc)
+  quit(QuitFailure)
+
+proc writeVersion() =
+  echo("choosenim v$1 ($2 $3) [$4/$5]" %
+       [chooseNimVersion, CompileDate, CompileTime, hostOS, hostCPU])
+  quit(QuitSuccess)
+
+proc writeNimbleBinDir(params: CliParams) =
+  # Special option for scripts that install choosenim.
+  echo(params.getBinDir())
+  quit(QuitSuccess)
+
+proc newCliParams(): CliParams =
+  new result
+  result.commands = @[]
+  result.choosenimDir = getHomeDir() / ".choosenim"
+  # Init nimble params.
+  try:
+    result.nimbleOptions = initOptions()
+    result.nimbleOptions.config = parseConfig()
+  except NimbleQuit:
+    discard
+
+proc getCliParams*(proxyExeMode = false): CliParams =
+  result = newCliParams()
+
+  for kind, key, val in getopt():
+    case kind
+    of cmdArgument:
+      result.commands.add(key)
+    of cmdLongOption, cmdShortOption:
+      let normalised = key.normalize()
+      # Don't want the proxyExe to return choosenim's help/version.
+      case normalised
+      of "help", "h":
+        if not proxyExeMode: writeHelp()
+      of "version", "v":
+        if not proxyExeMode: writeVersion()
+      of "getnimblebin":
+        if not proxyExeMode: writeNimbleBinDir(result)
+      of "verbose": setVerbosity(LowPriority)
+      of "debug": setVerbosity(DebugPriority)
+      of "nocolor": setShowColor(false)
+      of "choosenimdir": result.choosenimDir = val
+      of "nimbledir": result.nimbleOptions.nimbleDir = val
+      else:
+        if not proxyExeMode:
+          raise newException(ChooseNimError, "Unknown flag: --" & key)
+    of cmdEnd: assert(false)
+
+  if result.commands.len == 0 and not proxyExeMode:
+    writeHelp()
