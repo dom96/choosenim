@@ -4,7 +4,7 @@ import nimblepkg/[cli, tools, version]
 import nimblepkg/common as nimbleCommon
 
 import choosenim/[download, builder, switcher, common, cliparams]
-import choosenim/utils
+import choosenim/[utils, channel]
 
 proc parseVersion(versionStr: string): Version =
   try:
@@ -13,43 +13,53 @@ proc parseVersion(versionStr: string): Version =
     let msg = "Invalid version or path. Try 0.16.0, #head or #commitHash."
     raise newException(ChooseNimError, msg)
 
+proc chooseVersion(version: string, params: CliParams) =
+  # Command is a version.
+  let version = parseVersion(version)
+
+  # Verify that C compiler is installed.
+  if params.needsCC():
+    when defined(windows):
+      # Install MingW.
+      let path = downloadMingw32(params)
+      extract(path, getMingwPath(params))
+    else:
+      display("Warning:", "No C compiler found. Nim compiler might fail.",
+              Warning, HighPriority)
+      display("Hint:", "Install clang or gcc using your favourite package manager.",
+              Warning, HighPriority)
+
+  # Verify that DLLs (openssl primarily) are installed.
+  when defined(windows):
+    if params.needsDLLs():
+      # Install DLLs.
+      let path = downloadDLLs(params)
+      extract(path, getBinDir(params))
+
+  if not params.isVersionInstalled(version):
+    # Install the requested version.
+    let path = download(version, params)
+    # Extract the downloaded file.
+    let extractDir = params.getInstallationDir(version)
+    extract(path, extractDir)
+    # Build the compiler
+    build(extractDir, version, params)
+
+  switchTo(version, params)
+
 proc choose(params: CliParams) =
   if dirExists(params.command):
     # Command is a file path likely pointing to an existing Nim installation.
     switchTo(params.command, params)
   else:
-    # Command is a version.
-    let version = parseVersion(params.command)
+    # Check for release channel.
+    if params.command.isReleaseChannel():
+      let version = getChannelVersion(params.command, params)
 
-    # Verify that C compiler is installed.
-    if params.needsCC():
-      when defined(windows):
-        # Install MingW.
-        let path = downloadMingw32(params)
-        extract(path, getMingwPath(params))
-      else:
-        display("Warning:", "No C compiler found. Nim compiler might fail.",
-                Warning, HighPriority)
-        display("Hint:", "Install clang or gcc using your favourite package manager.",
-                Warning, HighPriority)
-
-    # Verify that DLLs (openssl primarily) are installed.
-    when defined(windows):
-      if params.needsDLLs():
-        # Install DLLs.
-        let path = downloadDLLs(params)
-        extract(path, getBinDir(params))
-
-    if not params.isVersionInstalled(version):
-      # Install the requested version.
-      let path = download(version, params)
-      # Extract the downloaded file.
-      let extractDir = params.getInstallationDir(version)
-      extract(path, extractDir)
-      # Build the compiler
-      build(extractDir, version, params)
-
-    switchTo(version, params)
+      chooseVersion(version, params)
+      pinChannelVersion(params.command, version, params)
+    else:
+      chooseVersion(params.command, params)
 
 when isMainModule:
   var error = ""

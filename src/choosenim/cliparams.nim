@@ -95,6 +95,9 @@ proc getDownloadDir*(params: CliParams): string =
 proc getInstallDir*(params: CliParams): string =
   return params.chooseNimDir / "toolchains"
 
+proc getChannelsDir*(params: CliParams): string =
+  return params.chooseNimDir / "channels"
+
 proc getBinDir*(params: CliParams): string =
   return params.nimbleOptions.getBinDir()
 
