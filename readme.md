@@ -60,7 +60,7 @@ In the future ``choosenim`` will download binaries whenever they are available.
 | zlib       | *Statically linked in binary* | Any recent version | Any recent version    |
 
 \* Many macOS dependencies should already be installed. You may need to install
-   a C compiler.
+   a C compiler however.
 
 The dependencies shown are recommendations only. You may need to install
 them, when you do ensure that they are in your PATH.

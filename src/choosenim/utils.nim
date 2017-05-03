@@ -9,7 +9,6 @@ proc extract*(path: string, extractDir: string) =
   display("Extracting", path.extractFilename(), priority = HighPriority)
   try:
     var file = newTarFile(path)
-    removeDir(extractDir)
     file.extract(extractDir)
   except Exception as exc:
     raise newException(ChooseNimError, "Unable to extract. Error was '$1'." %

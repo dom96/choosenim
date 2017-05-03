@@ -8,7 +8,7 @@ import nimblepkg/version
 
 import download, cliparams, switcher
 
-const
+let
   channels = {
     "stable": "http://nim-lang.org/channels/stable",
     "devel": "#devel"
