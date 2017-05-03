@@ -72,6 +72,9 @@ proc writeProxy(bin: string, params: CliParams) =
     display("Removed", "symlink pointing to $1" % symlinkPath,
             priority = HighPriority)
 
+  # Don't write the file again if it already exists.
+  if fileExists(proxyPath) and readFile(proxyPath) == proxyExe: return
+
   writeFile(proxyPath, proxyExe)
   # Make sure the exe has +x flag.
   setFilePermissions(proxyPath,
