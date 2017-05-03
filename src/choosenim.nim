@@ -30,7 +30,7 @@ proc chooseVersion(version: string, params: CliParams) =
   let version = parseVersion(version)
 
   # Verify that C compiler is installed.
-  if params.needsCC():
+  if params.needsCCInstall():
     when defined(windows):
       # Install MingW.
       let path = downloadMingw32(params)
@@ -43,7 +43,7 @@ proc chooseVersion(version: string, params: CliParams) =
 
   # Verify that DLLs (openssl primarily) are installed.
   when defined(windows):
-    if params.needsDLLs():
+    if params.needsDLLInstall():
       # Install DLLs.
       let path = downloadDLLs(params)
       extract(path, getBinDir(params))
@@ -135,4 +135,3 @@ when isMainModule:
     if hint.len > 0:
       display("Hint:", hint, Warning, HighPriority)
     quit(1)
-
