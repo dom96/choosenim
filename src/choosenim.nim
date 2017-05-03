@@ -1,4 +1,4 @@
-import os
+import os, strutils
 
 import nimblepkg/[cli, tools, version]
 import nimblepkg/common as nimbleCommon
@@ -10,8 +10,19 @@ proc parseVersion(versionStr: string): Version =
   try:
     result = newVersion(versionStr)
   except:
-    let msg = "Invalid version or path. Try 0.16.0, #head or #commitHash."
+    let msg = "Invalid version, path or unknown channel. " &
+              "Try 0.16.0, #head, #commitHash, or stable. " &
+              "See --help for more examples."
     raise newException(ChooseNimError, msg)
+
+proc installVersion(version: Version, params: CliParams) =
+  # Install the requested version.
+  let path = download(version, params)
+  # Extract the downloaded file.
+  let extractDir = params.getInstallationDir(version)
+  extract(path, extractDir)
+  # Build the compiler
+  build(extractDir, version, params)
 
 proc chooseVersion(version: string, params: CliParams) =
   # Command is a version.
@@ -37,13 +48,7 @@ proc chooseVersion(version: string, params: CliParams) =
       extract(path, getBinDir(params))
 
   if not params.isVersionInstalled(version):
-    # Install the requested version.
-    let path = download(version, params)
-    # Extract the downloaded file.
-    let extractDir = params.getInstallationDir(version)
-    extract(path, extractDir)
-    # Build the compiler
-    build(extractDir, version, params)
+    installVersion(version, params)
 
   switchTo(version, params)
 
@@ -61,12 +66,42 @@ proc choose(params: CliParams) =
     else:
       chooseVersion(params.command, params)
 
+proc update(params: CliParams) =
+  if params.commands.len != 2:
+    raise newException(ChooseNimError,
+                        "Expected 1 parameter to 'update' command")
+
+  let param = params.commands[1]
+  display("Updating", param, priority = HighPriority)
+
+  # Retrieve the current version for the specified channel.
+  let version = getChannelVersion(param, params, live=true).newVersion
+
+  # Ensure that the version isn't already installed.
+  if not canUpdate(version, params):
+    display("Info:", "Already up to date at version " & $version,
+            Success, HighPriority)
+    return
+
+  # Install the new version and pin it.
+  installVersion(version, params)
+  pinChannelVersion(param, $version, params)
+
+  display("Updated", "to " & $version, Success, HighPriority)
+
+proc performAction(params: CliParams) =
+  case params.command.normalize
+  of "update":
+    update(params)
+  else:
+    choose(params)
+
 when isMainModule:
   var error = ""
   var hint = ""
   try:
     let params = getCliParams()
-    choose(params)
+    performAction(params)
   except NimbleError:
     let currentExc = (ref NimbleError)(getCurrentException())
     (error, hint) = getOutputInfo(currentExc)

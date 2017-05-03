@@ -7,7 +7,7 @@ import common
 
 type
   CliParams* = ref object
-    command*: string
+    commands*: seq[string]
     choosenimDir*: string
     nimbleOptions*: Options
 
@@ -17,16 +17,25 @@ choosenim: The Nim toolchain installer.
 Choose a job. Choose a mortgage. Choose life. Choose Nim.
 
 Usage:
-  choosenim <version/path>
+  choosenim <version/path/channel>
 
 Example:
   choosenim 0.16.0
     Installs (if necessary) and selects version 0.16.0 of Nim.
+  choosenim stable
+    Installs (if necessary) Nim from the stable channel (latest stable release)
+    and then selects it.
   choosenim #head
     Installs (if necessary) and selects the latest current commit of Nim.
     Warning: Your shell may need quotes around `#head`: choosenim "#head".
   choosenim ~/projects/nim
     Selects the specified Nim installation.
+  choosenim update stable
+    Updates the version installed on the stable release channel.
+
+Commands:
+  update    <version/channel>    Installs the latest release of the specified
+                                 version or channel.
 
 Options:
   -h --help             Show this output.
@@ -52,7 +61,7 @@ proc writeVersion() =
 
 proc newCliParams(): CliParams =
   new result
-  result.command = ""
+  result.commands = @[]
   result.choosenimDir = getHomeDir() / ".choosenim"
   # Init nimble params.
   try:
@@ -67,7 +76,7 @@ proc getCliParams*(proxyExeMode = false): CliParams =
   for kind, key, val in getopt():
     case kind
     of cmdArgument:
-      result.command = key
+      result.commands.add(key)
     of cmdLongOption, cmdShortOption:
       let normalised = key.normalize()
       # Don't want the proxyExe to return choosenim's help/version.
@@ -86,8 +95,11 @@ proc getCliParams*(proxyExeMode = false): CliParams =
           raise newException(ChooseNimError, "Unknown flag: --" & key)
     of cmdEnd: assert(false)
 
-  if result.command == "" and not proxyExeMode:
+  if result.commands.len == 0 and not proxyExeMode:
     writeHelp()
+
+proc command*(params: CliParams): string =
+  return params.commands[0]
 
 proc getDownloadDir*(params: CliParams): string =
   return params.chooseNimDir / "downloads"
