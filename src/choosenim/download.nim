@@ -173,7 +173,7 @@ proc downloadFile(url, outputPath: string) =
   echo("")
 
 proc downloadImpl(version: Version, params: CliParams): string =
-  let outputPath = params.getDownloadDir() / ("nim-$1.tar.gz" % $version)
+  let outputPath = params.getDownloadPath($version)
   if outputPath.existsFile():
     # TODO: Verify sha256.
     display("Info:", "Nim $1 already downloaded" % $version,

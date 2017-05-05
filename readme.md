@@ -71,6 +71,11 @@ OpenSSL version can be checked by executing ``openssl version``.
 
 ## Troubleshooting
 
+## Development notes
+
+Auto-extracting installer for Windows was created using WinRAR. Instructions
+available [here](http://stackoverflow.com/a/27905551/492186).
+
 ## License
 
 MIT

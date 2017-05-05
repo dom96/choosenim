@@ -81,6 +81,9 @@ proc getMingwPath*(params: CliParams): string =
 proc getMingwBin*(params: CliParams): string =
   return getMingwPath(params) / "bin"
 
+proc getDownloadPath*(params: CliParams, version: string, pkg = "nim"): string =
+  return params.getDownloadDir() / ("$1-$2.tar.gz" % [pkg, version])
+
 proc writeHelp() =
   echo(doc)
   quit(QuitFailure)
@@ -122,6 +125,8 @@ proc getCliParams*(proxyExeMode = false): CliParams =
       of "version", "v":
         if not proxyExeMode: writeVersion()
       of "getnimblebin":
+        # Used by installer scripts to know where the choosenim executable
+        # should be copied.
         if not proxyExeMode: writeNimbleBinDir(result)
       of "verbose": setVerbosity(LowPriority)
       of "debug": setVerbosity(DebugPriority)

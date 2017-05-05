@@ -21,6 +21,8 @@ proc installVersion(version: Version, params: CliParams) =
   let path = download(version, params)
   # Extract the downloaded file.
   let extractDir = params.getInstallationDir(version)
+  # Make sure no stale files from previous installation exist.
+  removeDir(extractDir)
   extract(path, extractDir)
   # A "special" version is downloaded from GitHub and thus needs a `.git`
   # directory in order to let `koch` know that it should download a "devel"
@@ -89,6 +91,10 @@ proc update(params: CliParams) =
     display("Info:", "Already up to date at version " & $version,
             Success, HighPriority)
     return
+
+  # Make sure the archive is downloaded again if the version is special.
+  if version.isSpecial:
+    removeDir(params.getDownloadPath($version).splitFile.dir)
 
   # Install the new version and pin it.
   installVersion(version, params)
