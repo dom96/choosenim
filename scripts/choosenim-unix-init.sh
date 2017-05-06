@@ -33,6 +33,7 @@ install() {
   curl -sSfL "$url" -o "/tmp/$filename"
 
   # Install Nim from stable channel.
+  chmod +x "/tmp/$filename"
   "/tmp/$filename" stable
 
   # Copy choosenim binary to Nimble bin.
