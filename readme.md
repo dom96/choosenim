@@ -24,7 +24,20 @@ Nim Compiler Version 0.16.0 (2017-01-08) [MacOSX: amd64]
 
 ## Installation
 
-TODO
+### Windows
+
+Download the latest Windows version from the
+[releases](https://github.com/dom96/choosenim/releases) page.
+
+Execute the self-extracting archive, or extract the zip archive and run
+the ``runme.bat`` script. Follow any on screen prompts and enjoy your
+new Nim and choosenim installation.
+
+### Unix
+
+```
+curl https://nim-lang.org/choosenim/init.sh -sSf | sh
+```
 
 ## How choosenim works
 
