@@ -41,7 +41,7 @@ install() {
   cp "/tmp/$filename" "$nimbleBinDir/choosenim"
   say "ChooseNim installed in $nimbleBinDir"
   say "You must now ensure that the Nimble bin dir is in your PATH."
-  say "Place the following line in the ~/.profile file."
+  say "Place the following line in the ~/.profile or ~/.bashrc file."
   say "    export PATH=$nimbleBinDir:\$PATH"
 }
 
