@@ -19,6 +19,10 @@ proc isReleaseChannel*(command: string): bool =
 
 proc getChannelVersion*(channel: string, params: CliParams,
                         live=false): string =
+  if not isReleaseChannel(channel):
+    # Assume that channel is a version.
+    return channel
+
   if not live:
     # Check for pinned version.
     let filename = params.getChannelsDir() / channel
