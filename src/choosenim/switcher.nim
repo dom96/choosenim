@@ -42,7 +42,7 @@ proc areProxiesInstalled(params: CliParams, proxies: openarray[string]): bool =
       return false
 
 proc isCCInPath(params: CliParams): bool =
-  return findExe("gcc") != "" and findExe("clang") != ""
+  return findExe("gcc") != "" or findExe("clang") != ""
 
 proc needsCCInstall*(params: CliParams): bool =
   ## Determines whether the system needs a C compiler to be installed.
