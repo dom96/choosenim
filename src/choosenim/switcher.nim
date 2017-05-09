@@ -1,4 +1,4 @@
-import os, strutils
+import os, strutils, osproc, pegs
 
 import nimblepkg/[cli, version]
 
@@ -63,6 +63,17 @@ proc needsDLLInstall*(params: CliParams): bool =
   let isInstalled = inPath or inNimbleBin
   return not isInstalled
 
+proc getNimbleVersion(toolchainPath: string): Version =
+  result = newVersion("0.8.6") # We assume that everything is fine.
+  let command = toolchainPath / "bin" / "nimble".addFileExt(ExeExt)
+  let (output, _) = execCmdEx(command & " -v")
+  var matches: array[0 .. MaxSubpatterns, string]
+  if output.find(peg"'nimble v'{(\d+\.)+\d}", matches) != -1:
+    result = newVersion(matches[0])
+  else:
+    display("Warning:", "Could not find toolchain's Nimble version.",
+            Warning, MediumPriority)
+
 proc writeProxy(bin: string, params: CliParams) =
   # Create the ~/.nimble/bin dir in case it doesn't exist.
   createDir(params.getBinDir())
@@ -108,6 +119,17 @@ proc switchToPath(filepath: string, params: CliParams): bool =
   if not fileExists(filepath / "bin" / "nim".addFileExt(ExeExt)):
     let msg = "No 'nim' binary found in '$1'." % filepath / "bin"
     raise newException(ChooseNimError, msg)
+
+  # Check Nimble version to give a warning when it's too old.
+  let nimbleVersion = getNimbleVersion(filepath)
+  if nimbleVersion < newVersion("0.8.6"):
+    display("Warning:", ("Nimble v$1 is not supported by choosenim, using it " &
+                         "will yield errors.") % $nimbleVersion,
+            Warning, HighPriority)
+    display("Hint:", "Installing Nim from GitHub will ensure that a working " &
+                     "version of Nimble is installed. You can do so by " &
+                     "running `choosenim \"#v0.16.0\"` or similar.",
+            Warning, HighPriority)
 
   var proxiesToInstall = @proxies
   # Handle MingW proxies.
