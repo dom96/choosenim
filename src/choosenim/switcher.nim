@@ -147,6 +147,7 @@ proc switchTo*(version: Version, params: CliParams) =
 
 proc switchTo*(filepath: string, params: CliParams) =
   ## Switches to an existing Nim installation.
+  let filepath = expandFilename(filepath)
   if switchToPath(filepath, params):
     display("Switched", "to Nim ($1)" % filepath, Success, HighPriority)
   else:
