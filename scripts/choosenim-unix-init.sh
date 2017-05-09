@@ -31,10 +31,19 @@ install() {
 
   say "Downloading $filename"
   curl -sSfL "$url" -o "/tmp/$filename"
+  chmod +x "/tmp/$filename"
+
+  # The installer is going to want to ask for confirmation by
+  # reading stdin.  This script was piped into `sh` though and
+  # doesn't have stdin to pass to its children. Instead we're going
+  # to explicitly connect /dev/tty to the installer's stdin.
+  if [ ! -t 1 ]; then
+    # TODO: Support `-y` flag.
+    err "Unable to run interactively."
+  fi
 
   # Install Nim from stable channel.
-  chmod +x "/tmp/$filename"
-  "/tmp/$filename" stable
+  "/tmp/$filename" stable < /dev/tty
 
   # Copy choosenim binary to Nimble bin.
   local nimbleBinDir=`"/tmp/$filename" --getNimbleBin`
