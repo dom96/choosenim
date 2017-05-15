@@ -44,8 +44,9 @@ proc main(params: CliParams) {.raises: [ChooseNimError, ValueError].} =
     # Launch the desired process.
     let p = startProcess(exePath, args=commandLineParams(),
                          options={poParentStreams})
-    discard p.waitForExit()
+    let exitCode = p.waitForExit()
     p.close()
+    quit(exitCode)
   except Exception as exc:
     raise newException(ChooseNimError,
         "Spawning of process failed. (Error was: $1)" % exc.msg)
