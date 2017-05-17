@@ -1,6 +1,6 @@
 import os, strutils, osproc, pegs
 
-import nimblepkg/[cli, version]
+import nimblepkg/[cli, version, options]
 
 import cliparams, common
 
@@ -79,6 +79,16 @@ proc writeProxy(bin: string, params: CliParams) =
   createDir(params.getBinDir())
 
   let proxyPath = params.getProxyPath(bin)
+
+  if bin == "nimble":
+    # Check for "lib" dir in ~/.nimble. Issue #13.
+    let dir = params.nimbleOptions.getNimbleDir() / "lib"
+    if dirExists(dir):
+      let msg = ("Nimble will fail because '$1' exists. Would you like me " &
+                 "to remove it?") % dir
+      if prompt(dontForcePrompt, msg):
+        removeDir(dir)
+        display("Removed", dir, priority = HighPriority)
 
   if symlinkExists(proxyPath):
     let msg = "Symlink for '$1' detected in '$2'. Can I remove it?" %
