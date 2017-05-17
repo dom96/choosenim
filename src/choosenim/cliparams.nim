@@ -33,6 +33,13 @@ Example:
   choosenim update stable
     Updates the version installed on the stable release channel.
 
+Channels:
+  stable
+    Describes the latest stable release of Nim.
+  devel
+    Describes the latest development (or nightly) release of Nim taken from
+    the devel branch.
+
 Commands:
   update    <version/channel>    Installs the latest release of the specified
                                  version or channel.

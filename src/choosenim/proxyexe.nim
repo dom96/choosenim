@@ -4,7 +4,7 @@
 
 import strutils, os, osproc
 
-import nimblepkg/cli
+import nimblepkg/[cli, options]
 import nimblepkg/common as nimbleCommon
 import cliparams
 from common import ChooseNimError, mingwProxies
@@ -25,11 +25,13 @@ proc getSelectedPath(params: CliParams): string =
 proc getExePath(params: CliParams): string
   {.raises: [ChooseNimError, ValueError].} =
   try:
-    let exeName = getAppFilename().extractFilename
-    if exeName.splitFile.name in mingwProxies and defined(windows):
-      return getMingwBin(params) / exeName
+    let exe = getAppFilename().extractFilename
+    let exeName = exe.splitFile.name
+
+    if exeName in mingwProxies and defined(windows):
+      return getMingwBin(params) / exe
     else:
-      return getSelectedPath(params) / "bin" / exeName
+      return getSelectedPath(params) / "bin" / exe
   except Exception as exc:
     let msg = "getAppFilename failed. (Error was: $1)" % exc.msg
     raise newException(ChooseNimError, msg)
