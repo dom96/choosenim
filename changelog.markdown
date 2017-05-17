@@ -1,5 +1,14 @@
 # Choosenim changelog
 
+## 0.2.2 - 17/05/2017
+
+Includes two bug fixes.
+
+* The exit codes are now handled correctly for proxied executables.
+* Choosenim now checks for the presence of a `lib` directory inside
+  ``~/.nimble`` and offers to remove it.
+  (Issue [#13](https://github.com/dom96/choosenim/issues/13))
+
 ## 0.2.0 - 09/05/2017
 
 Includes multiple bug fixes and some improvements.
