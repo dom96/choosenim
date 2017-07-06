@@ -11,6 +11,8 @@ set -e
 
 url_prefix="https://github.com/dom96/choosenim/releases/download/"
 
+temp_prefix="${TMPDIR:-/tmp}"
+
 install() {
   get_platform || return 1
   local platform=$RET_VAL
@@ -30,8 +32,8 @@ install() {
   esac
 
   say "Downloading $filename"
-  curl -sSfL "$url" -o "/tmp/$filename"
-  chmod +x "/tmp/$filename"
+  curl -sSfL "$url" -o "$temp_prefix/$filename"
+  chmod +x "$temp_prefix/$filename"
 
   # The installer is going to want to ask for confirmation by
   # reading stdin.  This script was piped into `sh` though and
@@ -43,11 +45,11 @@ install() {
   fi
 
   # Install Nim from stable channel.
-  "/tmp/$filename" stable < /dev/tty
+  "/$temp_prefix/$filename" stable < /dev/tty
 
   # Copy choosenim binary to Nimble bin.
-  local nimbleBinDir=`"/tmp/$filename" --getNimbleBin`
-  cp "/tmp/$filename" "$nimbleBinDir/choosenim"
+  local nimbleBinDir=`"$temp_prefix/$filename" --getNimbleBin`
+  cp "$temp_prefix/$filename" "$nimbleBinDir/choosenim"
   say "ChooseNim installed in $nimbleBinDir"
   say "You must now ensure that the Nimble bin dir is in your PATH."
   say "Place the following line in the ~/.profile or ~/.bashrc file."
