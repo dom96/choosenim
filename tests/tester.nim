@@ -15,11 +15,6 @@ template cd*(dir: string, body: untyped) =
   body
   setCurrentDir(lastDir)
 
-test "can compile choosenim":
-  cd "..":
-    let (_, exitCode) = execCmdEx("nimble build")
-    check exitCode == QuitSuccess
-
 template beginTest() =
   # Clear custom dirs.
   removeDir(nimbleDir)
@@ -61,14 +56,16 @@ proc outputReader(stream: Stream, missedEscape: var bool): string =
       result.add(c[0])
 
 proc exec(args: varargs[string], exe=exePath,
-          yes=true, liveOutput=false): tuple[output: string, exitCode: int] =
+          yes=true, liveOutput=false,
+          global=false): tuple[output: string, exitCode: int] =
   var quotedArgs = @args
   quotedArgs.insert(exe)
-  quotedArgs.add("--nimbleDir:" & nimbleDir)
-  quotedArgs.add("--chooseNimDir:" & choosenimDir)
+  if not global:
+    quotedArgs.add("--nimbleDir:" & nimbleDir)
+    quotedArgs.add("--chooseNimDir:" & choosenimDir)
   quotedArgs.add("--noColor")
   if yes:
-    quotedArgs.add("--yes")
+    quotedArgs.add("-y")
   quotedArgs = quoted_args.map((x: string) => ("\"" & x & "\""))
 
   if not liveOutput:
@@ -100,6 +97,11 @@ proc inLines(lines: seq[string], word: string): bool =
 proc hasLine(lines: seq[string], line: string): bool =
   for i in lines:
     if i.normalize.strip() == line.normalize(): return true
+
+test "can compile choosenim":
+  cd "..":
+    let (_, exitCode) = exec("build", exe="nimble", global=true)
+    check exitCode == QuitSuccess
 
 test "refuses invalid path":
   beginTest()
