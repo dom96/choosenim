@@ -1,7 +1,7 @@
 #!/bin/sh
 # Copyright 2017 Dominik Picheta and Nim developers.
 #
-# Licensed under the MIT license.
+# Licensed under the BSD-3-Clause license.
 #
 # This script performs some platform detection, downloads the latest version
 # of choosenim and initiates its installation.
@@ -12,6 +12,8 @@ set -e
 url_prefix="https://github.com/dom96/choosenim/releases/download/"
 
 temp_prefix="${TMPDIR:-/tmp}"
+
+need_tty=yes
 
 install() {
   get_platform || return 1
@@ -35,17 +37,21 @@ install() {
   curl -sSfL "$url" -o "$temp_prefix/$filename"
   chmod +x "$temp_prefix/$filename"
 
-  # The installer is going to want to ask for confirmation by
-  # reading stdin.  This script was piped into `sh` though and
-  # doesn't have stdin to pass to its children. Instead we're going
-  # to explicitly connect /dev/tty to the installer's stdin.
-  if [ ! -t 1 ]; then
-    # TODO: Support `-y` flag.
-    err "Unable to run interactively."
-  fi
+  if [ "$need_tty" = "yes" ]; then
+    # The installer is going to want to ask for confirmation by
+    # reading stdin.  This script was piped into `sh` though and
+    # doesn't have stdin to pass to its children. Instead we're going
+    # to explicitly connect /dev/tty to the installer's stdin.
+    if [ ! -t 1 ]; then
+      err "Unable to run interactively. Run with -y to accept defaults."
+    fi
 
-  # Install Nim from stable channel.
-  "/$temp_prefix/$filename" stable < /dev/tty
+    # Install Nim from stable channel.
+    "/$temp_prefix/$filename" stable < /dev/tty
+  else
+    # TODO: Use the -y switch when choosenim gets support for it.
+    yes | "/$temp_prefix/$filename" stable
+  fi
 
   # Copy choosenim binary to Nimble bin.
   local nimbleBinDir=`"$temp_prefix/$filename" --getNimbleBin`
@@ -143,5 +149,14 @@ err() {
   say_err "$1"
   exit 1
 }
+
+
+# check if we have to use /dev/tty to prompt the user
+while getopts "y" opt; do
+  case "$opt" in
+    y) need_tty=no
+       ;;
+  esac
+done
 
 install
