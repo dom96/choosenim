@@ -1,0 +1,27 @@
+os:
+  - linux
+dist: trusty
+
+language: c
+
+cache:
+  directories:
+    - $HOME/.nimble
+    - $HOME/.choosenim
+
+install:
+  - |
+      curl https://nim-lang.org/choosenim/init.sh -sSf > init.sh
+      sh init.sh -y
+
+before_script:
+  - set -e
+  - set -x
+  - export PATH=$HOME/.nimble/bin:$PATH
+
+script:
+  - cd tests
+  - nim c -r tester
+
+notifications:
+  irc: "chat.freenode.net#nimbuild"
