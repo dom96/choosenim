@@ -1,5 +1,5 @@
 # Copyright (C) Dominik Picheta. All rights reserved.
-# MIT License. Look at license.txt for more info.
+# BSD-3-Clause License. Look at license.txt for more info.
 import osproc, streams, unittest, strutils, os, sequtils, future
 
 var rootDir = getCurrentDir().parentDir()
@@ -36,7 +36,7 @@ proc exec(args: varargs[string], exe=exePath): tuple[output: string, exitCode: i
   quotedArgs = quoted_args.map((x: string) => ("\"" & x & "\""))
 
   result = execCmdEx(quotedArgs.join(" "))
-  #echo(result.output)
+  checkpoint(result.output)
 
 proc processOutput(output: string): seq[string] =
   output.strip.splitLines().filter((x: string) => (x.len > 0))
