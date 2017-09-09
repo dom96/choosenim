@@ -5,21 +5,6 @@ import nimblepkg/common as nimble_common
 
 import cliparams, download, utils, common
 
-proc doCmdRaw(cmd: string) =
-  # To keep output in sequence
-  stdout.flushFile()
-  stderr.flushFile()
-
-  displayDebug("Executing", cmd)
-  let (output, exitCode) = execCmdEx(cmd)
-  displayDebug("Finished", "with exit code " & $exitCode)
-  displayDebug("Output", output)
-
-  if exitCode != QuitSuccess:
-    raise newException(ChooseNimError,
-        "Execution failed with exit code $1\nCommand: $2\nOutput: $3" %
-        [$exitCode, cmd, output])
-
 proc buildFromCSources() =
   when defined(windows):
     doCmdRaw("build.bat")
