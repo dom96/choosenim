@@ -27,14 +27,17 @@ template beginTest() =
   removeDir(choosenimDir)
   createDir(choosenimDir)
 
-proc exec(args: varargs[string], exe=exePath): tuple[output: string, exitCode: int] =
+proc exec(args: varargs[string], exe=exePath,
+          yes=true): tuple[output: string, exitCode: int] =
   var quotedArgs = @args
   quotedArgs.insert(exe)
   quotedArgs.add("--nimbleDir:" & nimbleDir)
   quotedArgs.add("--chooseNimDir:" & choosenimDir)
   quotedArgs.add("--noColor")
+  if yes:
+    quotedArgs.add("--yes")
   quotedArgs = quoted_args.map((x: string) => ("\"" & x & "\""))
-
+  
   result = execCmdEx(quotedArgs.join(" "))
   checkpoint(result.output)
 
@@ -89,6 +92,6 @@ test "can choose v0.16.0":
     check hasLine(output.processOutput, "info: version 0.16.0 already selected")
 
   block:
-    let (output, exitCode) = exec("--version", nimbleDir / "bin" / "nimble")
+    let (output, exitCode) = exec("--version", exe=nimbleDir / "bin" / "nimble")
     check exitCode == QuitSuccess
     check inLines(output.processOutput, "v0.8.2")

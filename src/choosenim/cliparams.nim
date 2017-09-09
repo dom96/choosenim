@@ -11,6 +11,7 @@ type
     choosenimDir*: string
     nimbleOptions*: Options
 
+
 let doc = """
 choosenim: The Nim toolchain installer.
 
@@ -47,6 +48,7 @@ Commands:
 
 Options:
   -h --help             Show this output.
+  -y --yes              Agree to every question.
   --version             Show version.
   --verbose             Show low (and higher) priority output.
   --debug               Show debug (and higher) priority output.
@@ -140,6 +142,7 @@ proc getCliParams*(proxyExeMode = false): CliParams =
       of "nocolor": setShowColor(false)
       of "choosenimdir": result.choosenimDir = val
       of "nimbledir": result.nimbleOptions.nimbleDir = val
+      of "y", "yes": result.nimbleOptions.forcePrompts = forcePromptYes
       else:
         if not proxyExeMode:
           raise newException(ChooseNimError, "Unknown flag: --" & key)

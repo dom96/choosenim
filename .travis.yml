@@ -21,7 +21,7 @@ before_script:
 
 script:
   - cd tests
-  - nim c -r tester
+  - travis_wait nim c -r tester
 
 notifications:
   irc: "chat.freenode.net#nimbuild"
