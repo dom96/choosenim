@@ -176,7 +176,7 @@ proc downloadFile(url, outputPath: string) =
   showBar(1, 0)
   echo("")
 
-proc checkPath(params: CliParams, downloadUrl: string,
+proc needsDownload(params: CliParams, downloadUrl: string,
                outputPath: var string): bool =
   ## Returns whether the download should commence.
   result = true
@@ -199,7 +199,7 @@ proc downloadImpl(version: Version, params: CliParams): string =
             priority = HighPriority)
     let url = githubUrl % reference
     var outputPath: string
-    if not checkPath(params, url, outputPath): return outputPath
+    if not needsDownload(params, url, outputPath): return outputPath
 
     downloadFile(url, outputPath)
     result = outputPath
@@ -208,7 +208,7 @@ proc downloadImpl(version: Version, params: CliParams): string =
             priority = HighPriority)
     let url = websiteUrl % $version
     var outputPath: string
-    if not checkPath(params, url, outputPath): return outputPath
+    if not needsDownload(params, url, outputPath): return outputPath
 
     downloadFile(url, outputPath)
     result = outputPath
@@ -223,7 +223,7 @@ proc download*(version: Version, params: CliParams): string =
 
 proc downloadCSources*(params: CliParams): string =
   var outputPath: string
-  if not checkPath(params, csourcesUrl, outputPath):
+  if not needsDownload(params, csourcesUrl, outputPath):
     return outputPath
 
   display("Downloading", "Nim C sources from GitHub", priority = HighPriority)
@@ -232,7 +232,7 @@ proc downloadCSources*(params: CliParams): string =
 
 proc downloadMingw32*(params: CliParams): string =
   var outputPath: string
-  if not checkPath(params, mingwUrl, outputPath):
+  if not needsDownload(params, mingwUrl, outputPath):
     return outputPath
 
   display("Downloading", "C compiler (Mingw32)", priority = HighPriority)
@@ -241,7 +241,7 @@ proc downloadMingw32*(params: CliParams): string =
 
 proc downloadDLLs*(params: CliParams): string =
   var outputPath: string
-  if not checkPath(params, dllsUrl, outputPath):
+  if not needsDownload(params, dllsUrl, outputPath):
     return outputPath
 
   display("Downloading", "DLLs (openssl, pcre, ...)", priority = HighPriority)
