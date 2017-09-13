@@ -177,8 +177,10 @@ proc downloadFile(url, outputPath: string) =
   echo("")
 
 proc needsDownload(params: CliParams, downloadUrl: string,
-               outputPath: var string): bool =
+                   outputPath: var string): bool =
   ## Returns whether the download should commence.
+  ##
+  ## The `outputPath` argument is filled with the valid download path.
   result = true
   outputPath = params.getDownloadPath(downloadUrl)
   if outputPath.existsFile():
