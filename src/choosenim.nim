@@ -1,3 +1,5 @@
+# Copyright (C) Dominik Picheta. All rights reserved.
+# BSD-3-Clause License. Look at license.txt for more info.
 import os, strutils
 
 import nimblepkg/[cli, tools, version]

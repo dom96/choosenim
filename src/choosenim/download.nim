@@ -8,8 +8,11 @@ import cliparams, common
 
 const
   githubUrl = "https://github.com/nim-lang/Nim/archive/$1.tar.gz"
-  websiteUrl = "http://nim-lang.org/download/nim-$1.tar.gz"
+  websiteUrl = "http://nim-lang.org/download/nim-$1.tar" &
+    getArchiveFormat()
   csourcesUrl = "https://github.com/nim-lang/csources/archive/master.tar.gz"
+
+const # Windows-only
   mingwUrl = "http://nim-lang.org/download/mingw32.tar.gz"
   dllsUrl = "http://nim-lang.org/download/dlls.tar.gz"
 
@@ -131,8 +134,9 @@ when defined(curl):
     var responseCode: int
     checkCurl curl.easy_getinfo(INFO_RESPONSE_CODE, addr responseCode)
 
-    doAssert responseCode == 200,
-             "Expected HTTP code $1 got $2" % [$200, $responseCode]
+    if responseCode != 200:
+      raise newException(HTTPRequestError,
+             "Expected HTTP code $1 got $2" % [$200, $responseCode])
 
 proc downloadFileNim(url, outputPath: string) =
   var client = newHttpClient()
@@ -160,7 +164,7 @@ proc downloadFile(url, outputPath: string) =
       downloadFileCurl(url, tempOutputPath)
     else:
       downloadFileNim(url, tempOutputPath)
-  except HttpRequestError, AssertionError:
+  except HttpRequestError:
     echo("") # Skip line with progress bar.
     let msg = "Couldn't download file from $1.\nResponse was: $2" %
               [url, getCurrentExceptionMsg()]
@@ -172,14 +176,20 @@ proc downloadFile(url, outputPath: string) =
   showBar(1, 0)
   echo("")
 
-proc downloadImpl(version: Version, params: CliParams): string =
-  let outputPath = params.getDownloadPath($version)
+proc needsDownload(params: CliParams, downloadUrl: string,
+                   outputPath: var string): bool =
+  ## Returns whether the download should commence.
+  ##
+  ## The `outputPath` argument is filled with the valid download path.
+  result = true
+  outputPath = params.getDownloadPath(downloadUrl)
   if outputPath.existsFile():
     # TODO: Verify sha256.
-    display("Info:", "Nim $1 already downloaded" % $version,
+    display("Info:", "$1 already downloaded" % outputPath,
             priority=HighPriority)
-    return outputPath
+    return false
 
+proc downloadImpl(version: Version, params: CliParams): string =
   if version.isSpecial():
     let reference =
       case normalize($version)
@@ -189,16 +199,24 @@ proc downloadImpl(version: Version, params: CliParams): string =
         ($version)[1 .. ^1]
     display("Downloading", "Nim $1 from $2" % [reference, "GitHub"],
             priority = HighPriority)
-    downloadFile(githubUrl % reference, outputPath)
+    let url = githubUrl % reference
+    var outputPath: string
+    if not needsDownload(params, url, outputPath): return outputPath
+
+    downloadFile(url, outputPath)
     result = outputPath
   else:
     display("Downloading", "Nim $1 from $2" % [$version, "nim-lang.org"],
             priority = HighPriority)
-    downloadFile(websiteUrl % $version, outputPath)
+    let url = websiteUrl % $version
+    var outputPath: string
+    if not needsDownload(params, url, outputPath): return outputPath
+
+    downloadFile(url, outputPath)
     result = outputPath
 
 proc download*(version: Version, params: CliParams): string =
-  ## Returns the path of the downloaded .tar.gz file.
+  ## Returns the path of the downloaded .tar.(gz|xz) file.
   try:
     return downloadImpl(version, params)
   except HttpRequestError:
@@ -206,10 +224,8 @@ proc download*(version: Version, params: CliParams): string =
                        $version)
 
 proc downloadCSources*(params: CliParams): string =
-  let outputPath = params.getDownloadDir() / "nim-csources.tar.gz"
-  if outputPath.existsFile():
-    # TODO: Verify sha256.
-    display("Info:", "C sources already downloaded", priority=HighPriority)
+  var outputPath: string
+  if not needsDownload(params, csourcesUrl, outputPath):
     return outputPath
 
   display("Downloading", "Nim C sources from GitHub", priority = HighPriority)
@@ -217,11 +233,8 @@ proc downloadCSources*(params: CliParams): string =
   return outputPath
 
 proc downloadMingw32*(params: CliParams): string =
-  let outputPath = params.getDownloadDir() / "mingw32.tar.gz"
-  if outputPath.existsFile():
-    # TODO: Verify sha256.
-    display("Info:", "C compiler (Mingw32) already downloaded",
-            priority=HighPriority)
+  var outputPath: string
+  if not needsDownload(params, mingwUrl, outputPath):
     return outputPath
 
   display("Downloading", "C compiler (Mingw32)", priority = HighPriority)
@@ -229,11 +242,8 @@ proc downloadMingw32*(params: CliParams): string =
   return outputPath
 
 proc downloadDLLs*(params: CliParams): string =
-  let outputPath = params.getDownloadDir() / "dlls.tar.gz"
-  if outputPath.existsFile():
-    # TODO: Verify sha256.
-    display("Info:", "DLLs already downloaded",
-            priority=HighPriority)
+  var outputPath: string
+  if not needsDownload(params, dllsUrl, outputPath):
     return outputPath
 
   display("Downloading", "DLLs (openssl, pcre, ...)", priority = HighPriority)

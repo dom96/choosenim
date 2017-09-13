@@ -12,6 +12,7 @@ type
     firstInstall*: bool
     nimbleOptions*: Options
 
+
 let doc = """
 choosenim: The Nim toolchain installer.
 
@@ -48,6 +49,7 @@ Commands:
 
 Options:
   -h --help             Show this output.
+  -y --yes              Agree to every question.
   --version             Show version.
   --verbose             Show low (and higher) priority output.
   --debug               Show debug (and higher) priority output.
@@ -90,8 +92,15 @@ proc getMingwPath*(params: CliParams): string =
 proc getMingwBin*(params: CliParams): string =
   return getMingwPath(params) / "bin"
 
-proc getDownloadPath*(params: CliParams, version: string, pkg = "nim"): string =
-  return params.getDownloadDir() / ("$1-$2.tar.gz" % [pkg, version])
+proc getArchiveFormat*(): string =
+  when defined(linux):
+    return ".xz"
+  else:
+    return ".gz"
+
+proc getDownloadPath*(params: CliParams, downloadUrl: string): string =
+  let (_, name, ext) = downloadUrl.splitFile()
+  return params.getDownloadDir() / name & ext
 
 proc writeHelp() =
   echo(doc)
@@ -143,6 +152,7 @@ proc getCliParams*(proxyExeMode = false): CliParams =
       of "choosenimdir": result.choosenimDir = val
       of "nimbledir": result.nimbleOptions.nimbleDir = val
       of "firstinstall": result.firstInstall = true
+      of "y", "yes": result.nimbleOptions.forcePrompts = forcePromptYes
       else:
         if not proxyExeMode:
           raise newException(ChooseNimError, "Unknown flag: --" & key)
