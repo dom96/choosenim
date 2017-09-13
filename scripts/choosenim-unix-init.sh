@@ -47,10 +47,10 @@ install() {
     fi
 
     # Install Nim from stable channel.
-    "/$temp_prefix/$filename" stable < /dev/tty
+    "/$temp_prefix/$filename" stable --firstInstall < /dev/tty
   else
     # TODO: Use the -y switch when choosenim gets support for it.
-    yes | "/$temp_prefix/$filename" stable
+    yes | "/$temp_prefix/$filename" stable --firstInstall
   fi
 
   # Copy choosenim binary to Nimble bin.

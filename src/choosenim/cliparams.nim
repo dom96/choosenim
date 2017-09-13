@@ -9,6 +9,7 @@ type
   CliParams* = ref object
     commands*: seq[string]
     choosenimDir*: string
+    firstInstall*: bool
     nimbleOptions*: Options
 
 let doc = """
@@ -56,6 +57,7 @@ Options:
                         installed. Default: ~/.choosenim.
   --nimbleDir:<dir>     Specify the Nimble directory where binaries will be
                         placed. Default: ~/.nimble.
+  --firstInstall        Used by install script.
 """
 
 proc command*(params: CliParams): string =
@@ -140,6 +142,7 @@ proc getCliParams*(proxyExeMode = false): CliParams =
       of "nocolor": setShowColor(false)
       of "choosenimdir": result.choosenimDir = val
       of "nimbledir": result.nimbleOptions.nimbleDir = val
+      of "firstinstall": result.firstInstall = true
       else:
         if not proxyExeMode:
           raise newException(ChooseNimError, "Unknown flag: --" & key)

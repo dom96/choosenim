@@ -110,10 +110,10 @@ proc writeProxy(bin: string, params: CliParams) =
 
   # Check whether this is in the user's PATH.
   let fromPATH = findExe(bin)
-  if fromPATH == "":
-    display("Hint:", "Binary '$1' isn't in your PATH. Add '$2' to your PATH." %
-            [bin, params.getBinDir()], Warning, HighPriority)
-  elif fromPATH != proxyPath:
+  if fromPATH == "" and not params.firstInstall:
+      display("Hint:", "Binary '$1' isn't in your PATH. Add '$2' to your PATH." %
+              [bin, params.getBinDir()], Warning, HighPriority)
+  elif fromPATH != "" and fromPATH != proxyPath:
     display("Warning:", "Binary '$1' is shadowed by '$2'." %
             [bin, fromPATH], Warning, HighPriority)
     display("Hint:", "Ensure that '$1' is before '$2' in the PATH env var." %
