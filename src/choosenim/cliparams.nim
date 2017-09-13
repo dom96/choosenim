@@ -57,10 +57,8 @@ Options:
                         installed. Default: ~/.choosenim.
   --nimbleDir:<dir>     Specify the Nimble directory where binaries will be
                         placed. Default: ~/.nimble.
-  --firstInstall       Specify you are trying to install Nim for the first
-                        time. This option supports user friendly messages to
-                        understand how choosenim is working, and less redundant
-                        messages.
+  --firstInstall        Specify user friendly and less redundant
+                        messages. Used by install script.
 """
 
 proc command*(params: CliParams): string =
