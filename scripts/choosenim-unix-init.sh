@@ -45,7 +45,7 @@ install() {
   fi
 
   # Install Nim from stable channel.
-  "/$temp_prefix/$filename" stable < /dev/tty
+  "/$temp_prefix/$filename" --firstInstall stable < /dev/tty
 
   # Copy choosenim binary to Nimble bin.
   local nimbleBinDir=`"$temp_prefix/$filename" --getNimbleBin`
