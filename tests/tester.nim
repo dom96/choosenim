@@ -100,7 +100,7 @@ proc hasLine(lines: seq[string], line: string): bool =
 
 test "can compile choosenim":
   cd "..":
-    let (_, exitCode) = exec("build", exe="nimble", global=true)
+    let (_, exitCode) = exec("build", exe="nimble", global=true, liveOutput=true)
     check exitCode == QuitSuccess
 
 test "refuses invalid path":

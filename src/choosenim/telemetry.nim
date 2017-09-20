@@ -103,6 +103,7 @@ proc loadAnalytics*(params: CliParams) =
             priority=LowPriority)
     return
 
+  # TODO: Change this to the proper UA code.
   params.analytics = newAnalytics("UA-105812497-2", clientID, "choosenim",
                                   chooseNimVersion)
 
