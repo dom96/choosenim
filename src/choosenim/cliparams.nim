@@ -2,6 +2,7 @@ import parseopt2, strutils, os
 
 import nimblepkg/[cli, options, config]
 import nimblepkg/common as nimble_common
+import analytics
 
 import common
 
@@ -11,6 +12,7 @@ type
     choosenimDir*: string
     firstInstall*: bool
     nimbleOptions*: Options
+    analytics*: Analytics
 
 
 let doc = """
@@ -86,6 +88,9 @@ proc getCurrentFile*(params: CliParams): string =
 proc getCurrentChannelFile*(params: CliParams): string =
   return params.chooseNimDir / "current-channel"
 
+proc getAnalyticsFile*(params: CliParams): string =
+  return params.chooseNimDir / "analytics"
+
 proc getMingwPath*(params: CliParams): string =
   return params.getInstallDir() / "mingw32"
 
@@ -116,7 +121,7 @@ proc writeNimbleBinDir(params: CliParams) =
   echo(params.getBinDir())
   quit(QuitSuccess)
 
-proc newCliParams(): CliParams =
+proc newCliParams*(): CliParams =
   new result
   result.commands = @[]
   result.choosenimDir = getHomeDir() / ".choosenim"

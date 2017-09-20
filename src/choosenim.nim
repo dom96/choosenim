@@ -7,7 +7,7 @@ import nimblepkg/common as nimbleCommon
 from nimblepkg/packageinfo import getNameVersion
 
 import choosenim/[download, builder, switcher, common, cliparams]
-import choosenim/[utils, channel]
+import choosenim/[utils, channel, telemetry]
 
 proc parseVersion(versionStr: string): Version =
   try:
@@ -124,6 +124,9 @@ proc show(params: CliParams) =
   display("Path:", path, priority = HighPriority)
 
 proc performAction(params: CliParams) =
+  # Report telemetry.
+  report(initEvent(ActionEvent), params)
+
   case params.command.normalize
   of "update":
     update(params)
@@ -135,12 +138,17 @@ proc performAction(params: CliParams) =
 when isMainModule:
   var error = ""
   var hint = ""
+  var params = newCliParams()
   try:
-    let params = getCliParams()
+    params = getCliParams()
+    loadAnalytics(params)
     performAction(params)
   except NimbleError:
     let currentExc = (ref NimbleError)(getCurrentException())
     (error, hint) = getOutputInfo(currentExc)
+    # Report telemetry.
+    report(currentExc, params)
+    report(initEvent(ErrorEvent, label=currentExc.msg), params)
 
   if error.len > 0:
     displayTip()

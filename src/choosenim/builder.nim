@@ -1,9 +1,9 @@
-import os, strutils, osproc
+import os, strutils, osproc, times
 
 import nimblepkg/[version, cli, tools]
 import nimblepkg/common as nimble_common
 
-import cliparams, download, utils, common
+import cliparams, download, utils, common, telemetry
 
 proc buildFromCSources() =
   when defined(windows):
@@ -71,6 +71,10 @@ proc buildTools() =
       doCmdRaw("./koch tools -d:release")
 
 proc build*(extractDir: string, version: Version, params: CliParams) =
+  # Report telemetry.
+  report(initEvent(BuildEvent), params)
+  let startTime = epochTime()
+
   let currentDir = getCurrentDir()
   setCurrentDir(extractDir)
   # Add MingW bin dir to PATH so that `build.bat` script can find gcc.
@@ -95,6 +99,11 @@ proc build*(extractDir: string, version: Version, params: CliParams) =
     newError.hint = hint
     raise newError
   finally:
+    if success:
+      # Report telemetry.
+      report(initEvent(BuildSuccessEvent), params)
+      report(initTiming(BuildSuccessTime, $version, startTime), params)
+
     if not success:
       # Perform clean up.
       display("Cleaning", "failed build", priority = HighPriority)
@@ -105,3 +114,6 @@ proc build*(extractDir: string, version: Version, params: CliParams) =
       except Exception as exc:
         display("Warning:", "Cleaning failed: " & exc.msg, Warning)
 
+      # Report telemetry.
+      report(initEvent(BuildFailureEvent), params)
+      report(initTiming(BuildFailureTime, $version, startTime), params)
