@@ -5,13 +5,19 @@ import os, strutils, options, times
 
 import analytics, nimblepkg/cli
 
+when defined(windows):
+  import osinfo/win
+else:
+  import osinfo/posix
+
 import cliparams, common
 
 type
   EventCategory* = enum
     ActionEvent,
     BuildEvent, BuildSuccessEvent, BuildFailureEvent,
-    ErrorEvent
+    ErrorEvent,
+    OSInfoEvent
 
   Event* = object
     category*: EventCategory
@@ -28,6 +34,23 @@ type
     name*: string
     time*: int
     label*: string
+
+proc initEvent*(category: EventCategory, action="", label="",
+                value=none(int)): Event =
+  let cmd = "choosenim " & commandLineParams().join(" ")
+  return Event(category: category,
+     action: if action.len == 0: cmd else: action,
+     label: label, value: value)
+
+proc initTiming*(category: TimingCategory, name: string, startTime: float,
+                 label=""): Timing =
+  ## The `startTime` is the Unix epoch timestamp for when the timing started
+  ## (from `epochTime`).
+  ## This function will automatically calculate the elapsed time based on that.
+  let elapsed = int((epochTime() - startTime)*1000)
+  return Timing(category: category,
+                name: name,
+                label: label, time: elapsed)
 
 proc promptCustom(msg: string, params: CliParams): string =
   if params.nimbleOptions.forcePrompts == forcePromptYes:
@@ -60,6 +83,7 @@ proc analyticsPrompt(params: CliParams) =
     # Force the user to answer.
     analyticsPrompt(params)
 
+proc report*(obj: Event | Timing | ref Exception, params: CliParams)
 proc loadAnalytics*(params: CliParams) =
   if params.isNil:
     raise newException(ValueError, "Params is nil.")
@@ -82,22 +106,12 @@ proc loadAnalytics*(params: CliParams) =
   params.analytics = newAnalytics("UA-105812497-2", clientID, "choosenim",
                                   chooseNimVersion)
 
-proc initEvent*(category: EventCategory, action="", label="",
-                value=none(int)): Event =
-  let cmd = "choosenim " & commandLineParams().join(" ")
-  return Event(category: category,
-               action: if action.len == 0: cmd else: action,
-               label: label, value: value)
-
-proc initTiming*(category: TimingCategory, name: string, startTime: float,
-                 label=""): Timing =
- ## The `startTime` is the Unix epoch timestamp for when the timing started
- ## (from `epochTime`).
- ## This function will automatically calculate the elapsed time based on that.
- let elapsed = int((epochTime() - startTime)*1000)
- return Timing(category: category,
-               name: name,
-               label: label, time: elapsed)
+  # Report OS info only once.
+  when defined(windows):
+    let systemVersion = $getVersionInfo()
+  else:
+    let systemVersion = getSystemVersion()
+  report(initEvent(OSInfoEvent, systemVersion), params)
 
 proc report*(obj: Event | Timing | ref Exception, params: CliParams) =
   try:
