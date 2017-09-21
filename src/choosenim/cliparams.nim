@@ -133,13 +133,13 @@ proc newCliParams*(): CliParams =
   except NimbleQuit:
     discard
 
-proc getCliParams*(proxyExeMode = false): CliParams =
-  result = newCliParams()
+proc parseCliParams*(params: var CliParams, proxyExeMode = false) =
+  params = newCliParams()
 
   for kind, key, val in getopt():
     case kind
     of cmdArgument:
-      result.commands.add(key)
+      params.commands.add(key)
     of cmdLongOption, cmdShortOption:
       let normalised = key.normalize()
       # Don't want the proxyExe to return choosenim's help/version.
@@ -151,18 +151,18 @@ proc getCliParams*(proxyExeMode = false): CliParams =
       of "getnimblebin":
         # Used by installer scripts to know where the choosenim executable
         # should be copied.
-        if not proxyExeMode: writeNimbleBinDir(result)
+        if not proxyExeMode: writeNimbleBinDir(params)
       of "verbose": setVerbosity(LowPriority)
       of "debug": setVerbosity(DebugPriority)
       of "nocolor": setShowColor(false)
-      of "choosenimdir": result.choosenimDir = val
-      of "nimbledir": result.nimbleOptions.nimbleDir = val
-      of "firstinstall": result.firstInstall = true
-      of "y", "yes": result.nimbleOptions.forcePrompts = forcePromptYes
+      of "choosenimdir": params.choosenimDir = val
+      of "nimbledir": params.nimbleOptions.nimbleDir = val
+      of "firstinstall": params.firstInstall = true
+      of "y", "yes": params.nimbleOptions.forcePrompts = forcePromptYes
       else:
         if not proxyExeMode:
           raise newException(ChooseNimError, "Unknown flag: --" & key)
     of cmdEnd: assert(false)
 
-  if result.commands.len == 0 and not proxyExeMode:
+  if params.commands.len == 0 and not proxyExeMode:
     writeHelp()

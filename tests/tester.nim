@@ -66,7 +66,7 @@ proc exec(args: varargs[string], exe=exePath,
   quotedArgs.add("--noColor")
   if yes:
     quotedArgs.add("-y")
-    
+
   quotedArgs.add(@args)
   quotedArgs = quoted_args.map((x: string) => ("\"" & x & "\""))
 
