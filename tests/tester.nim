@@ -56,7 +56,7 @@ proc outputReader(stream: Stream, missedEscape: var bool): string =
       result.add(c[0])
 
 proc exec(args: varargs[string], exe=exePath,
-          yes=true, liveOutput=false,
+          yes=true, liveOutput=true,
           global=false): tuple[output: string, exitCode: int] =
   var quotedArgs = @args
   quotedArgs.insert(exe)
