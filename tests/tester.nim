@@ -58,7 +58,7 @@ proc outputReader(stream: Stream, missedEscape: var bool): string =
 proc exec(args: varargs[string], exe=exePath,
           yes=true, liveOutput=true,
           global=false): tuple[output: string, exitCode: int] =
-  var quotedArgs = @args
+  var quotedArgs: seq[string] = @[]
   quotedArgs.insert(exe)
   if not global:
     quotedArgs.add("--nimbleDir:" & nimbleDir)
@@ -66,6 +66,8 @@ proc exec(args: varargs[string], exe=exePath,
   quotedArgs.add("--noColor")
   if yes:
     quotedArgs.add("-y")
+    
+  quotedArgs.add(@args)
   quotedArgs = quoted_args.map((x: string) => ("\"" & x & "\""))
 
   if not liveOutput:
