@@ -135,6 +135,15 @@ proc performAction(params: CliParams) =
   else:
     choose(params)
 
+proc handleTelemetry(params: CliParams) =
+  if params.hasPendingReports():
+    display("Info:", "Waiting 5 secs for remaining telemetry data to be sent.",
+            priority=HighPriority)
+    waitForReport(5, params)
+    if params.hasPendingReports():
+      display("Warning:", "Could not send all telemetry data.",
+              Warning, HighPriority)
+
 when isMainModule:
   var error = ""
   var hint = ""
@@ -155,4 +164,7 @@ when isMainModule:
     display("Error:", error, Error, HighPriority)
     if hint.len > 0:
       display("Hint:", hint, Warning, HighPriority)
-    quit(1)
+    handleTelemetry(params)
+    quit(QuitFailure)
+
+  handleTelemetry(params)

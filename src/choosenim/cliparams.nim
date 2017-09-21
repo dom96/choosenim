@@ -12,7 +12,8 @@ type
     choosenimDir*: string
     firstInstall*: bool
     nimbleOptions*: Options
-    analytics*: Analytics
+    analytics*: AsyncAnalytics
+    pendingReports*: int ## Count of pending telemetry reports.
 
 
 let doc = """

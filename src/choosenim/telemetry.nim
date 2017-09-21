@@ -1,7 +1,7 @@
 # Copyright (C) Dominik Picheta. All rights reserved.
 # BSD-3-Clause License. Look at license.txt for more info.
 
-import os, strutils, options, times
+import os, strutils, options, times, asyncdispatch
 
 import analytics, nimblepkg/cli
 
@@ -34,6 +34,8 @@ type
     name*: string
     time*: int
     label*: string
+
+
 
 proc initEvent*(category: EventCategory, action="", label="",
                 value=none(int)): Event =
@@ -104,8 +106,8 @@ proc loadAnalytics*(params: CliParams) =
     return
 
   # TODO: Change this to the proper UA code.
-  params.analytics = newAnalytics("UA-105812497-2", clientID, "choosenim",
-                                  chooseNimVersion)
+  params.analytics = newAsyncAnalytics("UA-105812497-2", clientID, "choosenim",
+                                       chooseNimVersion)
 
   # Report OS info only once.
   when defined(windows):
@@ -113,6 +115,24 @@ proc loadAnalytics*(params: CliParams) =
   else:
     let systemVersion = getSystemVersion()
   report(initEvent(OSInfoEvent, systemVersion), params)
+
+proc reportAsyncError(fut: Future[void], params: CliParams) =
+  fut.callback =
+    proc (fut: Future[void]) {.gcsafe.} =
+      {.gcsafe.}:
+        if fut.failed:
+          display("Warning: ", "Could not report analytics due to error: " &
+                  fut.error.msg, Warning, MediumPriority)
+        params.pendingReports.dec()
+
+proc hasPendingReports*(params: CliParams): bool = params.pendingReports > 0
+
+proc waitForReport*(duration: float, params: CliParams) =
+  ## Duration in seconds.
+  var startTime = epochTime()
+  while hasPendingOperations() and params.hasPendingReports():
+    if (epochTime() - startTime) > duration: break
+    poll(500)
 
 proc report*(obj: Event | Timing | ref Exception, params: CliParams) =
   try:
@@ -123,15 +143,18 @@ proc report*(obj: Event | Timing | ref Exception, params: CliParams) =
     return
 
   try:
-    # TODO: Run in separate thread.
     when obj is Event:
-      params.analytics.reportEvent($obj.category, obj.action, obj.label,
-                                   obj.value)
+      let fut = params.analytics.reportEvent($obj.category, obj.action,
+                                             obj.label, obj.value)
     elif obj is Timing:
-      params.analytics.reportTiming($obj.category, obj.name, obj.time,
-                                    obj.label)
+      let fut = params.analytics.reportTiming($obj.category, obj.name,
+                                              obj.time, obj.label)
     else:
-      params.analytics.reportException(obj.msg)
+      let fut = params.analytics.reportException(obj.msg)
+
+    params.pendingReports.inc()
+    reportAsyncError(fut, params)
+    waitForReport(2, params) # 2 seconds
 
   except Exception as exc:
     display("Warning:", "Could not report to analytics due to error:" &
