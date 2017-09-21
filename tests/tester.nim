@@ -72,7 +72,7 @@ proc exec(args: varargs[string], exe=exePath,
     result = execCmdEx(quotedArgs.join(" "))
   else:
     result.output = ""
-
+    echo(quotedArgs.join(" "))
     let process = startProcess(quotedArgs.join(" "),
                                options={poEvalCommand, poStdErrToStdOut})
     var missedEscape = false
