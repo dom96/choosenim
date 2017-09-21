@@ -56,8 +56,9 @@ proc main(params: CliParams) {.raises: [ChooseNimError, ValueError].} =
 when isMainModule:
   var error = ""
   var hint = ""
+  var params = newCliParams()
   try:
-    let params = getCliParams(proxyExeMode = true)
+    parseCliParams(params, proxyExeMode = true)
     main(params)
   except NimbleError as exc:
     (error, hint) = getOutputInfo(exc)

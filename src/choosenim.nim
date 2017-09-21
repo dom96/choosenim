@@ -149,7 +149,7 @@ when isMainModule:
   var hint = ""
   var params = newCliParams()
   try:
-    params = getCliParams()
+    parseCliParams(params)
     loadAnalytics(params)
     performAction(params)
   except NimbleError:
