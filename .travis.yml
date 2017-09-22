@@ -23,8 +23,7 @@ before_script:
   - export CHOOSENIM_NO_ANALYTICS=1
 
 script:
-  - cd tests
-  - nim c -r tester
+  - nimble test
 
 notifications:
   irc: "chat.freenode.net#nimbuild"
@@ -33,7 +32,8 @@ deploy:
   provider: releases
   api_key:
     secure: IvQYfQZipGXbH5CrnA5BBuJ2XrWrLIgu3eJQ2dAwuzS6hhHN5ROQlld42/pF4buRfiFv2DaxDTj2zGRwjg16yRue/9N7yClCY0qTNsI3nIyZgeXfiBtvbAbjBKsBUCrgFPQ15omKjG7kQaBxmzyjAbqzQPLIqVUt61g5sXlr1DJHruxUGaLowesQZMdw29P3XUXAA4NwyNdcsTSwrUHCafuA8YKY21O24jmN7uzESdAZ6PEUBWafNMRWXFMfqOk9R5iAi4QP2wyTmMcf9jc0645EJ9Y1ve+56OvDoJHS7K855k26n/m6+jRjvrBqrz2asAfC86ieZ5cDrHrOWGETS58iZNtxCPRD0XegT+XXR5WDNgQ49es0Yx2qAxbvWj554mr+fi0fltv1tf5gkD5nUwwrqvY3UWmOEspKMHzixkKxPvq+U8UpcbmE1R4FPrKDUbcPc1JsKozlya5uin8DLBiOSvhXLZ5bk/VdXxXM5S5TUmlVZvw9jPb+oVKl3AuKNjL+5aY3hG/hnD6UygaRplqBokaQXbvSkDAje+PFawpZSaGQ0vzr5/1Azbwy9roTeKTylxhdP0VIxtm9ahC/dNy4g3B33D37wdG1/KgvJnNOXRIAJA/sB1sTbJuL6WeiRAVC+fSWewFdtMN9SDVBQRCL6tBHgkHEVIF/G7XHGdU=
-  file: bin/choosenim
+  file_glob: true
+  file: bin/*
   skip_cleanup: true
   on:
     repo: dom96/choosenim
