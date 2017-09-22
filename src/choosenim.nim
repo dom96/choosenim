@@ -147,7 +147,7 @@ proc handleTelemetry(params: CliParams) =
 when isMainModule:
   var error = ""
   var hint = ""
-  var params = newCliParams()
+  var params = newCliParams(proxyExeMode = false)
   try:
     parseCliParams(params)
     discard loadAnalytics(params)

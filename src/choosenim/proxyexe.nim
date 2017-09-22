@@ -56,7 +56,7 @@ proc main(params: CliParams) {.raises: [ChooseNimError, ValueError].} =
 when isMainModule:
   var error = ""
   var hint = ""
-  var params = newCliParams()
+  var params = newCliParams(proxyExeMode = true)
   try:
     parseCliParams(params, proxyExeMode = true)
     main(params)

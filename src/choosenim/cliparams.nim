@@ -122,19 +122,20 @@ proc writeNimbleBinDir(params: CliParams) =
   echo(params.getBinDir())
   quit(QuitSuccess)
 
-proc newCliParams*(): CliParams =
+proc newCliParams*(proxyExeMode: bool): CliParams =
   new result
   result.commands = @[]
   result.choosenimDir = getHomeDir() / ".choosenim"
   # Init nimble params.
   try:
     result.nimbleOptions = initOptions()
-    result.nimbleOptions.config = parseConfig()
+    if not proxyExeMode:
+      result.nimbleOptions.config = parseConfig()
   except NimbleQuit:
     discard
 
 proc parseCliParams*(params: var CliParams, proxyExeMode = false) =
-  params = newCliParams()
+  params = newCliParams(proxyExeMode)
 
   for kind, key, val in getopt():
     case kind
