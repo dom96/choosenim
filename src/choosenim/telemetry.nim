@@ -101,7 +101,7 @@ proc loadAnalytics*(params: CliParams): bool =
     raise newException(ValueError, "Params is nil.")
 
   if not params.analytics.isNil:
-    return false
+    return true
 
   let analyticsFile = params.getAnalyticsFile()
   if not fileExists(analyticsFile):
@@ -154,6 +154,8 @@ proc report*(obj: Event | Timing | ref Exception, params: CliParams) =
     display("Warning:", "Could not load analytics reporter due to error:" &
             exc.msg, Warning, MediumPriority)
     return
+
+  displayDebug("Reporting to analytics...")
 
   try:
     when obj is Event:
