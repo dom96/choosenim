@@ -47,7 +47,7 @@ The recorded data is sent to Google Analytics over HTTPS.
 ## Who has access?
 
 The analytics are currently only accessible to the maintainers of choosenim.
-At the minute this only includes @dom96.
+At the minute this only includes [@dom96](https://github.com/dom96).
 
 Summaries of the data may be released in the future to the public.
 
@@ -57,6 +57,22 @@ The code is viewable in [telemetry.nim](https://github.com/dom96/choosenim/blob/
 
 The reporting is done asynchronously and will fail fast to avoid any
 delay in execution.
+
+## Opting in
+
+To opt-in simply answer "yes" or "y" to the following question:
+
+```
+Prompt: Can choosenim record and send anonymised telemetry data? [y/n]
+    ... Anonymous aggregate user analytics allow us to prioritise
+    ... fixes and features based on how, where and when people use Nim.
+    ... For more details see: https://goo.gl/NzUEPf.
+Answer:
+```
+
+If you answer "no" and then change your mind, you can always have choosenim
+ask you again by removing the ``analytics`` file in the choosenim directory,
+usually ``rm ~/.choosenim/analytics`` should do the trick.
 
 ## Opting out
 

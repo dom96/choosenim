@@ -82,6 +82,12 @@ OpenSSL version can be checked by executing ``openssl version``.
 
 ## Usage
 
+## Analytics
+
+Check out the
+[analytics](https://github.com/dom96/choosenim/blob/master/analytics.md)
+document for details.
+
 ## Troubleshooting
 
 ## Development notes
