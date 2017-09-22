@@ -4,7 +4,7 @@ import nimblepkg/[version, cli]
 when defined(curl):
   import libcurl except Version
 
-import cliparams, common
+import cliparams, common, telemetry
 
 const
   githubUrl = "https://github.com/nim-lang/Nim/archive/$1.tar.gz"
@@ -153,7 +153,10 @@ proc downloadFileNim(url, outputPath: string) =
 
   client.downloadFile(url, outputPath)
 
-proc downloadFile(url, outputPath: string) =
+proc downloadFile(url, outputPath: string, params: CliParams) =
+  # Telemetry
+  let startTime = epochTime()
+
   # Create outputPath's directory if it doesn't exist already.
   createDir(outputPath.splitFile.dir)
 
@@ -169,12 +172,15 @@ proc downloadFile(url, outputPath: string) =
     let msg = "Couldn't download file from $1.\nResponse was: $2" %
               [url, getCurrentExceptionMsg()]
     display("Info:", msg, Warning, MediumPriority)
+    report(initTiming(DownloadTime, url, startTime, $LabelFailure), params)
     raise
 
   moveFile(tempOutputPath, outputPath)
 
   showBar(1, 0)
   echo("")
+
+  report(initTiming(DownloadTime, url, startTime, $LabelSuccess), params)
 
 proc needsDownload(params: CliParams, downloadUrl: string,
                    outputPath: var string): bool =
@@ -203,7 +209,7 @@ proc downloadImpl(version: Version, params: CliParams): string =
     var outputPath: string
     if not needsDownload(params, url, outputPath): return outputPath
 
-    downloadFile(url, outputPath)
+    downloadFile(url, outputPath, params)
     result = outputPath
   else:
     display("Downloading", "Nim $1 from $2" % [$version, "nim-lang.org"],
@@ -212,7 +218,7 @@ proc downloadImpl(version: Version, params: CliParams): string =
     var outputPath: string
     if not needsDownload(params, url, outputPath): return outputPath
 
-    downloadFile(url, outputPath)
+    downloadFile(url, outputPath, params)
     result = outputPath
 
 proc download*(version: Version, params: CliParams): string =
@@ -229,7 +235,7 @@ proc downloadCSources*(params: CliParams): string =
     return outputPath
 
   display("Downloading", "Nim C sources from GitHub", priority = HighPriority)
-  downloadFile(csourcesUrl, outputPath)
+  downloadFile(csourcesUrl, outputPath, params)
   return outputPath
 
 proc downloadMingw32*(params: CliParams): string =
@@ -238,7 +244,7 @@ proc downloadMingw32*(params: CliParams): string =
     return outputPath
 
   display("Downloading", "C compiler (Mingw32)", priority = HighPriority)
-  downloadFile(mingwUrl, outputPath)
+  downloadFile(mingwUrl, outputPath, params)
   return outputPath
 
 proc downloadDLLs*(params: CliParams): string =
@@ -247,7 +253,7 @@ proc downloadDLLs*(params: CliParams): string =
     return outputPath
 
   display("Downloading", "DLLs (openssl, pcre, ...)", priority = HighPriority)
-  downloadFile(dllsUrl, outputPath)
+  downloadFile(dllsUrl, outputPath, params)
   return outputPath
 
 proc retrieveUrl*(url: string): string =

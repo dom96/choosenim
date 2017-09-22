@@ -25,15 +25,18 @@ type
     label*: string
     value*: Option[int]
 
-  # TODO: Download time
   TimingCategory* = enum
-    BuildSuccessTime, BuildFailureTime
+    BuildTime,
+    DownloadTime
 
   Timing* = object
     category*: TimingCategory
     name*: string
     time*: int
     label*: string
+
+  LabelCategory* = enum
+    LabelSuccess, LabelFailure
 
 
 

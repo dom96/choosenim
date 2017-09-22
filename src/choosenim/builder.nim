@@ -102,7 +102,7 @@ proc build*(extractDir: string, version: Version, params: CliParams) =
     if success:
       # Report telemetry.
       report(initEvent(BuildSuccessEvent), params)
-      report(initTiming(BuildSuccessTime, $version, startTime), params)
+      report(initTiming(BuildTime, $version, startTime, $LabelSuccess), params)
 
     if not success:
       # Perform clean up.
@@ -116,4 +116,4 @@ proc build*(extractDir: string, version: Version, params: CliParams) =
 
       # Report telemetry.
       report(initEvent(BuildFailureEvent), params)
-      report(initTiming(BuildFailureTime, $version, startTime), params)
+      report(initTiming(BuildTime, $version, startTime, $LabelFailure), params)
