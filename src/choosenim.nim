@@ -150,6 +150,7 @@ when isMainModule:
   var params = newCliParams(proxyExeMode = false)
   try:
     parseCliParams(params)
+    createDir(params.chooseNimDir)
     discard loadAnalytics(params)
     performAction(params)
   except NimbleError:
