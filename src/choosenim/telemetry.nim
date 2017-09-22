@@ -104,8 +104,10 @@ proc loadAnalytics*(params: CliParams): bool =
     return true
 
   let analyticsFile = params.getAnalyticsFile()
+  var prompted = false
   if not fileExists(analyticsFile):
     params.analyticsPrompt()
+    prompted = true
 
   let clientID = readFile(analyticsFile)
   if clientID.len == 0:
@@ -120,11 +122,12 @@ proc loadAnalytics*(params: CliParams): bool =
                                        chooseNimVersion)
 
   # Report OS info only once.
-  when defined(windows):
-    let systemVersion = $getVersionInfo()
-  else:
-    let systemVersion = getSystemVersion()
-  report(initEvent(OSInfoEvent, systemVersion), params)
+  if prompted:
+    when defined(windows):
+      let systemVersion = $getVersionInfo()
+    else:
+      let systemVersion = getSystemVersion()
+    report(initEvent(OSInfoEvent, systemVersion), params)
 
   return true
 
