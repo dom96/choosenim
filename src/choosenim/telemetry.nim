@@ -117,8 +117,7 @@ proc loadAnalytics*(params: CliParams): bool =
             priority=LowPriority)
     return false
 
-  # TODO: Change this to the proper UA code.
-  params.analytics = newAsyncAnalytics("UA-105812497-2", clientID, "choosenim",
+  params.analytics = newAsyncAnalytics("UA-105812497-1", clientID, "choosenim",
                                        chooseNimVersion)
 
   # Report OS info only once.
