@@ -1,5 +1,15 @@
 # Choosenim changelog
 
+## 0.3.0 - 22/09/2017
+
+The major new feature in this release is the ability to record analytics.
+For more information see the
+[analytics document](https://github.com/dom96/choosenim/blob/master/analytics.md).
+
+* On Linux a .tar.xz archive will now be downloaded instead of the larger
+  .tar.gz archive. This means that choosenim depends on `unxz` on Linux.
+* Improve messages during the first installation.
+
 ## 0.2.2 - 17/05/2017
 
 Includes two bug fixes.
