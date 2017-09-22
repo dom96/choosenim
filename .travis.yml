@@ -18,6 +18,7 @@ before_script:
   - set -e
   - set -x
   - export PATH=$HOME/.nimble/bin:$PATH
+  - export CHOOSENIM_NO_ANALYTICS=1
 
 script:
   - cd tests
