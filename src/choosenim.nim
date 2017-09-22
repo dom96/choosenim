@@ -150,7 +150,7 @@ when isMainModule:
   var params = newCliParams()
   try:
     parseCliParams(params)
-    loadAnalytics(params)
+    discard loadAnalytics(params)
     performAction(params)
   except NimbleError:
     let currentExc = (ref NimbleError)(getCurrentException())

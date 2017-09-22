@@ -71,7 +71,7 @@ proc analyticsPrompt(params: CliParams) =
              "Anonymous aggregate user analytics allow us to prioritise\n" &
              "fixes and features based on how, where and when people " &
              "use Nim.\n" &
-             "For more details see: https://goo.gl/bJY3qA.")
+             "For more details see: https://goo.gl/NzUEPf.")
 
   let resp = promptCustom(msg, params)
   let analyticsFile = params.getAnalyticsFile()
@@ -89,12 +89,19 @@ proc analyticsPrompt(params: CliParams) =
     analyticsPrompt(params)
 
 proc report*(obj: Event | Timing | ref Exception, params: CliParams)
-proc loadAnalytics*(params: CliParams) =
+proc loadAnalytics*(params: CliParams): bool =
+  ## Returns ``true`` if ``analytics`` object has been loaded successfully.
+  if getEnv("CHOOSENIM_NO_ANALYTICS") == "1":
+    display("Info:",
+            "Not sending analytics because CHOOSENIM_NO_ANALYTICS is set.",
+            priority=MediumPriority)
+    return false
+
   if params.isNil:
     raise newException(ValueError, "Params is nil.")
 
   if not params.analytics.isNil:
-    return
+    return false
 
   let analyticsFile = params.getAnalyticsFile()
   if not fileExists(analyticsFile):
@@ -106,7 +113,7 @@ proc loadAnalytics*(params: CliParams) =
             "No client ID found in '$1', not sending analytics." %
               analyticsFile,
             priority=LowPriority)
-    return
+    return false
 
   # TODO: Change this to the proper UA code.
   params.analytics = newAsyncAnalytics("UA-105812497-2", clientID, "choosenim",
@@ -118,6 +125,8 @@ proc loadAnalytics*(params: CliParams) =
   else:
     let systemVersion = getSystemVersion()
   report(initEvent(OSInfoEvent, systemVersion), params)
+
+  return true
 
 proc reportAsyncError(fut: Future[void], params: CliParams) =
   fut.callback =
@@ -139,7 +148,8 @@ proc waitForReport*(duration: float, params: CliParams) =
 
 proc report*(obj: Event | Timing | ref Exception, params: CliParams) =
   try:
-    loadAnalytics(params)
+    if not loadAnalytics(params):
+      return
   except Exception as exc:
     display("Warning:", "Could not load analytics reporter due to error:" &
             exc.msg, Warning, MediumPriority)
