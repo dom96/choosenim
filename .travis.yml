@@ -24,6 +24,8 @@ before_script:
 
 script:
   - nimble test
+  - if [[ "$TRAVIS_OS_NAME" != "osx" ]]; then mv bin/choosenim bin/choosenim-linux; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then mv bin/choosenim bin/choosenim-osx; fi
 
 notifications:
   irc: "chat.freenode.net#nimbuild"
@@ -37,3 +39,4 @@ deploy:
   skip_cleanup: true
   on:
     repo: dom96/choosenim
+    tags: true
