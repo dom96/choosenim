@@ -33,8 +33,11 @@ proc extract*(path: string, extractDir: string) =
       let msg = "Cannot decompress xz, `unxz` not in PATH"
       raise newException(ChooseNimError, msg)
 
+    let tarFile = newPath.changeFileExt("") # This will remove the .xz
+    # `unxz` complains when the .tar file already exists.
+    removeFile(tarFile)
     doCmdRaw("unxz \"$1\"" % newPath)
-    newPath = newPath.changeFileExt("") # This will remove the .xz
+    newPath = tarFile
   of ".gz":
     # untar package will take care of this.
     discard
