@@ -24,6 +24,7 @@ before_script:
 
 script:
   - nimble test
+  - nimble build -d:release
   - if [[ "$TRAVIS_OS_NAME" != "osx" ]]; then mv bin/choosenim bin/choosenim-linux; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then mv bin/choosenim bin/choosenim-osx; fi
 
