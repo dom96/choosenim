@@ -23,6 +23,8 @@ before_script:
   - export CHOOSENIM_NO_ANALYTICS=1
 
 script:
+  - which nimble
+  - ls -la ~/.nimble/bin
   - nimble test
   - ls -la ~/.nimble/bin
   - nimble tasks
