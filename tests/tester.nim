@@ -64,7 +64,8 @@ proc exec(args: varargs[string], exe=exePath,
   quotedArgs.add(@args)
   if not global:
     quotedArgs.add("--nimbleDir:" & nimbleDir)
-    quotedArgs.add("--chooseNimDir:" & choosenimDir)
+    if exe != "nimble":
+      quotedArgs.add("--chooseNimDir:" & choosenimDir)
   quotedArgs.add("--noColor")
 
   quotedArgs = quoted_args.map((x: string) => ("\"" & x & "\""))
@@ -100,7 +101,7 @@ proc hasLine(lines: seq[string], line: string): bool =
 
 test "can compile choosenim":
   cd "..":
-    let (_, exitCode) = exec("build", exe="nimble", global=true, liveOutput=true)
+    let (_, exitCode) = exec("build", exe="nimble", global=false, liveOutput=true)
     check exitCode == QuitSuccess
 
 test "refuses invalid path":
