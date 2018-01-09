@@ -1,6 +1,7 @@
 nimcache
 bin/choosenim
 src/choosenim/proxyexe
+*.exe
 
 tests/nimcache
 tests/chooseNimDir
