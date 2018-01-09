@@ -27,6 +27,8 @@ script:
   - ls -la ~/
   - ls -la ~/.nimble
   - ls -la ~/.nimble/pkgs
+  - which nim
+  - which nimble
   - nimble -v
   - nimble build -d:release
   - if [[ "$TRAVIS_OS_NAME" != "osx" ]]; then mv bin/choosenim bin/choosenim-linux; fi
