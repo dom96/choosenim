@@ -24,12 +24,9 @@ before_script:
 
 script:
   - nimble test
-  - ls -la ~/
-  - ls -la ~/.nimble
-  - ls -la ~/.nimble/pkgs
-  - which nim
-  - which nimble
-  - nimble -v
+  - ls -la ~/.nimble/bin
+  - nimble tasks
+  - nimble dump
   - nimble build -d:release
   - if [[ "$TRAVIS_OS_NAME" != "osx" ]]; then mv bin/choosenim bin/choosenim-linux; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then mv bin/choosenim bin/choosenim-osx; fi
