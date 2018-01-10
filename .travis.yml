@@ -25,6 +25,7 @@ before_script:
 script:
   - which nimble
   - ls -la ~/.nimble/bin
+  - nim c -d:release src/choosenim/proxyexe
   - nimble test
   - ls -la ~/.nimble/bin
   - nimble tasks
