@@ -67,6 +67,7 @@ proc exec(args: varargs[string], exe=exePath,
     if exe != "nimble":
       quotedArgs.add("--chooseNimDir:" & choosenimDir)
   quotedArgs.add("--noColor")
+  quotedArgs.add("--debug")
 
   quotedArgs = quoted_args.map((x: string) => ("\"" & x & "\""))
 

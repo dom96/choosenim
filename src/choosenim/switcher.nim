@@ -9,7 +9,7 @@ static:
     const output = staticExec "nim c -d:release proxyexe"
   else:
     const output = staticExec "nim c proxyexe"
-  doAssert("operation successful" in output)
+  doAssert("operation successful" in output, "Couldn't compile proxyexe")
 
 const
   proxyExe = staticRead("proxyexe".addFileExt(ExeExt))
