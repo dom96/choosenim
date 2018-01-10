@@ -23,13 +23,8 @@ before_script:
   - export CHOOSENIM_NO_ANALYTICS=1
 
 script:
-  - which nimble
-  - ls -la ~/.nimble/bin
-  - nim c -d:release src/choosenim/proxyexe
   - nimble test
-  - ls -la ~/.nimble/bin
-  - nimble tasks
-  - nimble dump
+  - choosenim -y stable
   - nimble build -d:release
   - if [[ "$TRAVIS_OS_NAME" != "osx" ]]; then mv bin/choosenim bin/choosenim-linux; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then mv bin/choosenim bin/choosenim-osx; fi
