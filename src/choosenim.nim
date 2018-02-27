@@ -10,13 +10,24 @@ import choosenim/[download, builder, switcher, common, cliparams]
 import choosenim/[utils, channel, telemetry]
 
 proc parseVersion(versionStr: string): Version =
-  try:
-    result = newVersion(versionStr)
-  except:
+  if versionStr[0] notin {'#', '\0'} + Digits:
     let msg = "Invalid version, path or unknown channel. " &
               "Try 0.16.0, #head, #commitHash, or stable. " &
               "See --help for more examples."
     raise newException(ChooseNimError, msg)
+
+  let parts = versionStr.split(".")
+  if parts.len >= 3 and parts[2].parseInt() mod 2 != 0:
+    let msg = ("Version $# is a development version of Nim. This means " &
+              "it hasn't been released so you cannot install it this " &
+              "way. All unreleased versions of Nim " &
+              "have an odd patch number in their version.") % versionStr
+    let exc = newException(ChooseNimError, msg)
+    exc.hint = "If you want to install the development version then run " &
+               "`choosenim devel`."
+    raise exc
+
+  result = newVersion(versionStr)
 
 proc installVersion(version: Version, params: CliParams) =
   # Install the requested version.
