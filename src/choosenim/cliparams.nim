@@ -49,6 +49,7 @@ Commands:
   update    <version/channel>    Installs the latest release of the specified
                                  version or channel.
   show                           Displays the selected version and channel.
+  update    self                 Updates choosenim itself.
 
 Options:
   -h --help             Show this output.

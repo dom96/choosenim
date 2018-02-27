@@ -77,12 +77,50 @@ proc choose(params: CliParams) =
     else:
       chooseVersion(params.command, params)
 
+proc updateSelf(params: CliParams) =
+  display("Updating", "choosenim", priority = HighPriority)
+
+  let version = getChannelVersion("self", params, live=true).newVersion
+  if version <= chooseNimVersion.newVersion:
+    display("Info:", "Already up to date at version " & chooseNimVersion,
+            Success, HighPriority)
+    return
+
+  # https://stackoverflow.com/a/9163044/492186
+  let tag = "v" & $version
+  let filename = "choosenim-" & $version & "_" & hostOS & "_" & hostCPU
+  let url = "https://github.com/dom96/choosenim/releases/download/$1/$2" % [
+    tag, filename
+  ]
+  let newFilename = getAppDir() / "choosenim_new".addFileExt(ExeExt)
+  downloadFile(url, newFilename, params)
+
+  let appFilename = getAppFilename()
+  # Move choosenim.exe to choosenim_ver.exe
+  let oldFilename = "choosenim_" & chooseNimVersion.addFileExt(ExeExt)
+  display("Info:", "Renaming '$1' to '$2'" % [appFilename, oldFilename])
+  moveFile(appFilename, getAppDir() / oldFilename)
+
+  # Move choosenim_new.exe to choosenim.exe
+  display("Info:", "Renaming '$1' to '$2'" % [newFilename, appFilename])
+  moveFile(newFilename, appFilename)
+
+  display("Info:", "Setting +x on downloaded file")
+  inclFilePermissions(appFilename, {fpUserExec, fpGroupExec})
+
+  display("Info:", "Updated choosenim to version " & $version,
+          Success, HighPriority)
+
 proc update(params: CliParams) =
   if params.commands.len != 2:
     raise newException(ChooseNimError,
                         "Expected 1 parameter to 'update' command")
 
   let channel = params.commands[1]
+  if channel.toLowerAscii() == "self":
+    updateSelf(params)
+    return
+
   display("Updating", channel, priority = HighPriority)
 
   # Retrieve the current version for the specified channel.

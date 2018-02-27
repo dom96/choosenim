@@ -176,7 +176,7 @@ proc downloadFileNim(url, outputPath: string) =
 
   client.downloadFile(url, outputPath)
 
-proc downloadFile(url, outputPath: string, params: CliParams) =
+proc downloadFile*(url, outputPath: string, params: CliParams) =
   # Telemetry
   let startTime = epochTime()
 

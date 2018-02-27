@@ -24,7 +24,7 @@ before_script:
 
 script:
   - nimble test
-  - yes | choosenim stable
+  - yes | choosenim stable # Workaround tester overwriting our Nimble install.
   - nimble build -d:release
   - if [[ "$TRAVIS_OS_NAME" != "osx" ]]; then mv bin/choosenim bin/choosenim-linux; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then mv bin/choosenim bin/choosenim-osx; fi
