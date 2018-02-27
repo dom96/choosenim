@@ -1,5 +1,15 @@
 # Choosenim changelog
 
+## 0.3.2 - 27/02/2018
+
+The major new feature in this release is the ability for choosenim to
+update itself, this is done by executing ``choosenim update self``.
+
+* A bug where choosenim would fail because of an existing .tar file
+  was fixed.
+* Proxy support implemented.
+* Fixes #17 and #51.
+
 ## 0.3.0 - 22/09/2017
 
 The major new feature in this release is the ability to record analytics.
