@@ -69,7 +69,7 @@ proc getNimbleVersion(toolchainPath: string): Version =
   let command = toolchainPath / "bin" / "nimble".addFileExt(ExeExt)
   let (output, _) = execCmdEx(command & " -v")
   var matches: array[0 .. MaxSubpatterns, string]
-  if output.find(peg"'nimble v'{(\d+\.)+\d}", matches) != -1:
+  if output.find(peg"'nimble v'{(\d+\.)+\d+}", matches) != -1:
     result = newVersion(matches[0])
   else:
     display("Warning:", "Could not find toolchain's Nimble version.",
