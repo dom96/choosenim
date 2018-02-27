@@ -1,6 +1,7 @@
 import os, strutils, osproc, pegs
 
 import nimblepkg/[cli, version, options]
+from nimblepkg/packageinfo import getNameVersion
 
 import cliparams, common
 
@@ -185,3 +186,8 @@ proc switchTo*(filepath: string, params: CliParams) =
   else:
     display("Info:", "Path '$1' already selected" % filepath,
             priority = HighPriority)
+
+proc getSelectedVersion*(params: CliParams): Version =
+  let path = getSelectedPath(params)
+  let (_, version) = getNameVersion(path)
+  return version.newVersion

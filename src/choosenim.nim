@@ -114,7 +114,7 @@ proc updateSelf(params: CliParams) =
 proc update(params: CliParams) =
   if params.commands.len != 2:
     raise newException(ChooseNimError,
-                        "Expected 1 parameter to 'update' command")
+                       "Expected 1 parameter to 'update' command")
 
   let channel = params.commands[1]
   if channel.toLowerAscii() == "self":
@@ -130,6 +130,8 @@ proc update(params: CliParams) =
   if not canUpdate(version, params):
     display("Info:", "Already up to date at version " & $version,
             Success, HighPriority)
+    if getSelectedVersion(params) != version:
+      switchTo(version, params)
     return
 
   # Make sure the archive is downloaded again if the version is special.
@@ -155,7 +157,7 @@ proc show(params: CliParams) =
   else:
     display("Channel:", "No channel selected", priority = HighPriority)
 
-  let (name, version) = getNameVersion(path)
+  let (_, version) = getNameVersion(path)
   if version != "":
     display("Version:", version, priority = HighPriority)
 
