@@ -39,6 +39,10 @@ new Nim and choosenim installation.
 curl https://nim-lang.org/choosenim/init.sh -sSf | sh
 ```
 
+**Optional:** You can specify the initial version you would like the `init.sh`
+              script to install by specifying the ``CHOOSENIM_CHOOSE_VERSION``
+              environment variable.
+
 ## How choosenim works
 
 Similar to the likes of ``rustup`` and ``pyenv``, ``choosenim`` is a

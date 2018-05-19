@@ -13,6 +13,8 @@ url_prefix="https://github.com/dom96/choosenim/releases/download/"
 
 temp_prefix="${TMPDIR:-/tmp}"
 
+CHOOSE_VERSION="${CHOOSENIM_CHOOSE_VERSION:-stable}"
+
 need_tty=yes
 
 install() {
@@ -46,11 +48,11 @@ install() {
       err "Unable to run interactively. Run with -y to accept defaults."
     fi
 
-    # Install Nim from stable channel.
-    "/$temp_prefix/$filename" stable --firstInstall < /dev/tty
+    # Install Nim from desired channel.
+    "/$temp_prefix/$filename" $CHOOSE_VERSION --firstInstall < /dev/tty
   else
     # TODO: Use the -y switch when choosenim gets support for it.
-    yes | "/$temp_prefix/$filename" stable --firstInstall
+    yes | "/$temp_prefix/$filename" $CHOOSE_VERSION --firstInstall
   fi
 
   # Copy choosenim binary to Nimble bin.
