@@ -34,7 +34,10 @@ proc showIndeterminateBar(progress, speed: BiggestInt, lastPos: var int) =
   stdout.flushFile()
 
 proc showBar(fraction: float, speed: BiggestInt) =
-  eraseLine()
+  try:
+    eraseLine()
+  except OSError:
+    discard
   let hashes = repeat('#', int(fraction * progressBarLength))
   let spaces = repeat(' ', progressBarLength - hashes.len)
   stdout.write("[$1$2] $3% $4kb/s" % [

@@ -42,18 +42,21 @@ proc outputReader(stream: Stream, missedEscape: var bool): string =
   while true:
     let c = stream.readStr(1)
 
-    case c[0]
-    of '\c', '\l':
-      result.add(c[0])
-      return
-    of '\27':
-      if result.len > 0:
-        missedEscape = true
+    if c.len() != 0:
+      case c[0]
+      of '\c', '\l':
+        result.add(c[0])
         return
+      of '\27':
+        if result.len > 0:
+          missedEscape = true
+          return
 
-      handleEscape()
+        handleEscape()
+      else:
+        result.add(c[0])
     else:
-      result.add(c[0])
+      return
 
 proc exec(args: varargs[string], exe=exePath,
           yes=true, liveOutput=false,
@@ -68,7 +71,9 @@ proc exec(args: varargs[string], exe=exePath,
       quotedArgs.add("--chooseNimDir:" & choosenimDir)
   quotedArgs.add("--noColor")
 
-  quotedArgs = quoted_args.map((x: string) => ("\"" & x & "\""))
+  for i in 0..quotedArgs.len-1:
+    if " " in quotedArgs[i]:
+      quotedArgs[i] = "\"" & quotedArgs[i] & "\""
 
   if not liveOutput:
     result = execCmdEx(quotedArgs.join(" "))
@@ -82,7 +87,7 @@ proc exec(args: varargs[string], exe=exePath,
         let line = process.outputStream.outputReader(missedEscape)
         result.output.add(line)
         stdout.write(line)
-        if line[0] != '\27':
+        if line.len() != 0 and line[0] != '\27':
           stdout.flushFile()
 
     result.exitCode = process.waitForExit()
