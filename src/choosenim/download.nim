@@ -4,13 +4,14 @@ import nimblepkg/[version, cli]
 when defined(curl):
   import libcurl except Version
 
-import cliparams, common, telemetry
+import cliparams, common, telemetry, utils
 
 const
   githubUrl = "https://github.com/nim-lang/Nim/archive/$1.tar.gz"
   websiteUrl = "http://nim-lang.org/download/nim-$1.tar" &
     getArchiveFormat()
-  csourcesUrl = "https://github.com/nim-lang/csources/archive/master.tar.gz"
+  csourcesUrl = "https://github.com/nim-lang/csources/archive/$1.tar.gz"
+  winBinaryZipUrl = "http://nim-lang.org/download/nim-$1_x$2.zip"
 
 const # Windows-only
   mingwUrl = "http://nim-lang.org/download/mingw32.tar.gz"
@@ -218,7 +219,14 @@ proc needsDownload(params: CliParams, downloadUrl: string,
             priority=HighPriority)
     return false
 
+proc downloadCheck(params: CliParams, url: string): string =
+  result = ""
+  if not needsDownload(params, url, result): return
+
+  downloadFile(url, result, params)
+
 proc downloadImpl(version: Version, params: CliParams): string =
+  let arch = getGccArch()
   if version.isSpecial():
     let reference =
       case normalize($version)
@@ -228,21 +236,36 @@ proc downloadImpl(version: Version, params: CliParams): string =
         ($version)[1 .. ^1]
     display("Downloading", "Nim $1 from $2" % [reference, "GitHub"],
             priority = HighPriority)
-    let url = githubUrl % reference
-    var outputPath: string
-    if not needsDownload(params, url, outputPath): return outputPath
-
-    downloadFile(url, outputPath, params)
-    result = outputPath
+    result = downloadCheck(params, githubUrl % reference)
   else:
     display("Downloading", "Nim $1 from $2" % [$version, "nim-lang.org"],
             priority = HighPriority)
-    let url = websiteUrl % $version
-    var outputPath: string
-    if not needsDownload(params, url, outputPath): return outputPath
 
-    downloadFile(url, outputPath, params)
-    result = outputPath
+    # Check if binary build available
+    when defined(windows):
+      try:
+        result = downloadCheck(params, winBinaryZipUrl % [$version, $arch])
+        return
+      except HttpRequestError:
+        display("Info:", "Binary build unavailable, building from source",
+                priority = HighPriority)
+
+    # Check if source tar.gz posted on nim-lang.org
+    try:
+      result = downloadCheck(params, websiteUrl % $version)
+    except HttpRequestError:
+      # Special check since we have to rename to disambiguate
+      let cached = getDownloadDir(params) / ("nim-$1.tar.gz" % $version)
+      if not fileExists(cached):
+        # Fallback to downloading from Github
+        result = downloadCheck(params, githubUrl % ("v" & $version))
+
+        # Rename to nim-VERSION.tar.gz to disambiguate
+        let renfile = result.replace("v" & $version, "nim-" & $version)
+        moveFile(result, renfile)
+        result = renfile
+      else:
+        result = cached
 
 proc download*(version: Version, params: CliParams): string =
   ## Returns the path of the downloaded .tar.(gz|xz) file.
@@ -252,32 +275,33 @@ proc download*(version: Version, params: CliParams): string =
     raise newException(ChooseNimError, "Version $1 does not exist." %
                        $version)
 
-proc downloadCSources*(params: CliParams): string =
-  var outputPath: string
-  if not needsDownload(params, csourcesUrl, outputPath):
-    return outputPath
-
+proc downloadCSources*(params: CliParams, version: Version): string =
   display("Downloading", "Nim C sources from GitHub", priority = HighPriority)
-  downloadFile(csourcesUrl, outputPath, params)
-  return outputPath
+  try:
+    # Special check since we have to rename to disambiguate
+    let cached = getDownloadDir(params) / ("csources-$1.tar.gz" % $version)
+    if not fileExists(cached):
+      result = downloadCheck(params, csourcesUrl % ("v" & $version))
+
+      # Rename to csources-VERSION.tar.gz to disambiguate
+      let renfile = result.replace("v" & $version, "csources-" & $version)
+      moveFile(result, renfile)
+      result = renfile
+    else:
+      result = cached
+  except HttpRequestError:
+    result = downloadCheck(params, csourcesUrl % "master")
+    display("Warning:", "Building from latest C sources. They may not be " &
+                        "compatible with the Nim version you have chosen to " &
+                        "install.", Warning, HighPriority)
 
 proc downloadMingw32*(params: CliParams): string =
-  var outputPath: string
-  if not needsDownload(params, mingwUrl, outputPath):
-    return outputPath
-
   display("Downloading", "C compiler (Mingw32)", priority = HighPriority)
-  downloadFile(mingwUrl, outputPath, params)
-  return outputPath
+  result = downloadCheck(params, mingwUrl)
 
 proc downloadDLLs*(params: CliParams): string =
-  var outputPath: string
-  if not needsDownload(params, dllsUrl, outputPath):
-    return outputPath
-
   display("Downloading", "DLLs (openssl, pcre, ...)", priority = HighPriority)
-  downloadFile(dllsUrl, outputPath, params)
-  return outputPath
+  result = downloadCheck(params, dllsUrl)
 
 proc retrieveUrl*(url: string): string =
   when defined(curl):

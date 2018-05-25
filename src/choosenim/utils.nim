@@ -20,12 +20,24 @@ proc doCmdRaw*(cmd: string) =
         "Execution failed with exit code $1\nCommand: $2\nOutput: $3" %
         [$exitCode, cmd, output])
 
+proc extractZip(path: string, extractDir: string) =
+  var cmd = "unzip -o $1 -d $2"
+  if defined(windows):
+      cmd = "powershell -nologo -noprofile -command \"& { Add-Type -A 'System.IO.Compression.FileSystem'; [IO.Compression.ZipFile]::ExtractToDirectory('$1', '$2'); }\""
+
+  let (outp, errC) = execCmdEx(cmd % [path, extractDir])
+  if errC != 0:
+    raise newException(ChooseNimError, "Unable to extract ZIP. Error was $1" % outp)
+
 proc extract*(path: string, extractDir: string) =
   display("Extracting", path.extractFilename(), priority = HighPriority)
 
   let ext = path.splitFile().ext
   var newPath = path
   case ext
+  of ".zip":
+    extractZip(path, extractDir)
+    return
   of ".xz":
     # We need to decompress manually.
     let unxzPath = findExe("unxz")
@@ -50,3 +62,24 @@ proc extract*(path: string, extractDir: string) =
   except Exception as exc:
     raise newException(ChooseNimError, "Unable to extract. Error was '$1'." %
                        exc.msg)
+
+proc moveDirContents*(srcDir, dstDir: string) =
+  for kind, entry in walkDir(srcDir):
+    if kind in [pcFile, pcLinkToFile]:
+      moveFile(entry, dstDir/entry.extractFilename())
+    else:
+      moveDir(entry, dstDir/entry.extractFilename())
+
+proc getGccArch*(): int =
+  # gcc should be in PATH
+  var
+    outp = ""
+    errC = 0
+
+  when defined(windows):
+    (outp, errC) = execCmdEx("cmd /c echo int main^(^) { return sizeof^(void *^); } | gcc -xc - -o archtest && archtest")
+  else:
+    (outp, errC) = execCmdEx("sh echo \"int main() { return sizeof(void *); }\" | gcc -xc - -o archtest && archtest")
+
+  removeFile("archtest".addFileExt(ExeExt))
+  return errC * 8
