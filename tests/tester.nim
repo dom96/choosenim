@@ -42,21 +42,21 @@ proc outputReader(stream: Stream, missedEscape: var bool): string =
   while true:
     let c = stream.readStr(1)
 
-    if c.len() != 0:
-      case c[0]
-      of '\c', '\l':
-        result.add(c[0])
-        return
-      of '\27':
-        if result.len > 0:
-          missedEscape = true
-          return
-
-        handleEscape()
-      else:
-        result.add(c[0])
-    else:
+    if c.len() == 0:
       return
+
+    case c[0]
+    of '\c', '\l':
+      result.add(c[0])
+      return
+    of '\27':
+      if result.len > 0:
+        missedEscape = true
+        return
+
+      handleEscape()
+    else:
+      result.add(c[0])
 
 proc exec(args: varargs[string], exe=exePath,
           yes=true, liveOutput=false,
