@@ -228,6 +228,13 @@ proc downloadCheck(params: CliParams, url: string): string =
 
   downloadFile(url, result, params)
 
+proc downloadCheckRenamed(params: CliParams, url, filename: string): string =
+  # Special check since we have to rename to disambiguate
+  result = getDownloadDir(params) / filename
+  if not fileExists(result):
+    let origfile = downloadCheck(params, url)
+    moveFile(origfile, result)
+
 proc downloadImpl(version: Version, params: CliParams): string =
   let arch = getGccArch()
   if version.isSpecial():
@@ -257,18 +264,10 @@ proc downloadImpl(version: Version, params: CliParams): string =
     try:
       result = downloadCheck(params, websiteUrl % $version)
     except HttpRequestError:
-      # Special check since we have to rename to disambiguate
-      let cached = getDownloadDir(params) / ("nim-$1.tar.gz" % $version)
-      if not fileExists(cached):
-        # Fallback to downloading from Github
-        result = downloadCheck(params, githubUrl % ("v" & $version))
-
-        # Rename to nim-VERSION.tar.gz to disambiguate
-        let renfile = result.replace("v" & $version, "nim-" & $version)
-        moveFile(result, renfile)
-        result = renfile
-      else:
-        result = cached
+      # Fallback to downloading from Github
+      # Rename to nim-VERSION.tar.gz to disambiguate
+      result = downloadCheckRenamed(params, githubUrl % ("v" & $version),
+                                    "nim-$1.tar.gz" % $version)
 
 proc download*(version: Version, params: CliParams): string =
   ## Returns the path of the downloaded .tar.(gz|xz) file.
@@ -281,17 +280,10 @@ proc download*(version: Version, params: CliParams): string =
 proc downloadCSources*(params: CliParams, version: Version): string =
   display("Downloading", "Nim C sources from GitHub", priority = HighPriority)
   try:
-    # Special check since we have to rename to disambiguate
-    let cached = getDownloadDir(params) / ("csources-$1.tar.gz" % $version)
-    if not fileExists(cached):
-      result = downloadCheck(params, csourcesUrl % ("v" & $version))
-
-      # Rename to csources-VERSION.tar.gz to disambiguate
-      let renfile = result.replace("v" & $version, "csources-" & $version)
-      moveFile(result, renfile)
-      result = renfile
-    else:
-      result = cached
+    # Download csources tagged version from Github
+    # Rename to csources-VERSION.tar.gz to disambiguate
+    result = downloadCheckRenamed(params, csourcesUrl % ("v" & $version),
+                                  "csources-$1.tar.gz" % $version)
   except HttpRequestError:
     result = downloadCheck(params, csourcesUrl % "master")
     display("Warning:", "Building from latest C sources. They may not be " &
