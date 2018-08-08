@@ -49,10 +49,10 @@ install() {
     fi
 
     # Install Nim from desired channel.
-    "/$temp_prefix/$filename" $CHOOSE_VERSION --firstInstall < /dev/tty
+    "$temp_prefix/$filename" $CHOOSE_VERSION --firstInstall < /dev/tty
   else
     # TODO: Use the -y switch when choosenim gets support for it.
-    yes | "/$temp_prefix/$filename" $CHOOSE_VERSION --firstInstall
+    yes | "$temp_prefix/$filename" $CHOOSE_VERSION --firstInstall
   fi
 
   # Copy choosenim binary to Nimble bin.
