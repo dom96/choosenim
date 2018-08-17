@@ -7,8 +7,10 @@ import cliparams, download, utils, common, telemetry
 
 proc buildFromCSources() =
   when defined(windows):
-    doCmdRaw("build.bat")
-    # TODO: How should we handle x86 vs amd64?
+    when defined(i386):
+      doCmdRaw("build.bat")
+    else defined(amd64):
+      doCmdRaw("build64.bat")
   else:
     doCmdRaw("sh build.sh")
 
