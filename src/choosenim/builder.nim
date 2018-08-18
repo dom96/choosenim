@@ -9,7 +9,7 @@ proc buildFromCSources() =
   when defined(windows):
     when defined(i386):
       doCmdRaw("build.bat")
-    else defined(amd64):
+    elif defined(amd64):
       doCmdRaw("build64.bat")
   else:
     doCmdRaw("sh build.sh")
