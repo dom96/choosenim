@@ -176,9 +176,9 @@ proc show(params: CliParams) =
 
 proc installed(params: CliParams) =
   # Shows available/installed versions
-  let pathLen = split((params.getInstallDir() & "/"), "/").len()
-  for version in walkDirs(params.getInstallDir() & "/*"):
-    display("Installed:", (version.split("/"))[pathLen-1], priority = HighPriority)
+  for path in walkDirs(params.getInstallDir() & "/*"):
+    let (_, version) = getNameVersion(path)
+    display("Installed:", version, priority = HighPriority)
 
 proc performAction(params: CliParams) =
   # Report telemetry.
