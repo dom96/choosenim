@@ -86,6 +86,15 @@ OpenSSL version can be checked by executing ``openssl version``.
 
 ## Usage
 
+```
+$ nim -v
+Nim Compiler Version 0.19.0 [MacOSX: amd64]
+$ choosenim 0.18.0
+  Switched to Nim 0.18.0
+$ nim -v
+Nim Compiler Version 0.18.0 [MacOSX: amd64]
+```
+
 ## Analytics
 
 Check out the
