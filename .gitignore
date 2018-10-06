@@ -4,7 +4,6 @@ src/choosenim/proxyexe
 *.exe
 
 tests/nimcache
-tests/chooseNimDir
+tests/choosenimDir
 tests/nimbleDir
 tests/tester
-
