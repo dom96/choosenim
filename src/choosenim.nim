@@ -137,8 +137,8 @@ proc update(params: CliParams) =
   # Retrieve the current version for the specified channel.
   let version = getChannelVersion(channel, params, live=true).newVersion
 
-  # Ensure that the version isn't already installed.
-  if not canUpdate(version, params):
+  # Ensure that the version isn't already installed, unless `--force` was used.
+  if not (canUpdate(version, params) or params.forceUpdate):
     display("Info:", "Already up to date at version " & $version,
             Success, HighPriority)
     if getSelectedVersion(params) != version:

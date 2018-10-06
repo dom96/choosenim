@@ -11,6 +11,7 @@ type
     commands*: seq[string]
     choosenimDir*: string
     firstInstall*: bool
+    forceUpdate*: bool
     nimbleOptions*: Options
     analytics*: AsyncAnalytics
     pendingReports*: int ## Count of pending telemetry reports.
@@ -58,6 +59,7 @@ Options:
   --verbose             Show low (and higher) priority output.
   --debug               Show debug (and higher) priority output.
   --noColor             Don't colorise output.
+  --force               Delete and re-create chosen version/channel.
 
   --choosenimDir:<dir>  Specify the directory where toolchains should be
                         installed. Default: ~/.choosenim.
@@ -157,6 +159,7 @@ proc parseCliParams*(params: var CliParams, proxyExeMode = false) =
       of "verbose": setVerbosity(LowPriority)
       of "debug": setVerbosity(DebugPriority)
       of "nocolor": setShowColor(false)
+      of "force": params.forceUpdate = true
       of "choosenimdir": params.choosenimDir = val
       of "nimbledir": params.nimbleOptions.nimbleDir = val
       of "firstinstall": params.firstInstall = true
