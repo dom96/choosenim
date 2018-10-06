@@ -63,18 +63,19 @@ assuming that 0.16.0 was selected.
 
 Due to lack of official binaries for most platforms, ``choosenim`` downloads
 the source and builds it by default. This operation is only performed once
-when a new version is selected.
+when a new version is selected, unless the ``--force`` switch is utilized, in
+which case ``choosenim`` will delete and re-download the toolchain.
 
 In the future ``choosenim`` will download binaries whenever they are available.
 
 ## Dependencies
 
-|            |           Windows             |        Linux       |        macOS (*)      |
-|------------|:-----------------------------:|:------------------:|:---------------------:|
-| C compiler | *Downloaded automatically*    |      gcc/clang     |      gcc/clang        |
-| OpenSSL    |          >= 1.0.2k            |      >= 1.0.2k     |         N/A           |
-| curl       |             N/A               |         N/A        | Any recent version    |
-| zlib       | *Statically linked in binary* | Any recent version | Any recent version    |
+|            | Windows                       | Linux              | macOS (*)          |
+| ---------- | :---------------------------: | :----------------: | :----------------: |
+| C compiler | *Downloaded automatically*    | gcc/clang          | gcc/clang          |
+| OpenSSL    | >= 1.0.2k                     | >= 1.0.2k          | N/A                |
+| curl       | N/A                           | N/A                | Any recent version |
+| zlib       | *Statically linked in binary* | Any recent version | Any recent version |
 
 \* Many macOS dependencies should already be installed. You may need to install
    a C compiler however.
