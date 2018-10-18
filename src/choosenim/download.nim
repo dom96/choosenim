@@ -1,10 +1,10 @@
-import httpclient, strutils, os, terminal, times, math, uri
+import httpclient, strutils, os, terminal, times, math
 
 import nimblepkg/[version, cli]
 when defined(curl):
   import libcurl except Version
 
-import cliparams, common, telemetry
+import cliparams, common, telemetry, utils
 
 const
   githubUrl = "https://github.com/nim-lang/Nim/archive/$1.tar.gz"
@@ -140,29 +140,6 @@ when defined(curl):
     if responseCode != 200:
       raise newException(HTTPRequestError,
              "Expected HTTP code $1 got $2" % [$200, $responseCode])
-
-proc getProxy*(): Proxy =
-  ## Returns ``nil`` if no proxy is specified.
-  var url = ""
-  try:
-    if existsEnv("http_proxy"):
-      url = getEnv("http_proxy")
-    elif existsEnv("https_proxy"):
-      url = getEnv("https_proxy")
-  except ValueError:
-    display("Warning:", "Unable to parse proxy from environment: " &
-        getCurrentExceptionMsg(), Warning, HighPriority)
-
-  if url.len > 0:
-    var parsed = parseUri(url)
-    if parsed.scheme.len == 0 or parsed.hostname.len == 0:
-      parsed = parseUri("http://" & url)
-    let auth =
-      if parsed.username.len > 0: parsed.username & ":" & parsed.password
-      else: ""
-    return newProxy($parsed, auth)
-  else:
-    return nil
 
 proc downloadFileNim(url, outputPath: string) =
   var client = newHttpClient(proxy = getProxy())
