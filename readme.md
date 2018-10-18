@@ -16,6 +16,7 @@ $ choosenim stable
   Installed component 'nim'
   Installed component 'nimble'
   Installed component 'nimgrep'
+  Installed component 'nimpretty'
   Installed component 'nimsuggest'
    Switched to Nim 0.16.0
 $ nim -v

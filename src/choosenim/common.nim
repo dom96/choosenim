@@ -10,6 +10,7 @@ const
       "nim",
       "nimble",
       "nimgrep",
+      "nimpretty",
       "nimsuggest"
     ]
 

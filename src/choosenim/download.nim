@@ -145,7 +145,7 @@ proc downloadFileNim(url, outputPath: string) =
   var client = newHttpClient(proxy = getProxy())
 
   var lastProgressPos = 0
-  proc onProgressChanged(total, progress, speed: BiggestInt) =
+  proc onProgressChanged(total, progress, speed: BiggestInt) {.closure, gcsafe.} =
     let fraction = progress.float / total.float
     if fraction == Inf:
       showIndeterminateBar(progress, speed, lastProgressPos)
