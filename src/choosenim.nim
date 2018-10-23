@@ -1,6 +1,6 @@
 # Copyright (C) Dominik Picheta. All rights reserved.
 # BSD-3-Clause License. Look at license.txt for more info.
-import os, strutils
+import os, strutils, algorithm
 
 import nimblepkg/[cli, tools, version]
 import nimblepkg/common as nimbleCommon
@@ -174,11 +174,26 @@ proc show(params: CliParams) =
 
   display("Path:", path, priority = HighPriority)
 
-proc installed(params: CliParams) =
-  # Shows available/installed versions
+  var versions: seq[string] = @[]
   for path in walkDirs(params.getInstallDir() & "/*"):
-    let (_, version) = getNameVersion(path)
-    display("Installed:", version, priority = HighPriority)
+    let (_, versionAvailable) = getNameVersion(path)
+    versions.add(versionAvailable)
+
+  if versions.len() != 0:
+    versions.sort(Descending)
+    if versions.contains("#head"):
+      versions.del(find(versions, "#head"))
+      versions.insert("#head", 0)
+    if versions.contains("#devel"):
+      versions.del(find(versions, "#devel"))
+      versions.insert("#devel", 0)
+
+    echo ""
+    for ver in versions:
+      if ver == version:
+        display("*", ver, Success, HighPriority)
+      else:
+        display("", ver, priority = HighPriority)
 
 proc performAction(params: CliParams) =
   # Report telemetry.
@@ -189,8 +204,6 @@ proc performAction(params: CliParams) =
     update(params)
   of "show":
     show(params)
-  of "installed":
-    installed(params)
   else:
     choose(params)
 
