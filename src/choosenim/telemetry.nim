@@ -10,7 +10,7 @@ when defined(windows):
 else:
   import osinfo/posix
 
-import cliparams, common
+import cliparams, common, utils
 
 type
   EventCategory* = enum
@@ -118,7 +118,7 @@ proc loadAnalytics*(params: CliParams): bool =
     return false
 
   params.analytics = newAsyncAnalytics("UA-105812497-1", clientID, "choosenim",
-                                       chooseNimVersion)
+                                       chooseNimVersion, proxy = getProxy())
 
   # Report OS info only once.
   if prompted:
