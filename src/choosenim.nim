@@ -163,14 +163,14 @@ proc update(params: CliParams) =
 proc show(params: CliParams) =
   let channel = getCurrentChannel(params)
   let path = getSelectedPath(params)
+  let (_, version) = getNameVersion(path)
+  if version != "":
+    display("Selected:", version, priority = HighPriority)
+
   if channel.len > 0:
     display("Channel:", channel, priority = HighPriority)
   else:
     display("Channel:", "No channel selected", priority = HighPriority)
-
-  let (_, version) = getNameVersion(path)
-  if version != "":
-    display("Version:", version, priority = HighPriority)
 
   display("Path:", path, priority = HighPriority)
 
@@ -179,7 +179,7 @@ proc show(params: CliParams) =
     let (_, versionAvailable) = getNameVersion(path)
     versions.add(versionAvailable)
 
-  if versions.len() != 0:
+  if versions.len() > 1:
     versions.sort(Descending)
     if versions.contains("#head"):
       versions.del(find(versions, "#head"))
@@ -189,6 +189,7 @@ proc show(params: CliParams) =
       versions.insert("#devel", 0)
 
     echo ""
+    display("Versions:", " ", priority = HighPriority)
     for ver in versions:
       if ver == version:
         display("*", ver, Success, HighPriority)
