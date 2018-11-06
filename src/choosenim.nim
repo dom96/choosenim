@@ -180,7 +180,7 @@ proc show(params: CliParams) =
     versions.add(versionAvailable)
 
   if versions.len() > 1:
-    versions.sort(order=Descending)
+    versions.sort(system.cmp, Descending)
     if versions.contains("#head"):
       versions.del(find(versions, "#head"))
       versions.insert("#head", 0)
