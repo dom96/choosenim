@@ -73,3 +73,16 @@ proc getProxy*(): Proxy =
     return newProxy($parsed, auth)
   else:
     return nil
+
+proc getGccArch*(): int =
+  var
+    outp = ""
+    errC = 0
+
+  when defined(windows):
+    (outp, errC) = execCmdEx("cmd /c echo int main^(^) { return sizeof^(void *^); } | gcc -xc - -o archtest && archtest")
+  else:
+    (outp, errC) = execCmdEx("sh echo \"int main() { return sizeof(void *); }\" | gcc -xc - -o archtest && archtest")
+
+  removeFile("archtest".addFileExt(ExeExt))
+  return errC * 8

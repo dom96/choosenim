@@ -7,8 +7,11 @@ import cliparams, download, utils, common, telemetry
 
 proc buildFromCSources() =
   when defined(windows):
-    doCmdRaw("build.bat")
-    # TODO: How should we handle x86 vs amd64?
+    let arch = getGccArch()
+    if arch == 32:
+      doCmdRaw("build.bat")
+    elif arch == 64:
+      doCmdRaw("build64.bat")
   else:
     doCmdRaw("sh build.sh")
 
