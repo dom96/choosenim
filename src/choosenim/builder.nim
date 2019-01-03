@@ -55,7 +55,7 @@ proc buildTools() =
     display("Tools: ", "Already built", priority = HighPriority)
     return
 
-  let msg = "tools (nimble, nimgrep, nimsuggest)"
+  let msg = "tools (nimble, nimgrep, nimpretty, nimsuggest)"
   display("Building", msg, priority = HighPriority)
   if fileExists(getCurrentDir() / "build.sh"):
     when defined(windows):

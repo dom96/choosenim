@@ -1,6 +1,6 @@
 # Copyright (C) Dominik Picheta. All rights reserved.
 # BSD-3-Clause License. Look at license.txt for more info.
-import os, strutils
+import os, strutils, algorithm
 
 import nimblepkg/[cli, tools, version]
 import nimblepkg/common as nimbleCommon
@@ -179,16 +179,38 @@ proc update(params: CliParams) =
 proc show(params: CliParams) =
   let channel = getCurrentChannel(params)
   let path = getSelectedPath(params)
+  let (_, version) = getNameVersion(path)
+  if version != "":
+    display("Selected:", version, priority = HighPriority)
+
   if channel.len > 0:
     display("Channel:", channel, priority = HighPriority)
   else:
     display("Channel:", "No channel selected", priority = HighPriority)
 
-  let (_, version) = getNameVersion(path)
-  if version != "":
-    display("Version:", version, priority = HighPriority)
-
   display("Path:", path, priority = HighPriority)
+
+  var versions: seq[string] = @[]
+  for path in walkDirs(params.getInstallDir() & "/*"):
+    let (_, versionAvailable) = getNameVersion(path)
+    versions.add(versionAvailable)
+
+  if versions.len() > 1:
+    versions.sort(system.cmp, Descending)
+    if versions.contains("#head"):
+      versions.del(find(versions, "#head"))
+      versions.insert("#head", 0)
+    if versions.contains("#devel"):
+      versions.del(find(versions, "#devel"))
+      versions.insert("#devel", 0)
+
+    echo ""
+    display("Versions:", " ", priority = HighPriority)
+    for ver in versions:
+      if ver == version:
+        display("*", ver, Success, HighPriority)
+      else:
+        display("", ver, priority = HighPriority)
 
 proc performAction(params: CliParams) =
   # Report telemetry.
