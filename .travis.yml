@@ -1,6 +1,6 @@
 os:
   - linux
-#  - osx
+  - osx
 
 dist: trusty
 
@@ -23,6 +23,7 @@ before_script:
   - export CHOOSENIM_NO_ANALYTICS=1
 
 script:
+  - nimble install nimarchive@#head
   - nimble test
   - yes | choosenim stable # Workaround tester overwriting our Nimble install.
   - nimble build -d:release

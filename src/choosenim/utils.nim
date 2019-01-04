@@ -1,7 +1,7 @@
 import httpclient, os, strutils, osproc, uri
 
 import nimblepkg/[cli, tools, version]
-import untar
+import nimarchive
 
 import switcher, common
 
@@ -23,30 +23,8 @@ proc doCmdRaw*(cmd: string) =
 proc extract*(path: string, extractDir: string) =
   display("Extracting", path.extractFilename(), priority = HighPriority)
 
-  let ext = path.splitFile().ext
-  var newPath = path
-  case ext
-  of ".xz":
-    # We need to decompress manually.
-    let unxzPath = findExe("unxz")
-    if unxzPath.len == 0:
-      let msg = "Cannot decompress xz, `unxz` not in PATH"
-      raise newException(ChooseNimError, msg)
-
-    let tarFile = newPath.changeFileExt("") # This will remove the .xz
-    # `unxz` complains when the .tar file already exists.
-    removeFile(tarFile)
-    doCmdRaw("unxz \"$1\"" % newPath)
-    newPath = tarFile
-  of ".gz":
-    # untar package will take care of this.
-    discard
-  else:
-    raise newException(ChooseNimError, "Invalid archive format " & ext)
-
   try:
-    var file = newTarFile(newPath)
-    file.extract(extractDir)
+    nimarchive.extract(path, extractDir)
   except Exception as exc:
     raise newException(ChooseNimError, "Unable to extract. Error was '$1'." %
                        exc.msg)

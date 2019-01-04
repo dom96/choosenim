@@ -8,13 +8,12 @@ import cliparams, common, telemetry, utils
 
 const
   githubUrl = "https://github.com/nim-lang/Nim/archive/$1.tar.gz"
-  websiteUrl = "http://nim-lang.org/download/nim-$1.tar" &
-    getArchiveFormat()
+  websiteUrl = "http://nim-lang.org/download/nim-$1.tar.xz"
   csourcesUrl = "https://github.com/nim-lang/csources/archive/master.tar.gz"
 
 const # Windows-only
-  mingwUrl = "http://nim-lang.org/download/mingw32.tar.gz"
-  dllsUrl = "http://nim-lang.org/download/dlls.tar.gz"
+  mingwUrl = "https://nim-lang.org/download/mingw32-6.3.0.7z"
+  dllsUrl = "http://nim-lang.org/download/dlls.zip"
 
 const
   progressBarLength = 50

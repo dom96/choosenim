@@ -99,12 +99,6 @@ proc getMingwPath*(params: CliParams): string =
 proc getMingwBin*(params: CliParams): string =
   return getMingwPath(params) / "bin"
 
-proc getArchiveFormat*(): string =
-  when defined(linux):
-    return ".xz"
-  else:
-    return ".gz"
-
 proc getDownloadPath*(params: CliParams, downloadUrl: string): string =
   let (_, name, ext) = downloadUrl.splitFile()
   return params.getDownloadDir() / name & ext
