@@ -6,10 +6,10 @@ dist: trusty
 
 language: c
 
-cache:
-  directories:
-    - "$HOME/.nimble"
-    - "$HOME/.choosenim"
+#cache:
+#  directories:
+#    - "$HOME/.nimble"
+#    - "$HOME/.choosenim"
 
 install:
   - |
