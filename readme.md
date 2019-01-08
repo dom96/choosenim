@@ -62,11 +62,12 @@ assuming that 0.16.0 was selected.
 
 ### How toolchains are installed
 
-Due to lack of official binaries for most platforms, ``choosenim`` downloads
-the source and builds it by default. This operation is only performed once
-when a new version is selected.
+``choosenim`` downloads and installs the official release [binaries](https://nim-lang.org/install_windows.html) on Windows. On
+other platforms, the official source [release](https://nim-lang.org/install_unix.html) is downloaded and built. This operation
+is only performed once when a new version is selected.
 
-In the future ``choosenim`` will download binaries whenever they are available.
+As official binaries are made available for more platforms, ``choosenim`` will install
+them accordingly.
 
 ## Dependencies
 
