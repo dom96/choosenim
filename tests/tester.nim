@@ -140,6 +140,10 @@ test "can choose v0.16.0":
 
     check inLines(output.processOutput, "building")
     check inLines(output.processOutput, "downloading")
+    when defined(windows):
+      check inLines(output.processOutput, "already built")
+    else:
+      check inLines(output.processOutput, "building tools")
     check hasLine(output.processOutput, "switched to nim 0.16.0")
 
   block:

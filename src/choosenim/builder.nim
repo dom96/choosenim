@@ -80,12 +80,8 @@ proc build*(extractDir: string, version: Version, params: CliParams) =
 
   let currentDir = getCurrentDir()
   setCurrentDir(extractDir)
-  # Add MingW bin dir to PATH so that `build.bat` script can find gcc.
-  let pathEnv = getEnv("PATH")
-  putEnv("PATH", params.getMingwBin() & PathSep & pathEnv)
   defer:
     setCurrentDir(currentDir)
-    putEnv("PATH", pathEnv)
 
   display("Building", "Nim " & $version, priority = HighPriority)
 

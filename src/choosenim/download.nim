@@ -15,6 +15,7 @@ const
 const # Windows-only
   mingwUrl = "http://nim-lang.org/download/mingw32.tar.gz"
   dllsUrl = "http://nim-lang.org/download/dlls.tar.gz"
+  winBinaryZipUrl = "http://nim-lang.org/download/nim-$1_x$2.zip"
 
 const
   progressBarLength = 50
@@ -199,6 +200,7 @@ proc needsDownload(params: CliParams, downloadUrl: string,
     return false
 
 proc downloadImpl(version: Version, params: CliParams): string =
+  let arch = getGccArch()
   if version.isSpecial():
     let reference =
       case normalize($version)
@@ -217,8 +219,21 @@ proc downloadImpl(version: Version, params: CliParams): string =
   else:
     display("Downloading", "Nim $1 from $2" % [$version, "nim-lang.org"],
             priority = HighPriority)
-    let url = websiteUrl % $version
-    var outputPath: string
+
+    var
+      url: string
+      outputPath: string
+    when defined(Windows):
+      url = winBinaryZipUrl % [$version, $arch]
+      if not needsDownload(params, url, outputPath): return outputPath
+      try:
+        downloadFile(url, outputPath, params)
+        return outputPath
+      except HttpRequestError:
+        display("Info:", "Binary build unavailable, building from source",
+                priority = HighPriority)
+
+    url = websiteUrl % $version
     if not needsDownload(params, url, outputPath): return outputPath
 
     downloadFile(url, outputPath, params)
