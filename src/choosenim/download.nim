@@ -4,7 +4,7 @@ import nimblepkg/[version, cli]
 when defined(curl):
   import libcurl except Version
 
-import cliparams, common, telemetry, utils
+import cliparams, common, switcher, telemetry, utils
 
 const
   githubUrl = "https://github.com/nim-lang/Nim/archive/$1.tar.gz"
@@ -200,6 +200,14 @@ proc needsDownload(params: CliParams, downloadUrl: string,
     return false
 
 proc downloadImpl(version: Version, params: CliParams): string =
+  # Add MingW bin dir to PATH so getGccArch can find gcc.
+  let pathEnv = getEnv("PATH")
+  when defined(Windows):
+    if not isCCInPath(params) and dirExists(params.getMingwBin()):
+      putEnv("PATH", params.getMingwBin() & PathSep & pathEnv)
+  defer:
+    putEnv("PATH", pathEnv)
+
   let arch = getGccArch()
   if version.isSpecial():
     let reference =
@@ -220,20 +228,21 @@ proc downloadImpl(version: Version, params: CliParams): string =
     display("Downloading", "Nim $1 from $2" % [$version, "nim-lang.org"],
             priority = HighPriority)
 
-    var
-      url: string
-      outputPath: string
-    when defined(Windows):
-      url = winBinaryZipUrl % [$version, $arch]
-      if not needsDownload(params, url, outputPath): return outputPath
-      try:
-        downloadFile(url, outputPath, params)
-        return outputPath
-      except HttpRequestError:
-        display("Info:", "Binary build unavailable, building from source",
-                priority = HighPriority)
+    var outputPath: string
 
-    url = websiteUrl % $version
+    when defined(Windows):
+      # Need powershell on Windows to extract binary ZIP
+      if findExe("powershell") != "":
+        let winUrl = winBinaryZipUrl % [$version, $arch]
+        if not needsDownload(params, winUrl, outputPath): return outputPath
+        try:
+          downloadFile(winUrl, outputPath, params)
+          return outputPath
+        except HttpRequestError:
+          display("Info:", "Binary build unavailable, building from source",
+                  priority = HighPriority)
+
+    let url = websiteUrl % $version
     if not needsDownload(params, url, outputPath): return outputPath
 
     downloadFile(url, outputPath, params)

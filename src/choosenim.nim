@@ -30,24 +30,18 @@ proc parseVersion(versionStr: string): Version =
   result = newVersion(versionStr)
 
 proc installVersion(version: Version, params: CliParams) =
-  when defined(windows):
-    # Add MingW bin dir to PATH so download step can find gcc.
-    if findExe("gcc") == "" and dirExists(params.getMingwBin()):
-      let pathEnv = getEnv("PATH")
-      putEnv("PATH", params.getMingwBin() & PathSep & pathEnv)
-      defer:
-        putEnv("PATH", pathEnv)
-
   # Install the requested version.
   let path = download(version, params)
   # Extract the downloaded file.
-  let extractDir = params.getInstallationDir(version)
+  let extractDir =
+    if ("nim-$1_x" % $version) in path.splitFile().name:
+      # Extracting a Windows binary release ZIP which already has a
+      # nim-$version directory so extract to base install directory
+      params.getInstallDir()
+    else:
+      params.getInstallationDir(version)
   # Make sure no stale files from previous installation exist.
   removeDir(extractDir)
-  if path.splitFile().ext == ".zip":
-    extract(path, extractDir.parentDir())
-  else:
-    extract(path, extractDir)
   # A "special" version is downloaded from GitHub and thus needs a `.git`
   # directory in order to let `koch` know that it should download a "devel"
   # Nimble.

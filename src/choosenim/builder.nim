@@ -3,7 +3,7 @@ import os, strutils, osproc, times
 import nimblepkg/[version, cli, tools]
 import nimblepkg/common as nimble_common
 
-import cliparams, download, utils, common, telemetry
+import cliparams, download, utils, common, switcher, telemetry
 
 proc buildFromCSources() =
   when defined(windows):
@@ -80,8 +80,14 @@ proc build*(extractDir: string, version: Version, params: CliParams) =
 
   let currentDir = getCurrentDir()
   setCurrentDir(extractDir)
+  # Add MingW bin dir to PATH so that `build.bat` script can find gcc.
+  let pathEnv = getEnv("PATH")
+  when defined(windows):
+    if not isCCInPath(params) and dirExists(params.getMingwBin()):
+      putEnv("PATH", params.getMingwBin() & PathSep & pathEnv)
   defer:
     setCurrentDir(currentDir)
+    putEnv("PATH", pathEnv)
 
   display("Building", "Nim " & $version, priority = HighPriority)
 
