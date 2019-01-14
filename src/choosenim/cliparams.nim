@@ -100,7 +100,7 @@ proc getMingwBin*(params: CliParams): string =
   return getMingwPath(params) / "bin"
 
 proc getArchiveFormat*(): string =
-  when defined(linux):
+  if findExe("unxz") != "":
     return ".xz"
   else:
     return ".gz"
