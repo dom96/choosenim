@@ -200,15 +200,7 @@ proc needsDownload(params: CliParams, downloadUrl: string,
     return false
 
 proc downloadImpl(version: Version, params: CliParams): string =
-  # Add MingW bin dir to PATH so getGccArch can find gcc.
-  let pathEnv = getEnv("PATH")
-  when defined(Windows):
-    if not isCCInPath(params) and dirExists(params.getMingwBin()):
-      putEnv("PATH", params.getMingwBin() & PathSep & pathEnv)
-  defer:
-    putEnv("PATH", pathEnv)
-
-  let arch = getGccArch()
+  let arch = getGccArch(params)
   if version.isSpecial():
     let reference =
       case normalize($version)

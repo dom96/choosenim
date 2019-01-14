@@ -42,16 +42,16 @@ proc areProxiesInstalled(params: CliParams, proxies: openarray[string]): bool =
     if contents != proxyExe:
       return false
 
-proc isCCInPath*(params: CliParams): bool =
-  when defined(Windows):
-    return findExe("gcc") != ""
+proc isDefaultCCInPath*(params: CliParams): bool =
+  # Fixes issue #104
+  when defined(OSX):
+    return findExe("clang") != ""
   else:
-    # Fix issue #104
-    return findExe("gcc") != "" or findExe("clang") != ""
+    return findExe("gcc") != ""
 
 proc needsCCInstall*(params: CliParams): bool =
   ## Determines whether the system needs a C compiler to be installed.
-  let inPath = isCCInPath(params)
+  let inPath = isDefaultCCInPath(params)
   let inMingwDir = fileExists(params.getMingwBin() / "gcc".addFileExt(ExeExt))
   let isInstalled = inPath or inMingwDir
   return not isInstalled
@@ -149,7 +149,7 @@ proc switchToPath(filepath: string, params: CliParams): bool =
   var proxiesToInstall = @proxies
   # Handle MingW proxies.
   when defined(windows):
-    if not isCCInPath(params):
+    if not isDefaultCCInPath(params):
       let mingwBin = getMingwBin(params)
       if not fileExists(mingwBin / "gcc".addFileExt(ExeExt)):
         let msg = "No 'gcc' binary found in '$1'." % mingwBin
