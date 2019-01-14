@@ -33,15 +33,15 @@ proc installVersion(version: Version, params: CliParams) =
   # Install the requested version.
   let path = download(version, params)
   # Extract the downloaded file.
-  let extractDir =
-    if ("nim-$1_x" % $version) in path.splitFile().name:
-      # Extracting a Windows binary release ZIP which already has a
-      # nim-$version directory so extract to base install directory
-      params.getInstallDir()
-    else:
-      params.getInstallationDir(version)
+  let extractDir = params.getInstallationDir(version)
   # Make sure no stale files from previous installation exist.
   removeDir(extractDir)
+  if ("nim-$1_x" % $version) in path.splitFile().name:
+    # Extracting a Windows binary release ZIP which already has a
+    # nim-$version directory so extract to base install directory
+    extract(path, params.getInstallDir())
+  else:
+    extract(path, extractDir)
   # A "special" version is downloaded from GitHub and thus needs a `.git`
   # directory in order to let `koch` know that it should download a "devel"
   # Nimble.
