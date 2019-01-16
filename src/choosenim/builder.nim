@@ -3,11 +3,11 @@ import os, strutils, osproc, times
 import nimblepkg/[version, cli, tools]
 import nimblepkg/common as nimble_common
 
-import cliparams, download, utils, common, telemetry
+import cliparams, download, utils, common, switcher, telemetry
 
-proc buildFromCSources() =
+proc buildFromCSources(params: CliParams) =
   when defined(windows):
-    let arch = getGccArch()
+    let arch = getGccArch(params)
     if arch == 32:
       doCmdRaw("build.bat")
     elif arch == 64:
@@ -23,7 +23,7 @@ proc buildCompiler(params: CliParams) =
     return
 
   if fileExists(getCurrentDir() / "build.sh"):
-    buildFromCSources()
+    buildFromCSources(params)
   else:
     display("Warning:", "Building from latest C sources. They may not be " &
                         "compatible with the Nim version you have chosen to " &
@@ -34,7 +34,7 @@ proc buildCompiler(params: CliParams) =
 
     display("Building", "C sources", priority = HighPriority)
     setCurrentDir(extractDir) # cd csources
-    buildFromCSources() # sh build.sh
+    buildFromCSources(params) # sh build.sh
     setCurrentDir(extractDir.parentDir()) # cd ..
     when defined(windows):
       display("Building", "koch", priority = HighPriority)
@@ -82,7 +82,9 @@ proc build*(extractDir: string, version: Version, params: CliParams) =
   setCurrentDir(extractDir)
   # Add MingW bin dir to PATH so that `build.bat` script can find gcc.
   let pathEnv = getEnv("PATH")
-  putEnv("PATH", params.getMingwBin() & PathSep & pathEnv)
+  when defined(windows):
+    if not isDefaultCCInPath(params) and dirExists(params.getMingwBin()):
+      putEnv("PATH", params.getMingwBin() & PathSep & pathEnv)
   defer:
     setCurrentDir(currentDir)
     putEnv("PATH", pathEnv)
