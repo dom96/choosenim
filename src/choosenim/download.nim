@@ -8,9 +8,11 @@ import cliparams, common, switcher, telemetry, utils
 
 const
   githubUrl = "https://github.com/nim-lang/Nim/archive/$1.tar.gz"
+  csourcesUrl = "https://github.com/nim-lang/csources/archive/master.tar.gz"
+
+let
   websiteUrl = "http://nim-lang.org/download/nim-$1.tar" &
     getArchiveFormat()
-  csourcesUrl = "https://github.com/nim-lang/csources/archive/master.tar.gz"
 
 const # Windows-only
   mingwUrl = "http://nim-lang.org/download/mingw32.tar.gz"
