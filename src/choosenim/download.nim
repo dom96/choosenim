@@ -4,7 +4,7 @@ import nimblepkg/[version, cli]
 when defined(curl):
   import libcurl except Version
 
-import cliparams, common, telemetry, utils
+import cliparams, common, switcher, telemetry, utils
 
 const
   githubUrl = "https://github.com/nim-lang/Nim/archive/$1.tar.gz"
@@ -15,6 +15,7 @@ const
 const # Windows-only
   mingwUrl = "http://nim-lang.org/download/mingw32.tar.gz"
   dllsUrl = "http://nim-lang.org/download/dlls.tar.gz"
+  winBinaryZipUrl = "http://nim-lang.org/download/nim-$1_x$2.zip"
 
 const
   progressBarLength = 50
@@ -199,6 +200,7 @@ proc needsDownload(params: CliParams, downloadUrl: string,
     return false
 
 proc downloadImpl(version: Version, params: CliParams): string =
+  let arch = getGccArch(params)
   if version.isSpecial():
     let reference =
       case normalize($version)
@@ -217,8 +219,22 @@ proc downloadImpl(version: Version, params: CliParams): string =
   else:
     display("Downloading", "Nim $1 from $2" % [$version, "nim-lang.org"],
             priority = HighPriority)
-    let url = websiteUrl % $version
+
     var outputPath: string
+
+    when defined(Windows):
+      # Need powershell on Windows to extract binary ZIP
+      if findExe("powershell") != "":
+        let winUrl = winBinaryZipUrl % [$version, $arch]
+        if not needsDownload(params, winUrl, outputPath): return outputPath
+        try:
+          downloadFile(winUrl, outputPath, params)
+          return outputPath
+        except HttpRequestError:
+          display("Info:", "Binary build unavailable, building from source",
+                  priority = HighPriority)
+
+    let url = websiteUrl % $version
     if not needsDownload(params, url, outputPath): return outputPath
 
     downloadFile(url, outputPath, params)
