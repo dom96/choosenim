@@ -68,10 +68,7 @@ install() {
   # Copy choosenim binary to Nimble bin.
   local nimbleBinDir=`"$temp_prefix/$filename" --getNimbleBin`
   if [ "$platform" = "windows_i386" ]; then
-    # Copy choosenim.exe and DLL files for Windows
     cp "$temp_prefix/$filename" "$nimbleBinDir/."
-    cp "$temp_prefix/choosenim/libeay32.dll" "$nimbleBinDir/."
-    cp "$temp_prefix/choosenim/ssleay32.dll" "$nimbleBinDir/."
   else
     cp "$temp_prefix/$filename" "$nimbleBinDir/choosenim"
   fi
