@@ -196,7 +196,7 @@ proc show(params: CliParams) =
       else:
         display("", ver, priority = HighPriority)
 
-proc list(params: CliParams) =
+proc versions(params: CliParams) =
   let currentChannel = getCurrentChannel(params)
   let currentVersion = getCurrentVersion(params)
 
@@ -256,8 +256,8 @@ proc performAction(params: CliParams) =
     update(params)
   of "show":
     show(params)
-  of "list":
-    list(params)
+  of "versions":
+    versions(params)
   else:
     choose(params)
 

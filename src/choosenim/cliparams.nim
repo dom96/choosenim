@@ -38,7 +38,7 @@ Example:
     Selects the specified Nim installation.
   choosenim update stable
     Updates the version installed on the stable release channel.
-  choosenim list [--installed]
+  choosenim versions [--installed]
     Lists the available versions of Nim that choosenim has access to.
 
 Channels:
@@ -53,7 +53,7 @@ Commands:
                                  version or channel.
   show                           Displays the selected version and channel.
   update    self                 Updates choosenim itself.
-  list      [--installed]        Lists available versions of Nim, passing
+  versions  [--installed]        Lists available versions of Nim, passing
                                  `--installed` only displays versions that
                                  are installed locally (no network requests).
 
