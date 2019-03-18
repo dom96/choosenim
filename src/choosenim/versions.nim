@@ -46,7 +46,8 @@ proc getCurrentVersion*(params: CliParams): string =
   return currentVersion.normalizeVersion()
 
 proc getLatestVersion*(params: CliParams): string =
-  let latest = getChannelVersion("stable", params).normalizeVersion()
+  let channel = getCurrentChannel(params)
+  let latest = getChannelVersion(channel, params).normalizeVersion()
   return latest
   
 proc isLatestVersion*(params: CliParams, version: string): bool =

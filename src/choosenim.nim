@@ -214,7 +214,10 @@ proc versions(params: CliParams) =
   # local versions
   display("Installed:", " ", priority = HighPriority)
   for version in localVersions:
-    display(isActiveTag(params, version), version & isLatestTag(params, version), priority = HighPriority)
+    let activeDisplay =
+      if version == currentVersion: Success
+      else: Message
+    display(isActiveTag(params, version), version & isLatestTag(params, version), activeDisplay, priority = HighPriority)
   for version in specialVersions:
     display(isActiveTag(params, version), version, priority = HighPriority)
   echo ""
