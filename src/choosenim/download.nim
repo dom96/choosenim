@@ -4,7 +4,7 @@ import nimblepkg/[version, cli]
 when defined(curl):
   import libcurl except Version
 
-import cliparams, common, switcher, telemetry, utils, versions
+import cliparams, common, switcher, telemetry, utils
 
 const
   githubTagReleasesUrl = "https://api.github.com/repos/nim-lang/Nim/tags"
@@ -319,7 +319,7 @@ proc getOfficialReleases*(params: CliParams): seq[string] =
 
   var releases: seq[string] = @[]
   for release in parsedContents:
-    let name = normalizeVersion(release["name"].getStr())
+    let name = release["name"].getStr()
     releases.add(name)
   return releases
 
