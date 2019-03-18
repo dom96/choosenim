@@ -1,12 +1,13 @@
-import httpclient, strutils, os, terminal, times, math
+import httpclient, strutils, os, terminal, times, math, json
 
 import nimblepkg/[version, cli]
 when defined(curl):
   import libcurl except Version
 
-import cliparams, common, switcher, telemetry, utils
+import cliparams, common, switcher, telemetry, utils, versions
 
 const
+  githubTagReleasesUrl = "https://api.github.com/repos/nim-lang/Nim/tags"
   githubUrl = "https://github.com/nim-lang/Nim/archive/$1.tar.gz"
   websiteUrl = "http://nim-lang.org/download/nim-$1.tar" &
     getArchiveFormat()
@@ -311,6 +312,16 @@ proc retrieveUrl*(url: string): string =
   else:
     var client = newHttpClient(proxy = getProxy())
     return client.getContent(url)
+
+proc getOfficialReleases*(params: CliParams): seq[string] =
+  let rawContents = retrieveUrl(githubTagReleasesUrl)
+  let parsedContents = parseJson(rawContents)
+
+  var releases: seq[string] = @[]
+  for release in parsedContents:
+    let name = normalizeVersion(release["name"].getStr())
+    releases.add(name)
+  return releases
 
 when isMainModule:
 
