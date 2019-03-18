@@ -6,7 +6,7 @@ import nimblepkg/[cli, tools, version]
 import nimblepkg/common as nimbleCommon
 from nimblepkg/packageinfo import getNameVersion
 
-import choosenim/[download, builder, switcher, common, cliparams]
+import choosenim/[download, builder, switcher, common, cliparams, versions]
 import choosenim/[utils, channel, telemetry]
 
 proc parseVersion(versionStr: string): Version =
@@ -196,6 +196,45 @@ proc show(params: CliParams) =
       else:
         display("", ver, priority = HighPriority)
 
+proc list(params: CliParams) =
+  let currentChannel = getCurrentChannel(params)
+  let currentVersion = getCurrentVersion(params)
+
+  let specialVersions: seq[string] = getSpecialVersions(params)
+  let localVersions: seq[string] = getInstalledVersions(params)
+
+  let latestVersion: string =
+    if params.onlyInstalled: ""
+    else: getLatestVersion(params)
+  let remoteVersions: seq[string] =
+    if params.onlyInstalled: @[]
+    else: getAvailableVersions(params)
+
+  #[ Display version information,now that it has been collected ]#
+
+  # display the currently selected version info
+  display("Current:", "", priority = HighPriority)
+  display("  Version:", currentVersion & isLatestTag(params, currentVersion), priority = HighPriority)
+  if currentChannel.len > 0:
+    display("  Channel:", currentChannel, priority = HighPriority)
+  echo ""
+
+  # local versions
+  display("Installed:", " ", priority = HighPriority)
+  for version in localVersions:
+    display("", version & isLatestTag(params, version), priority = HighPriority)
+  for version in specialVersions:
+    display("", version, priority = HighPriority)
+  echo ""
+
+  # if the "--installed" flag was passed, don't display remote versions as we didn't fetch data for them.
+  if not params.onlyInstalled:
+    display("Available:", " ", priority = HighPriority)
+    for version in remoteVersions:
+      if not (version in localVersions):
+        display("", version & isLatestTag(params, version), priority = HighPriority)
+    echo ""
+
 proc performAction(params: CliParams) =
   # Report telemetry.
   report(initEvent(ActionEvent), params)
@@ -205,6 +244,8 @@ proc performAction(params: CliParams) =
     update(params)
   of "show":
     show(params)
+  of "list":
+    list(params)
   else:
     choose(params)
 

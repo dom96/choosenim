@@ -9,6 +9,7 @@ import common
 type
   CliParams* = ref object
     commands*: seq[string]
+    onlyInstalled*: bool
     choosenimDir*: string
     firstInstall*: bool
     nimbleOptions*: Options
@@ -37,6 +38,8 @@ Example:
     Selects the specified Nim installation.
   choosenim update stable
     Updates the version installed on the stable release channel.
+  choosenim list [--installed]
+    Lists the available versions of Nim that choosenim has access to.
 
 Channels:
   stable
@@ -50,6 +53,9 @@ Commands:
                                  version or channel.
   show                           Displays the selected version and channel.
   update    self                 Updates choosenim itself.
+  list      [--installed]        Lists available versions of Nim, passing
+                                 `--installed` only displays versions that
+                                 are installed locally (no network requests).
 
 Options:
   -h --help             Show this output.
@@ -161,6 +167,7 @@ proc parseCliParams*(params: var CliParams, proxyExeMode = false) =
       of "nimbledir": params.nimbleOptions.nimbleDir = val
       of "firstinstall": params.firstInstall = true
       of "y", "yes": params.nimbleOptions.forcePrompts = forcePromptYes
+      of "installed": params.onlyInstalled = true
       else:
         if not proxyExeMode:
           raise newException(ChooseNimError, "Unknown flag: --" & key)
