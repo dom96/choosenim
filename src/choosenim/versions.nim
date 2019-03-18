@@ -4,7 +4,7 @@ import os, strutils, algorithm, sequtils
 import nimblepkg/version
 from nimblepkg/packageinfo import getNameVersion
 
-import download, cliparams, channel, switcher
+import download, cliparams, channel, switcher, utils
 
 proc normalizeVersion*(version: string): string =
   if not (version in @["#devel", "#head"]):
@@ -19,8 +19,9 @@ proc getLocalVersions(params: CliParams): seq[string] =
   # check for the locally installed versions of Nim,
   for path in walkDirs(params.getInstallDir() & "/*"):
     let (_, version) = getNameVersion(path)
-    let displayVersion = version.normalizeVersion()
-    localVersions.add(displayVersion)
+    if isVersionInstalled(params, parseVersion(version)):
+      let displayVersion = version.normalizeVersion()
+      localVersions.add(displayVersion)
   localVersions.sort(system.cmp[string], SortOrder.Descending)
   return localVersions
 
