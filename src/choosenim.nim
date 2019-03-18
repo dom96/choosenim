@@ -211,24 +211,36 @@ proc list(params: CliParams) =
     else: getAvailableVersions(params)
 
   #[ Display version information,now that it has been collected ]#
+  proc isActiveTag(params: CliParams, version: string): string =
+    let tag = if version == currentVersion: "*"
+              else: " "
+    return tag
+  proc isLatestTag(params: CliParams, version: string): string =
+    let tag = if isLatestVersion(params, version): " (latest)"
+            else: ""
+    return tag
+  proc canUpdateTag(params: CliParams, channel: string): string =
+    let version = getChannelVersion(channel, params, live = true)
+    let channelVersion = parseVersion(version)
+    let tag = if canUpdate(channelVersion, params): " (update available!)"
+              else: ""
+    return tag
 
-  # display the currently selected version info
-  display("Current:", "", priority = HighPriority)
-  display("  Version:", currentVersion & isLatestTag(params, currentVersion), priority = HighPriority)
+
   if currentChannel.len > 0:
-    display("  Channel:", currentChannel, priority = HighPriority)
-  echo ""
+    display("Channel:", currentChannel & canUpdateTag(params, currentChannel), priority = HighPriority)
+    echo ""
 
   # local versions
   display("Installed:", " ", priority = HighPriority)
   for version in localVersions:
-    display("", version & isLatestTag(params, version), priority = HighPriority)
+    display(isActiveTag(params, version), version & isLatestTag(params, version), priority = HighPriority)
   for version in specialVersions:
-    display("", version, priority = HighPriority)
+    display(isActiveTag(params, version), version, priority = HighPriority)
   echo ""
 
   # if the "--installed" flag was passed, don't display remote versions as we didn't fetch data for them.
-  if not params.onlyInstalled:
+  if (not params.onlyInstalled):
     display("Available:", " ", priority = HighPriority)
     for version in remoteVersions:
       if not (version in localVersions):

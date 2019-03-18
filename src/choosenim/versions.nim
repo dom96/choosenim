@@ -35,7 +35,8 @@ proc getInstalledVersions*(params: CliParams): seq[string] =
   return installedVersions
 
 proc getAvailableVersions*(params: CliParams): seq[string] =
-  let releases = getOfficialReleases(params)
+  var releases = getOfficialReleases(params)
+  releases.applyIt(it.normalizeVersion)
   return releases
 
 proc getCurrentVersion*(params: CliParams): string =
@@ -50,19 +51,3 @@ proc getLatestVersion*(params: CliParams): string =
 proc isLatestVersion*(params: CliParams, version: string): bool =
   let isLatest = (getLatestVersion(params) == version)
   return isLatest
-  
-proc isLatestTag*(params: CliParams, version: string): string =
-  let tag = if isLatestVersion(params, version): " (latest)"
-            else: ""
-  return tag
-
-proc isInstalled*(params: CliParams, version: string): bool =
-  let isInstalled = (version in getLocalVersions(params))
-  return isInstalled
-
-proc isInstalledTag*(params: CliParams, version: string): string =
-  let tag = if isInstalled(params, version): " (installed)"
-            else: ""
-  return tag
-
-  
