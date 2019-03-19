@@ -313,14 +313,17 @@ proc retrieveUrl*(url: string): string =
     var client = newHttpClient(proxy = getProxy())
     return client.getContent(url)
 
-proc getOfficialReleases*(params: CliParams): seq[string] =
+proc getOfficialReleases*(params: CliParams): seq[Version] =
   let rawContents = retrieveUrl(githubTagReleasesUrl)
   let parsedContents = parseJson(rawContents)
+  let cutOffVersion = newVersion("0.16.0")
 
-  var releases: seq[string] = @[]
+  var releases: seq[Version] = @[]
   for release in parsedContents:
-    let name = release["name"].getStr()
-    releases.add(name)
+    let name = release["name"].getStr().strip(true, false, {'v'})
+    let version = name.newVersion
+    if cutOffVersion <= version:
+      releases.add(version)
   return releases
 
 when isMainModule:
