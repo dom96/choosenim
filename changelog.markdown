@@ -1,5 +1,14 @@
 # Choosenim changelog
 
+## 0.4.0 - 18/04/2019
+
+The major new features include Windows 64-bit support, the installation
+of Windows binaries and the `versions` command.
+
+See the full list of changes here:
+
+https://github.com/dom96/choosenim/compare/v0.3.2...v0.4.0
+
 ## 0.3.2 - 27/02/2018
 
 The major new feature in this release is the ability for choosenim to
