@@ -59,10 +59,10 @@ install() {
     fi
 
     # Install Nim from desired channel.
-    "$temp_prefix/$filename" $CHOOSE_VERSION --firstInstall < /dev/tty
+    "$temp_prefix/$filename" $CHOOSE_VERSION --firstInstall -y < /dev/tty
   else
     # TODO: Use the -y switch when choosenim gets support for it.
-    yes | "$temp_prefix/$filename" $CHOOSE_VERSION --firstInstall
+    "$temp_prefix/$filename" $CHOOSE_VERSION --firstInstall -y
   fi
 
   # Copy choosenim binary to Nimble bin.
@@ -118,7 +118,7 @@ get_platform() {
     *haiku* )
       local myos="haiku"
       ;;
-    *mingw* )
+    *mingw* | *msys* )
       local myos="windows"
       # Force i386 for Windows
       local ucpu="i386"
