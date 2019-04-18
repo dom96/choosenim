@@ -277,7 +277,9 @@ proc downloadDLLs*(params: CliParams): string =
   return outputPath
 
 proc retrieveUrl*(url: string): string =
+  var userAgent = "choosenim/" & chooseNimVersion
   when defined(curl):
+    display("Curl", "Requesting " & url, priority = DebugPriority)
     # Based on: https://curl.haxx.se/libcurl/c/simple.html
     let curl = libcurl.easy_init()
 
@@ -298,6 +300,8 @@ proc retrieveUrl*(url: string): string =
     checkCurl curl.easy_setopt(OPT_WRITEFUNCTION, onWrite)
     checkCurl curl.easy_setopt(OPT_WRITEDATA, addr res)
 
+    checkCurl curl.easy_setopt(OPT_USERAGENT, addr userAgent[0])
+
     # Download the file.
     checkCurl curl.easy_perform()
 
@@ -305,12 +309,15 @@ proc retrieveUrl*(url: string): string =
     var responseCode: int
     checkCurl curl.easy_getinfo(INFO_RESPONSE_CODE, addr responseCode)
 
+    display("Curl", res, priority = DebugPriority)
+
     doAssert responseCode == 200,
-             "Expected HTTP code $1 got $2" % [$200, $responseCode]
+             "Expected HTTP code $1 got $2 for $3" % [$200, $responseCode, url]
 
     return res
   else:
-    var client = newHttpClient(proxy = getProxy())
+    display("Http", "Requesting " & url, priority = DebugPriority)
+    var client = newHttpClient(proxy = getProxy(), userAgent = userAgent)
     return client.getContent(url)
 
 proc getOfficialReleases*(params: CliParams): seq[Version] =
