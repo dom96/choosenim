@@ -62,7 +62,7 @@ install() {
     "$temp_prefix/$filename" $CHOOSE_VERSION --firstInstall -y < /dev/tty
   else
     # TODO: Use the -y switch when choosenim gets support for it.
-    yes | "$temp_prefix/$filename" $CHOOSE_VERSION --firstInstall -y
+    "$temp_prefix/$filename" $CHOOSE_VERSION --firstInstall -y
   fi
 
   # Copy choosenim binary to Nimble bin.
