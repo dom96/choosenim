@@ -22,7 +22,10 @@ const
   progressBarLength = 50
 
 proc showIndeterminateBar(progress, speed: BiggestInt, lastPos: var int) =
-  eraseLine()
+  try:
+    eraseLine()
+  except OSError:
+    discard
   if lastPos >= progressBarLength:
     lastPos = 0
 
