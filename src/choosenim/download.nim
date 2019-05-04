@@ -22,7 +22,10 @@ const
   progressBarLength = 50
 
 proc showIndeterminateBar(progress, speed: BiggestInt, lastPos: var int) =
-  eraseLine()
+  try:
+    eraseLine()
+  except OSError:
+    echo ""
   if lastPos >= progressBarLength:
     lastPos = 0
 
@@ -39,7 +42,7 @@ proc showBar(fraction: float, speed: BiggestInt) =
   try:
     eraseLine()
   except OSError:
-    discard
+    echo ""
   let hashes = repeat('#', int(fraction * progressBarLength))
   let spaces = repeat(' ', progressBarLength - hashes.len)
   stdout.write("[$1$2] $3% $4kb/s" % [
