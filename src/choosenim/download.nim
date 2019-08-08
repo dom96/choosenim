@@ -14,7 +14,7 @@ const
   csourcesUrl = "https://github.com/nim-lang/csources/archive/master.tar.gz"
 
 const # Windows-only
-  mingwUrl = "http://nim-lang.org/download/mingw32.tar.gz"
+  mingwUrl = "http://nim-lang.org/download/mingw32-6.3.0.7z"
   dllsUrl = "http://nim-lang.org/download/dlls.tar.gz"
   winBinaryZipUrl = "http://nim-lang.org/download/nim-$1_x$2.zip"
 
