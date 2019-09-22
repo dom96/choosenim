@@ -61,10 +61,10 @@ proc needsDLLInstall*(params: CliParams): bool =
   ##
   ## TODO: In the future we can probably extend this and let the user
   ## know what DLLs they are missing on all operating systems.
-  let inPath = findExe("libeay32", extensions=["dll"]) != "" and
-               findExe("ssleay32", extensions=["dll"]) != ""
-  let inNimbleBin = fileExists(params.getBinDir() / "libeay32.dll") and
-                    fileExists(params.getBinDir() / "ssleay32.dll")
+  let inPath = findExe("pdcurses64", extensions=["dll"]) != "" and
+               findExe("sqlite3_32", extensions=["dll"]) != ""
+  let inNimbleBin = fileExists(params.getBinDir() / "pdcurses64.dll") and
+                    fileExists(params.getBinDir() / "sqlite3_32.dll")
   let isInstalled = inPath or inNimbleBin
   return not isInstalled
 
