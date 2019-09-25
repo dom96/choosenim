@@ -1,12 +1,12 @@
 # Copyright (C) Dominik Picheta. All rights reserved.
 # BSD-3-Clause License. Look at license.txt for more info.
-import os, strutils, algorithm
+import distros, os, strutils, algorithm
 
 import nimblepkg/[cli, tools, version]
 import nimblepkg/common as nimbleCommon
 from nimblepkg/packageinfo import getNameVersion
 
-import choosenim/[download, builder, switcher, common, cliparams, versions]
+import choosenim/[dependencies, download, builder, switcher, common, cliparams, versions]
 import choosenim/[utils, channel, telemetry]
 
 proc installVersion(version: Version, params: CliParams) =
@@ -40,6 +40,9 @@ proc chooseVersion(version: string, params: CliParams) =
               Warning, HighPriority)
       display("Hint:", "Install clang or gcc using your favourite package manager.",
               Warning, HighPriority)
+      display("Hint:", "The following commands might help:", Warning, LowPriority)
+
+      echoForeignDeps()
 
   # Verify that DLLs (openssl primarily) are installed.
   when defined(windows):
