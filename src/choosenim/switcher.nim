@@ -61,12 +61,17 @@ proc needsDLLInstall*(params: CliParams): bool =
   ##
   ## TODO: In the future we can probably extend this and let the user
   ## know what DLLs they are missing on all operating systems.
-  let inPath = findExe("libeay32", extensions=["dll"]) != "" and
-               findExe("ssleay32", extensions=["dll"]) != ""
-  let inNimbleBin = fileExists(params.getBinDir() / "libeay32.dll") and
-                    fileExists(params.getBinDir() / "ssleay32.dll")
-  let isInstalled = inPath or inNimbleBin
-  return not isInstalled
+  proc isInstalled(params: CliParams, name: string): bool =
+    let
+      inPath = findExe(name, extensions=["dll"]) != ""
+      inNimbleBin = fileExists(params.getBinDir() / name & ".dll")
+
+    return inPath or inNimbleBin
+
+  for dll in ["libeay", "pcre", "pdcurses", "sqlite3_", "ssleay"]:
+    for bit in ["32", "64"]:
+      result = not isInstalled(params, dll & bit)
+      if result: return
 
 proc getNimbleVersion(toolchainPath: string): Version =
   result = newVersion("0.8.6") # We assume that everything is fine.
