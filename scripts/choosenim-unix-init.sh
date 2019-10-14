@@ -59,9 +59,8 @@ install() {
     fi
 
     # Install Nim from desired channel.
-    "$temp_prefix/$filename" $CHOOSE_VERSION --firstInstall -y < /dev/tty
+    "$temp_prefix/$filename" $CHOOSE_VERSION --firstInstall < /dev/tty
   else
-    # TODO: Use the -y switch when choosenim gets support for it.
     "$temp_prefix/$filename" $CHOOSE_VERSION --firstInstall -y
   fi
 
