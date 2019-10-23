@@ -1,7 +1,7 @@
 import httpclient, os, strutils, osproc, sequtils, times, uri
 
 import nimblepkg/[cli, tools, version]
-import untar
+import nimarchive
 
 import switcher, cliparams, common
 
@@ -40,61 +40,11 @@ proc doCmdRaw*(cmd: string) =
         "Execution failed with exit code $1\nCommand: $2\nOutput: $3" %
         [$exitCode, cmd, output])
 
-proc extractZip(path: string, extractDir: string, skipOuterDirs = true, tempDir: string = "") =
-  var tempDir = tempDir
-  if tempDir.len == 0:
-    tempDir = getTempDir() / "choosenim-" & $getTime().toUnix()
-  removeDir(tempDir)
-  createDir(tempDir)
-
-  var cmd = "unzip -o $1 -d $2"
-  if defined(windows):
-    cmd = "powershell -nologo -noprofile -command \"& { Add-Type -A 'System.IO.Compression.FileSystem'; [IO.Compression.ZipFile]::ExtractToDirectory('$1', '$2'); }\""
-
-  let (outp, errC) = execCmdEx(cmd % [path, tempDir])
-  if errC != 0:
-    raise newException(ChooseNimError, "Unable to extract ZIP. Error was $1" % outp)
-
-  # Determine which directory to copy.
-  var srcDir = tempDir
-  let contents = toSeq(walkDir(srcDir))
-  if contents.len == 1 and skipOuterDirs:
-    # Skip the outer directory.
-    srcDir = contents[0][1]
-
-  # Finally copy the directory to what the user specified.
-  copyDir(srcDir, extractDir)
-
 proc extract*(path: string, extractDir: string) =
   display("Extracting", path.extractFilename(), priority = HighPriority)
 
-  let ext = path.splitFile().ext
-  var newPath = path
-  case ext
-  of ".zip":
-    extractZip(path, extractDir)
-    return
-  of ".xz":
-    # We need to decompress manually.
-    let unxzPath = findExe("unxz")
-    if unxzPath.len == 0:
-      let msg = "Cannot decompress xz, `unxz` not in PATH"
-      raise newException(ChooseNimError, msg)
-
-    let tarFile = newPath.changeFileExt("") # This will remove the .xz
-    # `unxz` complains when the .tar file already exists.
-    removeFile(tarFile)
-    doCmdRaw("unxz \"$1\"" % newPath)
-    newPath = tarFile
-  of ".gz":
-    # untar package will take care of this.
-    discard
-  else:
-    raise newException(ChooseNimError, "Invalid archive format " & ext)
-
   try:
-    var file = newTarFile(newPath)
-    file.extract(extractDir)
+    nimarchive.extract(path, extractDir, verbose = true)
   except Exception as exc:
     raise newException(ChooseNimError, "Unable to extract. Error was '$1'." %
                        exc.msg)
@@ -137,7 +87,7 @@ proc getGccArch*(params: CliParams): int =
 
     putEnv("PATH", pathEnv)
   else:
-    (outp, errC) = execCmdEx("sh echo \"int main() { return sizeof(void *); }\" | gcc -xc - -o archtest && archtest")
+    (outp, errC) = execCmdEx("echo \"int main() { return sizeof(void *); }\" | gcc -xc - -o archtest && ./archtest")
 
   removeFile("archtest".addFileExt(ExeExt))
   return errC * 8

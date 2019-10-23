@@ -16,7 +16,10 @@ proc installVersion(version: Version, params: CliParams) =
   let extractDir = params.getInstallationDir(version)
   # Make sure no stale files from previous installation exist.
   removeDir(extractDir)
-  extract(path, extractDir)
+  if version.isSpecial:
+    extract(path, extractDir)
+  else:
+    extract(path, extractDir.parentDir())
   # A "special" version is downloaded from GitHub and thus needs a `.git`
   # directory in order to let `koch` know that it should download a "devel"
   # Nimble.
@@ -34,7 +37,7 @@ proc chooseVersion(version: string, params: CliParams) =
     when defined(windows):
       # Install MingW.
       let path = downloadMingw32(params)
-      extract(path, getMingwPath(params))
+      extract(path, getInstallDir(params))
     else:
       display("Warning:", "No C compiler found. Nim compiler might fail.",
               Warning, HighPriority)
