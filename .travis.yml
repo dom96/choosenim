@@ -49,9 +49,11 @@ install:
     fi
 
 script:
+  - nimble install -y -d
+  - nim c src/choosenim
   - nimble test
   - yes | choosenim stable # Workaround tester overwriting our Nimble install.
-  - nimble build -d:danger
+  - nimble build -d:release
   - if [[ "$TRAVIS_OS_NAME" != "osx" ]]; then mv bin/choosenim bin/choosenim-linux; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then mv bin/choosenim bin/choosenim-osx; fi
 

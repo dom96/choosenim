@@ -225,6 +225,7 @@ proc downloadImpl(version: Version, params: CliParams): string =
 
     var outputPath: string
 
+    # Use binary builds for Windows and Linux
     when defined(Windows) or defined(linux):
       let os = when defined(linux): "-linux" else: ""
       let binUrl = binaryUrl % [$version, os, $arch]
