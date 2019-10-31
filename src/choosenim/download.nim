@@ -14,7 +14,7 @@ const
   binaryUrl = "http://nim-lang.org/download/nim-$1$2_x$3" & getBinArchiveFormat()
 
 const # Windows-only
-  mingwUrl = "http://nim-lang.org/download/mingw32-6.3.0.7z"
+  mingwUrl = "http://nim-lang.org/download/mingw32.7z"
   dllsUrl = "http://nim-lang.org/download/dlls.zip"
 
 const

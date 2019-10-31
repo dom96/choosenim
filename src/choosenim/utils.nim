@@ -44,7 +44,7 @@ proc extract*(path: string, extractDir: string) =
   display("Extracting", path.extractFilename(), priority = HighPriority)
 
   try:
-    nimarchive.extract(path, extractDir, verbose = true)
+    nimarchive.extract(path, extractDir)
   except Exception as exc:
     raise newException(ChooseNimError, "Unable to extract. Error was '$1'." %
                        exc.msg)
