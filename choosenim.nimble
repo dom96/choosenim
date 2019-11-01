@@ -13,7 +13,7 @@ skipExt = @["nim"]
 
 # Dependencies
 
-requires "nim >= 0.16.1", "nimble >= 0.8.5", "untar >= 0.1.0"
+requires "nim >= 0.16.1", "nimble#5bb795a", "nimarchive >= 0.3.1"
 requires "libcurl >= 1.0.0"
 requires "analytics >= 0.2.0"
 requires "osinfo >= 0.3.0"

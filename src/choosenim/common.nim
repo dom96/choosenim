@@ -1,4 +1,4 @@
-import nimblepkg/common
+import nimblepkg/version
 
 type
   ChooseNimError* = object of NimbleError

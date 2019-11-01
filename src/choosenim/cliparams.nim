@@ -105,11 +105,11 @@ proc getMingwPath*(params: CliParams): string =
 proc getMingwBin*(params: CliParams): string =
   return getMingwPath(params) / "bin"
 
-proc getArchiveFormat*(): string =
-  when defined(linux):
-    return ".xz"
+proc getBinArchiveFormat*(): string =
+  when defined(windows):
+    return ".zip"
   else:
-    return ".gz"
+    return ".tar.xz"
 
 proc getDownloadPath*(params: CliParams, downloadUrl: string): string =
   let (_, name, ext) = downloadUrl.splitFile()
@@ -163,8 +163,8 @@ proc parseCliParams*(params: var CliParams, proxyExeMode = false) =
       of "verbose": setVerbosity(LowPriority)
       of "debug": setVerbosity(DebugPriority)
       of "nocolor": setShowColor(false)
-      of "choosenimdir": params.choosenimDir = val
-      of "nimbledir": params.nimbleOptions.nimbleDir = val
+      of "choosenimdir": params.choosenimDir = val.absolutePath()
+      of "nimbledir": params.nimbleOptions.nimbleDir = val.absolutePath()
       of "firstinstall": params.firstInstall = true
       of "y", "yes": params.nimbleOptions.forcePrompts = forcePromptYes
       of "installed": params.onlyInstalled = true

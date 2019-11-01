@@ -82,15 +82,17 @@ proc exec(args: varargs[string], exe=exePath,
     let process = startProcess(quotedArgs.join(" "),
                                options={poEvalCommand, poStdErrToStdOut})
     var missedEscape = false
-    while process.running:
+    while true:
       if not process.outputStream.atEnd:
         let line = process.outputStream.outputReader(missedEscape)
         result.output.add(line)
         stdout.write(line)
         if line.len() != 0 and line[0] != '\27':
           stdout.flushFile()
+      else:
+        result.exitCode = process.peekExitCode()
+        if result.exitCode != -1: break
 
-    result.exitCode = process.waitForExit()
     process.close()
 
 proc processOutput(output: string): seq[string] =
@@ -156,3 +158,14 @@ test "can choose v0.16.0":
     let (output, exitCode) = exec("--version", exe=nimbleDir / "bin" / "nimble")
     check exitCode == QuitSuccess
     check inLines(output.processOutput, "v0.8.2")
+
+when defined(linux):
+  test "linux binary install":
+    beginTest()
+    block:
+      let (output, exitCode) = exec("1.0.0", liveOutput=true)
+      check exitCode == QuitSuccess
+
+      check inLines(output.processOutput, "downloading")
+      check inLines(output.processOutput, "already built")
+      check hasLine(output.processOutput, "switched to nim 1.0.0")

@@ -9,14 +9,13 @@ import cliparams, common, switcher, telemetry, utils
 const
   githubTagReleasesUrl = "https://api.github.com/repos/nim-lang/Nim/tags"
   githubUrl = "https://github.com/nim-lang/Nim/archive/$1.tar.gz"
-  websiteUrl = "http://nim-lang.org/download/nim-$1.tar" &
-    getArchiveFormat()
+  websiteUrl = "http://nim-lang.org/download/nim-$1.tar.xz"
   csourcesUrl = "https://github.com/nim-lang/csources/archive/master.tar.gz"
+  binaryUrl = "http://nim-lang.org/download/nim-$1$2_x$3" & getBinArchiveFormat()
 
 const # Windows-only
-  mingwUrl = "http://nim-lang.org/download/mingw32.tar.gz"
-  dllsUrl = "http://nim-lang.org/download/dlls.tar.gz"
-  winBinaryZipUrl = "http://nim-lang.org/download/nim-$1_x$2.zip"
+  mingwUrl = "http://nim-lang.org/download/mingw32.7z"
+  dllsUrl = "http://nim-lang.org/download/dlls.zip"
 
 const
   progressBarLength = 50
@@ -226,17 +225,17 @@ proc downloadImpl(version: Version, params: CliParams): string =
 
     var outputPath: string
 
-    when defined(Windows):
-      # Need powershell on Windows to extract binary ZIP
-      if findExe("powershell") != "":
-        let winUrl = winBinaryZipUrl % [$version, $arch]
-        if not needsDownload(params, winUrl, outputPath): return outputPath
-        try:
-          downloadFile(winUrl, outputPath, params)
-          return outputPath
-        except HttpRequestError:
-          display("Info:", "Binary build unavailable, building from source",
-                  priority = HighPriority)
+    # Use binary builds for Windows and Linux
+    when defined(Windows) or defined(linux):
+      let os = when defined(linux): "-linux" else: ""
+      let binUrl = binaryUrl % [$version, os, $arch]
+      if not needsDownload(params, binUrl, outputPath): return outputPath
+      try:
+        downloadFile(binUrl, outputPath, params)
+        return outputPath
+      except HttpRequestError:
+        display("Info:", "Binary build unavailable, building from source",
+                priority = HighPriority)
 
     let url = websiteUrl % $version
     if not needsDownload(params, url, outputPath): return outputPath
