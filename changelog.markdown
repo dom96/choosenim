@@ -1,5 +1,14 @@
 # Choosenim changelog
 
+## 0.5.0 - 14/11/2019
+
+The major new feature is the use of nimarchive and
+support for Linux binary builds.
+
+See the full list of changes here:
+
+https://github.com/dom96/choosenim/compare/v0.4.0...v0.5.0
+
 ## 0.4.0 - 18/04/2019
 
 The major new features include Windows 64-bit support, the installation

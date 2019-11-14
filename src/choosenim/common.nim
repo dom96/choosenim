@@ -4,7 +4,7 @@ type
   ChooseNimError* = object of NimbleError
 
 const
-  chooseNimVersion* = "0.4.0"
+  chooseNimVersion* = "0.5.0"
 
   proxies* = [
       "nim",
