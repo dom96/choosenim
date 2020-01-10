@@ -36,10 +36,9 @@ proc chooseVersion(version: string, params: CliParams) =
       let path = downloadMingw32(params)
       extract(path, getMingwPath(params))
     else:
-      display("Warning:", "No C compiler found. Nim compiler might fail.",
-              Warning, HighPriority)
-      display("Hint:", "Install clang or gcc using your favourite package manager.",
-              Warning, HighPriority)
+      raise newException(ChooseNimError,
+                         "No C compiler found. Nim compiler requires a C compiler.\n" &
+                         "Install clang or gcc using your favourite package manager.")
 
   # Verify that DLLs (openssl primarily) are installed.
   when defined(windows):
