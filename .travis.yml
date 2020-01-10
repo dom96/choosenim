@@ -31,7 +31,7 @@ script:
   - export OSNAME="$TRAVIS_OS_NAME"
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then export OSNAME="macosx"; fi
   - export ARCH="amd64"
-  - mv bin/choosenim$EXT bin/choosenim-$VERSION_$OSNAME_$ARCH$EXT; fi
+  - mv "bin/choosenim${EXT}" "bin/choosenim-${VERSION}_${OSNAME}_${ARCH}${EXT}"
   - ls -l bin
 
 notifications:

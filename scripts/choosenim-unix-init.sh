@@ -16,6 +16,7 @@ temp_prefix="${TMPDIR:-/tmp}"
 CHOOSE_VERSION="${CHOOSENIM_CHOOSE_VERSION:-stable}"
 
 need_tty=yes
+debug=""
 
 install() {
   get_platform || return 1
@@ -59,9 +60,9 @@ install() {
     fi
 
     # Install Nim from desired channel.
-    "$temp_prefix/$filename" $CHOOSE_VERSION --firstInstall < /dev/tty
+    "$temp_prefix/$filename" $CHOOSE_VERSION --firstInstall ${debug} < /dev/tty
   else
-    "$temp_prefix/$filename" $CHOOSE_VERSION --firstInstall -y
+    "$temp_prefix/$filename" $CHOOSE_VERSION --firstInstall -y ${debug}
   fi
 
   # Copy choosenim binary to Nimble bin.
@@ -171,10 +172,11 @@ err() {
 
 
 # check if we have to use /dev/tty to prompt the user
-while getopts "y" opt; do
+while getopts "dy" opt; do
   case "$opt" in
     y) need_tty=no
        ;;
+    d) debug="--debug"
   esac
 done
 
