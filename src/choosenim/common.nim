@@ -11,7 +11,8 @@ const
       "nimble",
       "nimgrep",
       "nimpretty",
-      "nimsuggest"
+      "nimsuggest",
+      "testament"
     ]
 
   mingwProxies* = [
