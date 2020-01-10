@@ -73,6 +73,19 @@ proc buildTools() =
     else:
       doCmdRaw("./koch tools -d:release")
 
+# Workaround for #147
+when defined(posix):
+  import posix
+
+  proc setPermissions() =
+    ## Assumes that CWD contains the compiler
+    let binDir = getCurrentDir() / "bin"
+    for kind, path in walkDir(binDir):
+      if kind == pcFile:
+        # Set to 755 = rwxrw-rw- in octal
+        # = 493 in decimal
+        discard chmod(path, 493)
+
 proc build*(extractDir: string, version: Version, params: CliParams) =
   # Report telemetry.
   report(initEvent(BuildEvent), params)
@@ -95,6 +108,8 @@ proc build*(extractDir: string, version: Version, params: CliParams) =
   try:
     buildCompiler(params)
     buildTools()
+    when defined(posix):
+      setPermissions() # workaround for #147
     success = true
   except NimbleError as exc:
     # Display error and output from build separately.
