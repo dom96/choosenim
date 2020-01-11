@@ -75,16 +75,16 @@ proc buildTools() =
 
 # Workaround for #147
 when defined(posix):
-  import posix
-
   proc setPermissions() =
     ## Assumes that CWD contains the compiler
     let binDir = getCurrentDir() / "bin"
     for kind, path in walkDir(binDir):
       if kind == pcFile:
-        # Set to 755 = rwxrw-rw- in octal
-        # = 493 in decimal
-        discard chmod(path, 493)
+        setFilePermissions(path,
+                           {fpUserRead, fpUserWrite, fpUserExec,
+                            fpGroupRead, fpGroupExec,
+                            fpOthersRead, fpOthersExec}
+        )
 
 proc build*(extractDir: string, version: Version, params: CliParams) =
   # Report telemetry.
