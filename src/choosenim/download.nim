@@ -1,4 +1,4 @@
-import httpclient, strutils, os, terminal, times, json
+import httpclient, strutils, os, terminal, times, math, json
 
 import nimblepkg/[version, cli]
 when defined(curl):
