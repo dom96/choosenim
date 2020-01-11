@@ -2,7 +2,7 @@
 # BSD-3-Clause License. Look at license.txt for more info.
 import os, strutils, algorithm
 
-import nimblepkg/[cli, tools, version]
+import nimblepkg/[cli, version]
 import nimblepkg/common as nimbleCommon
 from nimblepkg/packageinfo import getNameVersion
 
@@ -24,6 +24,8 @@ proc installVersion(version: Version, params: CliParams) =
     createDir(extractDir / ".git")
   # Build the compiler
   build(extractDir, version, params)
+  # Delete downloaded file
+  discard tryRemoveFile(path)
 
 proc chooseVersion(version: string, params: CliParams) =
   # Command is a version.
@@ -182,9 +184,6 @@ proc versions(params: CliParams) =
   let specialVersions = getSpecialVersions(params)
   let localVersions = getInstalledVersions(params)
 
-  let latestVersion =
-    if params.onlyInstalled: newVersion("")
-    else: getLatestVersion(params)
   let remoteVersions =
     if params.onlyInstalled: @[]
     else: getAvailableVersions(params)

@@ -1,10 +1,10 @@
-import httpclient, strutils, os, terminal, times, math, json
+import httpclient, strutils, os, terminal, times, json
 
 import nimblepkg/[version, cli]
 when defined(curl):
   import libcurl except Version
 
-import cliparams, common, switcher, telemetry, utils
+import cliparams, common, telemetry, utils
 
 const
   githubTagReleasesUrl = "https://api.github.com/repos/nim-lang/Nim/tags"
