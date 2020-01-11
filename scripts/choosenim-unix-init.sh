@@ -28,7 +28,7 @@ install() {
   case $platform in
     *macosx_amd64* | *linux_amd64* )
       ;;
-    *windows_i386* )
+    *windows_amd64* )
       # Download ZIP for Windows
       local filename="$filename.zip"
       local url="$url.zip"
@@ -44,7 +44,7 @@ install() {
   say "Downloading $filename"
   curl -sSfL "$url" -o "$temp_prefix/$filename"
   chmod +x "$temp_prefix/$filename"
-  if [ "$platform" = "windows_i386" ]; then
+  if [ "$platform" = "windows_amd64" ]; then
     # Extract ZIP for Windows
     unzip -j -o -d $temp_prefix/choosenim $temp_prefix/$filename
     local filename="choosenim/choosenim.exe"
@@ -67,14 +67,14 @@ install() {
 
   # Copy choosenim binary to Nimble bin.
   local nimbleBinDir=`"$temp_prefix/$filename" --getNimbleBin`
-  if [ "$platform" = "windows_i386" ]; then
+  if [ "$platform" = "windows_amd64" ]; then
     cp "$temp_prefix/$filename" "$nimbleBinDir/."
   else
     cp "$temp_prefix/$filename" "$nimbleBinDir/choosenim"
   fi
   say "ChooseNim installed in $nimbleBinDir"
   say "You must now ensure that the Nimble bin dir is in your PATH."
-  if [ "$platform" != "windows_i386" ]; then
+  if [ "$platform" != "windows_amd64" ]; then
     say "Place the following line in the ~/.profile or ~/.bashrc file."
     say "    export PATH=$nimbleBinDir:\$PATH"
   fi
@@ -120,8 +120,6 @@ get_platform() {
       ;;
     *mingw* | *msys* )
       local myos="windows"
-      # Force i386 for Windows
-      local ucpu="i386"
       ;;
     *)
       err "unknown operating system: $uos"
