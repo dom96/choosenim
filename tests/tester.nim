@@ -169,3 +169,5 @@ when defined(linux):
       check inLines(output.processOutput, "downloading")
       check inLines(output.processOutput, "already built")
       check hasLine(output.processOutput, "switched to nim 1.0.0")
+
+      check not dirExists(choosenimDir / "toolchains" / "nim-1.0.0" / "c_code")
