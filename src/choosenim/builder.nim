@@ -85,6 +85,7 @@ when defined(posix):
                             fpGroupRead, fpGroupExec,
                             fpOthersRead, fpOthersExec}
         )
+        display("Info", "Setting rwxr-xr-x permissions: " & path, Message, LowPriority)
 
 proc build*(extractDir: string, version: Version, params: CliParams) =
   # Report telemetry.
@@ -120,6 +121,12 @@ proc build*(extractDir: string, version: Version, params: CliParams) =
     raise newError
   finally:
     if success:
+      # Delete c_code
+      try:
+        removeDir(extractDir / "c_code")
+      except Exception as exc:
+        display("Warning:", "Cleaning c_code failed: " & exc.msg, Warning)
+
       # Report telemetry.
       report(initEvent(BuildSuccessEvent), params)
       report(initTiming(BuildTime, $version, startTime, $LabelSuccess), params)
