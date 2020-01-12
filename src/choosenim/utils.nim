@@ -1,6 +1,6 @@
-import httpclient, os, strutils, osproc, sequtils, times, uri
+import httpclient, os, strutils, osproc, uri
 
-import nimblepkg/[cli, tools, version]
+import nimblepkg/[cli, version]
 import nimarchive
 
 import switcher, cliparams, common

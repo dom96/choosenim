@@ -1,14 +1,11 @@
-
-import os, strutils, algorithm, sequtils
+import os, algorithm, sequtils
 
 import nimblepkg/version
 from nimblepkg/packageinfo import getNameVersion
 
-import download, cliparams, channel, switcher, utils
+import download, cliparams, channel, switcher
 
 proc getLocalVersions(params: CliParams): seq[Version] =
-  let path = getSelectedPath(params)
-
   proc cmpVersions(x: Version, y: Version): int =
     if x == y: return 0
     if x < y: return -1
@@ -40,14 +37,14 @@ proc getAvailableVersions*(params: CliParams): seq[Version] =
 
 proc getCurrentVersion*(params: CliParams): Version =
   let path = getSelectedPath(params)
-  let (currentName, currentVersion) = getNameVersion(path)
+  let (_, currentVersion) = getNameVersion(path)
   return currentVersion.newVersion
 
 proc getLatestVersion*(params: CliParams): Version =
   let channel = getCurrentChannel(params)
   let latest = getChannelVersion(channel, params)
   return latest.newVersion
-  
+
 proc isLatestVersion*(params: CliParams, version: Version): bool =
   let isLatest = (getLatestVersion(params) == version)
   return isLatest
