@@ -6,8 +6,8 @@ import nimblepkg/[cli, version]
 import nimblepkg/common as nimbleCommon
 from nimblepkg/packageinfo import getNameVersion
 
-import choosenim/[download, builder, switcher, common, cliparams, versions]
-import choosenim/[utils, channel, telemetry]
+import choosenimpkg/[download, builder, switcher, common, cliparams, versions]
+import choosenimpkg/[utils, channel, telemetry]
 
 proc installVersion(version: Version, params: CliParams) =
   # Install the requested version.
