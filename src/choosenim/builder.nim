@@ -110,6 +110,11 @@ proc build*(extractDir: string, version: Version, params: CliParams) =
     buildTools()
     when defined(posix):
       setPermissions() # workaround for #147
+    # Delete c_code
+    try:
+      removeDir(extractDir / "c_code")
+    except OSError:
+      discard
     success = true
   except NimbleError as exc:
     # Display error and output from build separately.
