@@ -85,7 +85,7 @@ when defined(posix):
                             fpGroupRead, fpGroupExec,
                             fpOthersRead, fpOthersExec}
         )
-        display("Info", "Setting execution permissions", Message, LowPriority)
+        display("Info", "Setting rwxr-xr-x permissions: " & path, Message, LowPriority)
 
 proc build*(extractDir: string, version: Version, params: CliParams) =
   # Report telemetry.
@@ -124,8 +124,8 @@ proc build*(extractDir: string, version: Version, params: CliParams) =
       # Delete c_code
       try:
         removeDir(extractDir / "c_code")
-      except OSError:
-        discard
+      except Exception as exc:
+        display("Warning:", "Cleaning failed: " & exc.msg, Warning)
 
       # Report telemetry.
       report(initEvent(BuildSuccessEvent), params)
