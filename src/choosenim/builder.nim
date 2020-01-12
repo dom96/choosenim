@@ -85,6 +85,7 @@ when defined(posix):
                             fpGroupRead, fpGroupExec,
                             fpOthersRead, fpOthersExec}
         )
+        display("Info", "Setting execution permissions", Message, LowPriority)
 
 proc build*(extractDir: string, version: Version, params: CliParams) =
   # Report telemetry.
@@ -110,11 +111,6 @@ proc build*(extractDir: string, version: Version, params: CliParams) =
     buildTools()
     when defined(posix):
       setPermissions() # workaround for #147
-    # Delete c_code
-    try:
-      removeDir(extractDir / "c_code")
-    except OSError:
-      discard
     success = true
   except NimbleError as exc:
     # Display error and output from build separately.
@@ -125,6 +121,12 @@ proc build*(extractDir: string, version: Version, params: CliParams) =
     raise newError
   finally:
     if success:
+      # Delete c_code
+      try:
+        removeDir(extractDir / "c_code")
+      except OSError:
+        discard
+
       # Report telemetry.
       report(initEvent(BuildSuccessEvent), params)
       report(initTiming(BuildTime, $version, startTime, $LabelSuccess), params)
