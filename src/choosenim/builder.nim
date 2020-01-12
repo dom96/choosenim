@@ -125,7 +125,7 @@ proc build*(extractDir: string, version: Version, params: CliParams) =
       try:
         removeDir(extractDir / "c_code")
       except Exception as exc:
-        display("Warning:", "Cleaning failed: " & exc.msg, Warning)
+        display("Warning:", "Cleaning c_code failed: " & exc.msg, Warning)
 
       # Report telemetry.
       report(initEvent(BuildSuccessEvent), params)
