@@ -47,6 +47,9 @@ proc buildCompiler(params: CliParams) =
       display("Building", "Nim", priority = HighPriority)
       doCmdRaw("./koch boot -d:release")
 
+    # Not removing csources archive since repo is now locked
+    # discard tryRemoveFile(path)
+
   if not fileExists(binDir / "nim".addFileExt(ExeExt)):
     raise newException(ChooseNimError, "Nim binary is missing. Build failed.")
 
@@ -121,9 +124,10 @@ proc build*(extractDir: string, version: Version, params: CliParams) =
     raise newError
   finally:
     if success:
-      # Delete c_code
+      # Delete c_code / csources
       try:
         removeDir(extractDir / "c_code")
+        removeDir(extractDir / "csources")
       except Exception as exc:
         display("Warning:", "Cleaning c_code failed: " & exc.msg, Warning)
 
