@@ -5,12 +5,15 @@ from nimblepkg/packageinfo import getNameVersion
 
 import cliparams, common
 
-static:
+proc compileProxyexe() =
+  var cmd = "nim c"
   when defined(release):
-    const output = staticExec "nim c -d:release proxyexe"
-  else:
-    const output = staticExec "nim c proxyexe"
-  doAssert("operation successful" in output, "Couldn't compile proxyexe")
+    cmd.add " -d:release"
+  cmd.add " proxyexe"
+  let (output, exitCode) = gorgeEx(cmd)
+  doAssert exitCode == 0, $(output, cmd)
+
+static: compileProxyexe()
 
 const
   proxyExe = staticRead("proxyexe".addFileExt(ExeExt))
