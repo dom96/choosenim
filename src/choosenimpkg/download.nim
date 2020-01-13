@@ -1,4 +1,4 @@
-import httpclient, strutils, os, terminal, times, math, json
+import httpclient, strutils, os, terminal, times, math, json, uri
 
 import nimblepkg/[version, cli]
 when defined(curl):
@@ -11,7 +11,7 @@ const
   githubUrl = "https://github.com/nim-lang/Nim"
   websiteUrl = "http://nim-lang.org/download/nim-$1.tar.xz"
   csourcesUrl = "https://github.com/nim-lang/csources"
-  dlArchive = "/archive/$1.tar.gz"
+  dlArchive = "archive/$1.tar.gz"
   binaryUrl = "http://nim-lang.org/download/nim-$1$2_x$3" & getBinArchiveFormat()
 
 const # Windows-only
@@ -217,7 +217,7 @@ proc downloadImpl(version: Version, params: CliParams): string =
           ($version)[1 .. ^1]
     display("Downloading", "Nim $1 from $2" % [reference, "GitHub"],
             priority = HighPriority)
-    let url = githubUrl & (dlArchive % reference)
+    let url = $(parseUri(githubUrl) / (dlArchive % reference))
     var outputPath: string
     if not needsDownload(params, url, outputPath): return outputPath
 
@@ -259,14 +259,14 @@ proc downloadCSources*(params: CliParams): string =
   let
     commit = getLatestCommit(csourcesUrl, "master")
     archive = if commit.len != 0: commit else: "master"
-    csourcesDLUrl = csourcesUrl & (dlArchive % archive)
+    csourcesArchiveUrl = $(parseUri(csourcesUrl) / (dlArchive % archive))
 
   var outputPath: string
-  if not needsDownload(params, csourcesDLUrl, outputPath):
+  if not needsDownload(params, csourcesArchiveUrl, outputPath):
     return outputPath
 
   display("Downloading", "Nim C sources from GitHub", priority = HighPriority)
-  downloadFile(csourcesDLUrl, outputPath, params)
+  downloadFile(csourcesArchiveUrl, outputPath, params)
   return outputPath
 
 proc downloadMingw32*(params: CliParams): string =

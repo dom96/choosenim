@@ -47,9 +47,6 @@ proc buildCompiler(params: CliParams) =
       display("Building", "Nim", priority = HighPriority)
       doCmdRaw("./koch boot -d:release")
 
-    # Not removing csources archive since repo is now locked
-    # discard tryRemoveFile(path)
-
   if not fileExists(binDir / "nim".addFileExt(ExeExt)):
     raise newException(ChooseNimError, "Nim binary is missing. Build failed.")
 
