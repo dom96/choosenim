@@ -121,9 +121,10 @@ proc build*(extractDir: string, version: Version, params: CliParams) =
     raise newError
   finally:
     if success:
-      # Delete c_code
+      # Delete c_code / csources
       try:
         removeDir(extractDir / "c_code")
+        removeDir(extractDir / "csources")
       except Exception as exc:
         display("Warning:", "Cleaning c_code failed: " & exc.msg, Warning)
 

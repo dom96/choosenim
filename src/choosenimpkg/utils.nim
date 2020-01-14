@@ -73,6 +73,7 @@ proc getProxy*(): Proxy =
     return nil
 
 proc getGccArch*(params: CliParams): int =
+  ## Get gcc arch by getting pointer size x 8
   var
     outp = ""
     errC = 0
@@ -91,3 +92,24 @@ proc getGccArch*(params: CliParams): int =
 
   removeFile("archtest".addFileExt(ExeExt))
   return errC * 8
+
+proc getLatestCommit*(repo, branch: string): string =
+  ## Get latest commit for remote Git repo with ls-remote
+  ##
+  ## Returns "" if Git isn't available
+  let
+    git = findExe("git")
+  if git.len != 0:
+    var
+      cmd = when defined(windows): "cmd /c " else: ""
+    cmd &= git & " ls-remote " & repo & " " & branch
+
+    let
+      (outp, errC) = execCmdEx(cmd)
+    if errC == 0:
+      for line in outp.splitLines():
+        result = line.split('\t')[0]
+        break
+    else:
+      display("Warning", outp & "\ngit ls-remote failed", Warning, HighPriority)
+
