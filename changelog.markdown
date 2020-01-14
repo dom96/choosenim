@@ -1,5 +1,21 @@
 # Choosenim changelog
 
+## 0.5.1 - 15/01/2020
+
+Includes multiple bug fixes and minor improvements.
+
+* Create a shim for testament
+* Ship x64 binaries for Windows
+* Delete downloaded archives and csources directory after successful
+  installation to save disk space
+* Error if C compiler is not found rather than just warning
+* Extract Nim binaries with execute permissions
+* Enable installation using `nimble install choosenim`
+
+See the full list of changes here:
+
+https://github.com/dom96/choosenim/compare/v0.5.0...v0.5.1
+
 ## 0.5.0 - 14/11/2019
 
 The major new feature is the use of nimarchive and
