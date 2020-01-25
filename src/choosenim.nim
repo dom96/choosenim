@@ -79,8 +79,13 @@ proc updateSelf(params: CliParams) =
     return
 
   # https://stackoverflow.com/a/9163044/492186
+  let fileEextension = 
+    when defined(windows):
+      ".exe"
+    else:
+      ""
   let tag = "v" & $version
-  let filename = "choosenim-" & $version & "_" & hostOS & "_" & hostCPU
+  let filename = "choosenim-" & $version & "_" & hostOS & "_" & hostCPU & fileEextension
   let url = "https://github.com/dom96/choosenim/releases/download/$1/$2" % [
     tag, filename
   ]
