@@ -34,17 +34,42 @@ script:
   - nimble build -d:release
   - mv "bin/choosenim${EXT}" "bin/choosenim-${VERSION}_${OSNAME}_${ARCH}${EXT}"
   - ls -l bin
+  - mkdir artifact
+  - cp -pr bin/* artifact/ #Copy release binary to artifact dir for deploy.
+  - ls -l artifact
+#after_success:
+  - echo "Build test end."
+  - echo "Regression test start."
+  - choosenim --version
+  - choosenim 0.20.0  #switch test.
+  - choosenim show    #
+  - choosenim stable
+  # test `update self` need rewrite lower version and build. So, run this test last.
+  - sed -i -e s@chooseNimVersion.*@chooseNimVersion\*\ =\ \"0.4.0\"@ src/choosenimpkg/common.nim
+  - cat src/choosenimpkg/common.nim
+  - choosenim stable
+  - nimble build -d:release
+  - which choosenim
+  - cp -pr bin/choosenim${EXT} ~/.nimble/bin/
+  - choosenim --version
+  - choosenim update self --debug
+  - choosenim --version
 
+after_failure: 
+  - "cat ~/build/iranika/choosenim/src/choosenimpkg/common.nim"
+  - "ls -al"
+  - "pwd"
 notifications:
   irc: "chat.freenode.net#nimbuild"
 
 deploy:
   provider: releases
   api_key:
-    secure: "h7HQnn/pVHyR119IViY811WeX4lMl+hLpmMMND09r3LVOaH9MpMSkwQXa4aYF+/YV3vHaQINOExqTOXpzc/nP5O5VJMzfaEdA+o6HtkVgY1qsWllquUt0xnrvcFCLHcNQc/fwoS6Cow4yINsRTyGgo7p4zLnk5+yGSQTJiLTiMWHQiiRyCdrywBHFzcXG63MqRD7JJveA0OE/JoRNBNESGP6JTK6V7W2eanmlAjbjH8+dUJsxDr5LjoeRUUF+A+4AfulAOCsbPtURW3CIBD1jqYrFXzBYRgxbHaHwY5XxfPjHnWPHONYIruXx9oYyjL8uyrHzYSNCEnoQtBY0gzYOBFfUCNB3bcNDrSkzTXnRlnMcWcC6XyrTxUI7Lc+bZB5OFGoqYJzZK54qd5wmIDqZ+Wa2n1vq/hNfZ+95fYhG7oXgW/zeLWFdr8i46dRoBDfcD2e+OhJLk73FoGVwySffR2p5hCGWLdXFyMKiph1RC8JPiwMr4l6n9LmO1fbOwAjwTEXzj645mC1ExmsiTckGlOQC8UuvnxWg9xNggO40PCTuO64hF4YucDi6SzYttNn5VNli2XoWz9SkgQiKAxf4u2VN+S2Vt0Mtue8Z6CTb2GjEO+QrmVrW3oQmiCFM0LkiAo+0zoo8JK7PuT5EoAabfc0aZt/Ds8cLhPpoHQFxMY="
+    secure: Ti5bfq58CZ15wPR4femfb7LCdO2mSbilBPYHf18G36/7rD4At2o1Q1+nFnq6Po7Tg8ZYAEoNWNVtUfLyZP4jUojt9xpKPF85st5n/6ekb6JZhChKclPvknM8EWQqggIv9hCY6He3c/a2TS/SUrb7/ipQXCYH5OF3pr7y5e9QXHHK/xMfsENYZLv8gtzh/bwO8a/LbA40xJSzgcTEWAHCJJShgI3PC0x3jLTFQ8msffwLEP53eVsmAy2SqsFT95r4qWNsVmnFYn6DIsA7zqYpDiZeMjO5u7ASN/eCSytqNNcRVwvVxpgUs3nFuOXo4MzhYrMYVSB2Cy1Ly5bgHAJacAdzbaOnkfpLyBa48tOtmZl+uSX/Sf6/92QrU9o3BZHCCsJ428/wGEjzmpwU+UgqO2TUH4VCWAS9pyvlO9iZDn55lnLpc7JrnGfzdscrO06udQOsfPsBrLyVROyZ6bGkBp5ZwHghuTF402dMcVErSyRfe5fnKGZKrzHLxtI0yXn3X3kmCWKCeuyQpIRHgeypGydZvuny6G3Yesv+/3VX51i1eNRB/Au/ejmX9HJ2cQEkwcEKgfJiWpmkvE3h5nbOaW8Q4H4lMrqQn1mGQSOuHcLOoVS1aV+X8z31OtcWfPkq1rF/yPM2wjU00RkSIvp5vVxtLUwcjO/3cu06WCi19UA=
   file_glob: true
-  file: bin/*
+  file: artifact/*
   skip_cleanup: true
   on:
-    repo: dom96/choosenim
     tags: true
+    repo: iranika/choosenim
+    branch: travis_test
