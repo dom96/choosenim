@@ -1,5 +1,8 @@
 import parseopt, strutils, os
 
+when not defined(windows):
+  import osproc
+
 import nimblepkg/[cli, options, config]
 import nimblepkg/common as nimble_common
 import analytics
@@ -99,8 +102,51 @@ proc getCurrentChannelFile*(params: CliParams): string =
 proc getAnalyticsFile*(params: CliParams): string =
   return params.chooseNimDir / "analytics"
 
+var
+  cpuArch = 0
+proc getCpuArch*(): int =
+  ## Get CPU arch
+  ##
+  ## Windows - get env var PROCESSOR_ARCHITECTURE
+  ## Rest - run uname -m
+  ##
+  if cpuArch != 0:
+    return cpuArch
+
+  when defined(windows):
+    let
+      archEnv = getEnv("PROCESSOR_ARCHITECTURE")
+      arch6432Env = getEnv("PROCESSOR_ARCHITEW6432")
+    if arch6432Env.len != 0:
+      # https://blog.differentpla.net/blog/2013/03/10/processor-architew6432/
+      result = 64
+    elif "64" in archEnv:
+      # https://superuser.com/a/1441469
+      result = 64
+    elif "86" in archEnv:
+      result = 32
+  else:
+    let
+      uname = findExe("uname")
+    if uname.len != 0:
+      let
+        (outp, errC) = execCmdEx(uname & " -m")
+      if errC == 0:
+        if "64" in outp:
+          result = 64
+        elif "86" in outp:
+          result = 32
+
+  # Die if unsupported - better fail than guess
+  doAssert result != 0, "getCpuArch() not implemented"
+
+  # Only once
+  cpuArch = result
+
 proc getMingwPath*(params: CliParams): string =
-  return params.getInstallDir() / "mingw32"
+  let
+    arch = getCpuArch()
+  return params.getInstallDir() / "mingw" % $arch
 
 proc getMingwBin*(params: CliParams): string =
   return getMingwPath(params) / "bin"
