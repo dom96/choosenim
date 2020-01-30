@@ -113,6 +113,8 @@ proc getCpuArch*(): int =
   if cpuArch != 0:
     return cpuArch
 
+  var
+    failMsg = ""
   when defined(windows):
     let
       archEnv = getEnv("PROCESSOR_ARCHITECTURE")
@@ -125,6 +127,9 @@ proc getCpuArch*(): int =
       result = 64
     elif "86" in archEnv:
       result = 32
+    else:
+      failMsg = "PROCESSOR_ARCHITECTURE = " & archEnv &
+                ", PROCESSOR_ARCHITEW6432 = " & arch6432Env
   else:
     let
       uname = findExe("uname")
@@ -136,9 +141,15 @@ proc getCpuArch*(): int =
           result = 64
         elif "86" in outp:
           result = 32
+        else:
+          failMsg = "uname -m = " & outp
+      else:
+        failMsg = "uname -m failed: " & $errC & "\n" & outp
+    else:
+      failMsg = "uname not found"
 
   # Die if unsupported - better fail than guess
-  doAssert result != 0, "getCpuArch() not implemented"
+  doAssert result != 0, "FATAL: Could not detect your CPI architecture\n" & failMsg
 
   # Only once
   cpuArch = result
