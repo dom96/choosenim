@@ -30,20 +30,11 @@ script:
   - export OSNAME="$TRAVIS_OS_NAME"
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then export OSNAME="macosx"; fi
   - export ARCH="amd64"
-  - mv "bin/choosenim${EXT}" "bin/choosenim-${VERSION}_${OSNAME}_${ARCH}_debug${EXT}"
-  - nimble build -d:release
-  - mv "bin/choosenim${EXT}" "bin/choosenim-${VERSION}_${OSNAME}_${ARCH}${EXT}"
-  - ls -l bin
   - mkdir artifact
-  - cp -pr bin/* artifact/ #Copy release files to artifact dir for deploy.
+  - mv "bin/choosenim${EXT}" "artifact/choosenim-${VERSION}_${OSNAME}_${ARCH}_debug${EXT}"
+  - nimble build -d:release
+  - mv "bin/choosenim${EXT}" "artifact/choosenim-${VERSION}_${OSNAME}_${ARCH}${EXT}"
   - ls -l artifact
-  - echo "Build test end." 
-  - echo "Regression test start."
-  # switch and show test.
-  - choosenim --version
-  - choosenim 0.20.0 
-  - choosenim show
-  - choosenim stable
   # test `update self` need rewrite lower version and build. So, run this test last.
   - sed -i -e s@chooseNimVersion.*@chooseNimVersion\*\ =\ \"0.4.0\"@ src/choosenimpkg/common.nim
   - cat src/choosenimpkg/common.nim
@@ -54,11 +45,6 @@ script:
   - choosenim --version
   - choosenim update self --debug
   - choosenim --version
-
-after_failure: 
-  - "cat ~/build/iranika/choosenim/src/choosenimpkg/common.nim"
-  - "ls -al"
-  - "pwd"
 
 notifications:
   irc: "chat.freenode.net#nimbuild"
