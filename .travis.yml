@@ -35,14 +35,14 @@ script:
   - mv "bin/choosenim${EXT}" "bin/choosenim-${VERSION}_${OSNAME}_${ARCH}${EXT}"
   - ls -l bin
   - mkdir artifact
-  - cp -pr bin/* artifact/ #Copy release binary to artifact dir for deploy.
+  - cp -pr bin/* artifact/ #Copy release files to artifact dir for deploy.
   - ls -l artifact
-#after_success:
-  - echo "Build test end."
-  - echo "Regression test start."
+  - echo "Build test end." 
+  - echo "Regression test start." #
+  # switch and show test.
   - choosenim --version
-  - choosenim 0.20.0  #switch test.
-  - choosenim show    #
+  - choosenim 0.20.0 
+  - choosenim show
   - choosenim stable
   # test `update self` need rewrite lower version and build. So, run this test last.
   - sed -i -e s@chooseNimVersion.*@chooseNimVersion\*\ =\ \"0.4.0\"@ src/choosenimpkg/common.nim
@@ -59,6 +59,7 @@ after_failure:
   - "cat ~/build/iranika/choosenim/src/choosenimpkg/common.nim"
   - "ls -al"
   - "pwd"
+
 notifications:
   irc: "chat.freenode.net#nimbuild"
 
