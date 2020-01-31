@@ -38,7 +38,7 @@ script:
   - cp -pr bin/* artifact/ #Copy release files to artifact dir for deploy.
   - ls -l artifact
   - echo "Build test end." 
-  - echo "Regression test start." #
+  - echo "Regression test start."
   # switch and show test.
   - choosenim --version
   - choosenim 0.20.0 
