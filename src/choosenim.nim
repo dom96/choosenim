@@ -69,6 +69,11 @@ proc choose(params: CliParams) =
     else:
       chooseVersion(params.command, params)
 
+  when defined(windows):
+    # Check and add ~/.nimble/bin to PATH
+    if not isNimbleBinInPath(params) and params.firstInstall:
+      setNimbleBinPath(params)
+
 proc updateSelf(params: CliParams) =
   display("Updating", "choosenim", priority = HighPriority)
 
