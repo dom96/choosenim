@@ -196,7 +196,7 @@ test "can update self":
     check exitCode == QuitSuccess
     check inLines(output.processOutput, "Info: Already up to date at version")
     block cleanup:
-      removeFile(exePath & "0.4.0".addFileExt(ExeExt)) #remove lower version exefile.
+      removeFile(rootDir / "bin" / "choosenim_0.4.0") #remove lower version exefile.
       when defined(windows): removeFile(exePath) # moveFile don't overwritten on windows. So, delete it.
       moveFile(exePath.addFileExt("org"), exePath) # Return to Original exe file.
 
