@@ -175,20 +175,20 @@ when defined(linux):
 
 test "can update self":
   beginTest()
-  cd "..":
-    block:
-      copyFile(choosenimpkgDir / "common.nim", choosenimpkgDir / "common.nim.org")
-      writeFile(choosenimpkgDir / "common.nim", 
-          readFile(choosenimpkgDir / "common.nim")
-          .replace(re"chooseNimVersion.*", "chooseNimVersion* = \"0.4.0\""))
-      let (_, exitCode) = exec("build", exe="nimble", global=true, liveOutput=true)
+  cd choosenimpkgDir:
+    copyFile("common.nim", "common.nim.org")
+    writeFile("common.nim", readFile("common.nim").replace(re"chooseNimVersion.*",
+                                                  "chooseNimVersion* = \"0.4.0\""))
+    cd rootDir:
+      var (output, exitCode) = exec("build", exe="nimble", global=true, liveOutput=true)
       check exitCode == QuitSuccess
-      moveFile(choosenimpkgDir / "common.nim.org", choosenimpkgDir / "common.nim")
-    block:
-      var (output, exitCode) = exec(["update","self","--debug"], liveOutput=true)
-      check exitCode == QuitSuccess
-      check inLines(output.processOutput, "Info: Updated choosenim to version")
-      (output, exitCode) = exec(["update","self","--debug"], liveOutput=true)
-      check exitCode == QuitSuccess
-      check inLines(output.processOutput, "Info: Already up to date at version")
+    moveFile("common.nim.org", "common.nim")
+    
+    (output, exitCode) = exec(["update","self","--debug"], liveOutput=true)
+    check exitCode == QuitSuccess
+    check inLines(output.processOutput, "Info: Updated choosenim to version")
+
+    (output, exitCode) = exec(["update","self","--debug"], liveOutput=true)
+    check exitCode == QuitSuccess
+    check inLines(output.processOutput, "Info: Already up to date at version")
 
