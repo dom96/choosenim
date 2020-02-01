@@ -176,13 +176,17 @@ when defined(linux):
 test "can update self":
   beginTest()
   cd choosenimpkgDir:
-    copyFile("common.nim", "common.nim.org")
-    writeFile("common.nim", readFile("common.nim").replace(re"chooseNimVersion.*",
+    const commonFile = "common.nim"
+    const commonFileOriginal = "common.nim.org"
+    copyFile(commonFile, commonFileOriginal)
+    writeFile(commonFile, readFile(commonFile).replace(re"chooseNimVersion.*",
                                                   "chooseNimVersion* = \"0.4.0\""))
     cd rootDir:
-      var (output, exitCode) = exec("build", exe="nimble", global=true, liveOutput=true)
+      moveFile(exePath, exePath.addFileExt("org")) # rename Original exe file.
+      var (output, exitCode) = exec("build", exe="nimble", global=false, liveOutput=true)
       check exitCode == QuitSuccess
-    moveFile("common.nim.org", "common.nim")
+    when defined(windows): removeFile(commonFile) # moveFile don't overwritten on windows. So, delete it.
+    moveFile(commonFileOriginal, commonFile)
     
     (output, exitCode) = exec(["update","self","--debug"], liveOutput=true)
     check exitCode == QuitSuccess
@@ -191,4 +195,10 @@ test "can update self":
     (output, exitCode) = exec(["update","self","--debug"], liveOutput=true)
     check exitCode == QuitSuccess
     check inLines(output.processOutput, "Info: Already up to date at version")
+    block cleanup:
+      removeFile(exePath & "0.4.0".addFileExt(ExeExt)) #remove lower version exefile.
+      when defined(windows): removeFile(exePath) # moveFile don't overwritten on windows. So, delete it.
+      moveFile(exePath.addFileExt("org"), exePath) # Return to Original exe file.
+
+  beginTest()  
 
