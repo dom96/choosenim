@@ -1,11 +1,12 @@
 # Copyright (C) Dominik Picheta. All rights reserved.
 # BSD-3-Clause License. Look at license.txt for more info.
-import osproc, streams, unittest, strutils, os, sequtils, future
+import osproc, streams, unittest, strutils, os, sequtils, future, nre
 
 var rootDir = getCurrentDir().parentDir()
 var exePath = rootDir / "bin" / addFileExt("choosenim", ExeExt)
 var nimbleDir = rootDir / "tests" / "nimbleDir"
 var choosenimDir = rootDir / "tests" / "choosenimDir"
+var choosenimpkgDir = rootDir / "src" / "choosenimpkg"
 
 template cd*(dir: string, body: untyped) =
   ## Sets the current dir to ``dir``, executes ``body`` and restores the
@@ -171,3 +172,23 @@ when defined(linux):
       check hasLine(output.processOutput, "switched to nim 1.0.0")
 
       check not dirExists(choosenimDir / "toolchains" / "nim-1.0.0" / "c_code")
+
+test "can update self":
+  beginTest()
+  cd "..":
+    block:
+      copyFile(choosenimpkgDir / "common.nim", choosenimpkgDir / "common.nim.org")
+      writeFile(choosenimpkgDir / "common.nim", 
+          readFile(choosenimpkgDir / "common.nim")
+          .replace(re"chooseNimVersion.*", "chooseNimVersion* = \"0.4.0\""))
+      let (_, exitCode) = exec("build", exe="nimble", global=true, liveOutput=true)
+      check exitCode == QuitSuccess
+      moveFile(choosenimpkgDir / "common.nim.org", choosenimpkgDir / "common.nim")
+    block:
+      var (output, exitCode) = exec(["update","self","--debug"], liveOutput=true)
+      check exitCode == QuitSuccess
+      check inLines(output.processOutput, "Info: Updated choosenim to version")
+      (output, exitCode) = exec(["update","self","--debug"], liveOutput=true)
+      check exitCode == QuitSuccess
+      check inLines(output.processOutput, "Info: Already up to date at version")
+
