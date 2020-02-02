@@ -182,7 +182,7 @@ test "can update self":
     writeFile(commonFile, readFile(commonFile).replace(re"chooseNimVersion.*",
                                                   "chooseNimVersion* = \"0.4.0\""))
     cd rootDir:
-      moveFile(exePath, exePath.addFileExt("org")) # rename Original exe file.
+      moveFile(exePath, exePath & ".org") # rename Original exe file.
       var (output, exitCode) = exec("build", exe="nimble", global=false, liveOutput=true)
       check exitCode == QuitSuccess
     when defined(windows): removeFile(commonFile) # moveFile don't overwritten on windows. So, delete it.
@@ -198,7 +198,5 @@ test "can update self":
     block cleanup:
       removeFile(rootDir / "bin" / "choosenim_0.4.0") #remove lower version exefile.
       when defined(windows): removeFile(exePath) # moveFile don't overwritten on windows. So, delete it.
-      moveFile(exePath.addFileExt("org"), exePath) # Return to Original exe file.
-
-  beginTest()  
+      moveFile(exePath & ".org", exePath) # Return to Original exe file.
 
