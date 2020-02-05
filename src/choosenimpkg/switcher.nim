@@ -123,7 +123,7 @@ when defined(windows):
               nimbleDesiredPath & " is not in your PATH environment variable.\n" &
               "            Should it be added permanently?"):
       addToPathEnv(nimbleDesiredPath)
-      display("NOTE:", "PATH changes will only take effect in new sessions.",
+      display("Note:", "PATH changes will only take effect in new sessions.",
               priority = HighPriority)
 
 proc isNimbleBinInPath*(params: CliParams): bool =
@@ -186,11 +186,7 @@ proc writeProxy(bin: string, params: CliParams) =
   try:
     writeFile(proxyPath, proxyExe)
   except IOError:
-<<<<<<< HEAD
     display("Warning:", "component '$1' possibly in use, write failed" % bin, Warning,
-=======
-    display("Warning:", "component '$1' in use, write failed" % bin, Warning,
->>>>>>> Fix #28 - add ~/.nimble/bin to PATH on Windows
             priority = HighPriority)
     return
 
@@ -206,11 +202,7 @@ proc writeProxy(bin: string, params: CliParams) =
       when defined(windows):
         "Binary '$1' isn't in your PATH" % bin
       else:
-<<<<<<< HEAD
         "Binary '$1' isn't in your PATH. Ensure that '$2' is in your PATH." %
-=======
-        "Binary '$1' isn't in your PATH. Add '$2' to your PATH." %
->>>>>>> Fix #28 - add ~/.nimble/bin to PATH on Windows
           [bin, params.getBinDir()]
     display("Hint:", msg, Warning, HighPriority)
   elif fromPATH != "" and fromPATH != proxyPath:
