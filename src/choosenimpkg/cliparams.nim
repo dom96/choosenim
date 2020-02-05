@@ -149,15 +149,16 @@ proc getCpuArch*(): int =
       failMsg = "uname not found"
 
   # Die if unsupported - better fail than guess
-  doAssert result != 0, "FATAL: Could not detect your CPI architecture\n" & failMsg
+  if result == 0:
+    raise newException(ChooseNimError,
+      "Fatal: Could not detect your CPI architecture\n" & failMsg)
 
   # Only once
   cpuArch = result
 
 proc getMingwPath*(params: CliParams): string =
-  let
-    arch = getCpuArch()
-  return params.getInstallDir() / "mingw" % $arch
+  let arch = getCpuArch()
+  return params.getInstallDir() / "mingw" & $arch
 
 proc getMingwBin*(params: CliParams): string =
   return getMingwPath(params) / "bin"
