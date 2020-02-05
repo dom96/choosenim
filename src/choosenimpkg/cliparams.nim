@@ -151,7 +151,7 @@ proc getCpuArch*(): int =
   # Die if unsupported - better fail than guess
   if result == 0:
     raise newException(ChooseNimError,
-      "Fatal: Could not detect your CPI architecture\n" & failMsg)
+      "Fatal: Could not detect your CPU architecture\n" & failMsg)
 
   # Only once
   cpuArch = result
