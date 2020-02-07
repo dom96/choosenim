@@ -176,11 +176,6 @@ when defined(linux):
 test "can update self":
   beginTest()
   block :
-    let (output, exitCode) = exec(["update", "self", "--debug"], liveOutput=true)
-    check exitCode == QuitSuccess
-    check inLines(output.processOutput, "Info: Already up to date at version")
-
-  block :
     let (output, exitCode) = exec(["update", "self", "--debug", "--force"], liveOutput=true)
     check exitCode == QuitSuccess
     check inLines(output.processOutput, "Info: Updated choosenim to version")
