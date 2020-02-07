@@ -11,6 +11,7 @@ env:
 cache:
   directories:
     - "$HOME/.choosenim"
+    - "$HOME/.nimble"
     - "$TRAVIS_BUILD_DIR/git"
 
 install:
