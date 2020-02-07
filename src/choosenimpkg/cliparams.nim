@@ -1,8 +1,5 @@
 import parseopt, strutils, os
 
-when not defined(windows):
-  import osproc
-
 import nimblepkg/[cli, options, config]
 import nimblepkg/common as nimble_common
 import analytics
