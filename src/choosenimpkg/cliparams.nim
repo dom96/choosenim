@@ -102,56 +102,34 @@ proc getCurrentChannelFile*(params: CliParams): string =
 proc getAnalyticsFile*(params: CliParams): string =
   return params.chooseNimDir / "analytics"
 
-var
-  cpuArch = 0
+var cpuArch = 0
+
 proc getCpuArch*(): int =
-  ## Get CPU arch
-  ##
-  ## Windows - get env var PROCESSOR_ARCHITECTURE
-  ## Rest - run uname -m
-  ##
+  ## Get CPU arch on Windows - get env var PROCESSOR_ARCHITECTURE
   if cpuArch != 0:
     return cpuArch
 
-  var
-    failMsg = ""
-  when defined(windows):
-    let
-      archEnv = getEnv("PROCESSOR_ARCHITECTURE")
-      arch6432Env = getEnv("PROCESSOR_ARCHITEW6432")
-    if arch6432Env.len != 0:
-      # https://blog.differentpla.net/blog/2013/03/10/processor-architew6432/
-      result = 64
-    elif "64" in archEnv:
-      # https://superuser.com/a/1441469
-      result = 64
-    elif "86" in archEnv:
-      result = 32
-    else:
-      failMsg = "PROCESSOR_ARCHITECTURE = " & archEnv &
-                ", PROCESSOR_ARCHITEW6432 = " & arch6432Env
+  var failMsg = ""
+
+  let
+    archEnv = getEnv("PROCESSOR_ARCHITECTURE")
+    arch6432Env = getEnv("PROCESSOR_ARCHITEW6432")
+  if arch6432Env.len != 0:
+    # https://blog.differentpla.net/blog/2013/03/10/processor-architew6432/
+    result = 64
+  elif "64" in archEnv:
+    # https://superuser.com/a/1441469
+    result = 64
+  elif "86" in archEnv:
+    result = 32
   else:
-    let
-      uname = findExe("uname")
-    if uname.len != 0:
-      let
-        (outp, errC) = execCmdEx(uname & " -m")
-      if errC == 0:
-        if "64" in outp:
-          result = 64
-        elif "86" in outp:
-          result = 32
-        else:
-          failMsg = "uname -m = " & outp
-      else:
-        failMsg = "uname -m failed: " & $errC & "\n" & outp
-    else:
-      failMsg = "uname not found"
+    failMsg = "PROCESSOR_ARCHITECTURE = " & archEnv &
+              ", PROCESSOR_ARCHITEW6432 = " & arch6432Env
 
   # Die if unsupported - better fail than guess
   if result == 0:
     raise newException(ChooseNimError,
-      "Fatal: Could not detect your CPU architecture\n" & failMsg)
+      "Could not detect CPU architecture: " & failMsg)
 
   # Only once
   cpuArch = result
