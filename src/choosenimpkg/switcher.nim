@@ -5,6 +5,9 @@ from nimblepkg/packageinfo import getNameVersion
 
 import cliparams, common
 
+when defined(windows):
+  import env
+
 proc compileProxyexe() =
   var cmd = "nim c"
   when defined(release):
@@ -118,7 +121,13 @@ proc writeProxy(bin: string, params: CliParams) =
   # Don't write the file again if it already exists.
   if fileExists(proxyPath) and readFile(proxyPath) == proxyExe: return
 
-  writeFile(proxyPath, proxyExe)
+  try:
+    writeFile(proxyPath, proxyExe)
+  except IOError:
+    display("Warning:", "component '$1' possibly in use, write failed" % bin, Warning,
+            priority = HighPriority)
+    return
+
   # Make sure the exe has +x flag.
   setFilePermissions(proxyPath,
                      getFilePermissions(proxyPath) + {fpUserExec})
@@ -127,8 +136,13 @@ proc writeProxy(bin: string, params: CliParams) =
   # Check whether this is in the user's PATH.
   let fromPATH = findExe(bin)
   if fromPATH == "" and not params.firstInstall:
-      display("Hint:", "Binary '$1' isn't in your PATH. Add '$2' to your PATH." %
-              [bin, params.getBinDir()], Warning, HighPriority)
+    let msg =
+      when defined(windows):
+        "Binary '$1' isn't in your PATH" % bin
+      else:
+        "Binary '$1' isn't in your PATH. Ensure that '$2' is in your PATH." %
+          [bin, params.getBinDir()]
+    display("Hint:", msg, Warning, HighPriority)
   elif fromPATH != "" and fromPATH != proxyPath:
     display("Warning:", "Binary '$1' is shadowed by '$2'." %
             [bin, fromPATH], Warning, HighPriority)
@@ -180,6 +194,11 @@ proc switchToPath(filepath: string, params: CliParams): bool =
   # Create the proxy executables.
   for proxy in proxiesToInstall:
     writeProxy(proxy, params)
+
+  when defined(windows):
+    if not isNimbleBinInPath(params):
+      display("Hint:", "Use 'choosenim <version/channel> --firstInstall' to add\n" &
+                  "$1 to your PATH." % params.getBinDir(), Warning, HighPriority)
 
 proc switchTo*(version: Version, params: CliParams) =
   ## Switches to the specified version by writing the appropriate proxy

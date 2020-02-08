@@ -99,13 +99,8 @@ proc getCurrentChannelFile*(params: CliParams): string =
 proc getAnalyticsFile*(params: CliParams): string =
   return params.chooseNimDir / "analytics"
 
-var cpuArch = 0
-
 proc getCpuArch*(): int =
   ## Get CPU arch on Windows - get env var PROCESSOR_ARCHITECTURE
-  if cpuArch != 0:
-    return cpuArch
-
   var failMsg = ""
 
   let
@@ -127,9 +122,6 @@ proc getCpuArch*(): int =
   if result == 0:
     raise newException(ChooseNimError,
       "Could not detect CPU architecture: " & failMsg)
-
-  # Only once
-  cpuArch = result
 
 proc getMingwPath*(params: CliParams): string =
   let arch = getCpuArch()

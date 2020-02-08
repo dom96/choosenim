@@ -3,7 +3,10 @@ import httpclient, os, strutils, osproc, uri
 import nimblepkg/[cli, version]
 import nimarchive
 
-import switcher, cliparams, common
+import cliparams, common
+
+when defined(windows):
+  import switcher
 
 proc parseVersion*(versionStr: string): Version =
   if versionStr[0] notin {'#', '\0'} + Digits:

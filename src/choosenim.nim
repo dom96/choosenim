@@ -9,6 +9,9 @@ from nimblepkg/packageinfo import getNameVersion
 import choosenimpkg/[download, builder, switcher, common, cliparams, versions]
 import choosenimpkg/[utils, channel, telemetry]
 
+when defined(windows):
+  import choosenimpkg/env
+
 proc installVersion(version: Version, params: CliParams) =
   # Install the requested version.
   let path = download(version, params)
@@ -68,6 +71,11 @@ proc choose(params: CliParams) =
       setCurrentChannel(params.command, params)
     else:
       chooseVersion(params.command, params)
+
+  when defined(windows):
+    # Check and add ~/.nimble/bin to PATH
+    if not isNimbleBinInPath(params) and params.firstInstall:
+      setNimbleBinPath(params)
 
 proc updateSelf(params: CliParams) =
   display("Updating", "choosenim", priority = HighPriority)

@@ -3,7 +3,10 @@ import os, times
 import nimblepkg/[version, cli]
 import nimblepkg/common as nimble_common
 
-import cliparams, download, utils, common, switcher, telemetry
+import cliparams, download, utils, common, telemetry
+
+when defined(windows):
+  import switcher
 
 proc buildFromCSources(params: CliParams) =
   when defined(windows):
