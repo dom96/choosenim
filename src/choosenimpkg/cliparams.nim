@@ -99,8 +99,41 @@ proc getCurrentChannelFile*(params: CliParams): string =
 proc getAnalyticsFile*(params: CliParams): string =
   return params.chooseNimDir / "analytics"
 
+var cpuArch = 0
+
+proc getCpuArch*(): int =
+  ## Get CPU arch on Windows - get env var PROCESSOR_ARCHITECTURE
+  if cpuArch != 0:
+    return cpuArch
+
+  var failMsg = ""
+
+  let
+    archEnv = getEnv("PROCESSOR_ARCHITECTURE")
+    arch6432Env = getEnv("PROCESSOR_ARCHITEW6432")
+  if arch6432Env.len != 0:
+    # https://blog.differentpla.net/blog/2013/03/10/processor-architew6432/
+    result = 64
+  elif "64" in archEnv:
+    # https://superuser.com/a/1441469
+    result = 64
+  elif "86" in archEnv:
+    result = 32
+  else:
+    failMsg = "PROCESSOR_ARCHITECTURE = " & archEnv &
+              ", PROCESSOR_ARCHITEW6432 = " & arch6432Env
+
+  # Die if unsupported - better fail than guess
+  if result == 0:
+    raise newException(ChooseNimError,
+      "Could not detect CPU architecture: " & failMsg)
+
+  # Only once
+  cpuArch = result
+
 proc getMingwPath*(params: CliParams): string =
-  return params.getInstallDir() / "mingw32"
+  let arch = getCpuArch()
+  return params.getInstallDir() / "mingw" & $arch
 
 proc getMingwBin*(params: CliParams): string =
   return getMingwPath(params) / "bin"

@@ -15,7 +15,7 @@ const
   binaryUrl = "http://nim-lang.org/download/nim-$1$2_x$3" & getBinArchiveFormat()
 
 const # Windows-only
-  mingwUrl = "http://nim-lang.org/download/mingw32.7z"
+  mingwUrl = "http://nim-lang.org/download/mingw$1.7z"
   dllsUrl = "http://nim-lang.org/download/dlls.zip"
 
 const
@@ -269,13 +269,16 @@ proc downloadCSources*(params: CliParams): string =
   downloadFile(csourcesArchiveUrl, outputPath, params)
   return outputPath
 
-proc downloadMingw32*(params: CliParams): string =
+proc downloadMingw*(params: CliParams): string =
+  let
+    arch = getCpuArch()
+    url = mingwUrl % $arch
   var outputPath: string
-  if not needsDownload(params, mingwUrl, outputPath):
+  if not needsDownload(params, url, outputPath):
     return outputPath
 
-  display("Downloading", "C compiler (Mingw32)", priority = HighPriority)
-  downloadFile(mingwUrl, outputPath, params)
+  display("Downloading", "C compiler (Mingw$1)" % $arch, priority = HighPriority)
+  downloadFile(url, outputPath, params)
   return outputPath
 
 proc downloadDLLs*(params: CliParams): string =

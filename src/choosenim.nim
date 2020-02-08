@@ -35,7 +35,7 @@ proc chooseVersion(version: string, params: CliParams) =
   if params.needsCCInstall():
     when defined(windows):
       # Install MingW.
-      let path = downloadMingw32(params)
+      let path = downloadMingw(params)
       extract(path, getMingwPath(params))
     else:
       raise newException(ChooseNimError,

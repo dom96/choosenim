@@ -55,7 +55,10 @@ proc isDefaultCCInPath*(params: CliParams): bool =
 proc needsCCInstall*(params: CliParams): bool =
   ## Determines whether the system needs a C compiler to be installed.
   let inPath = isDefaultCCInPath(params)
-  let inMingwDir = fileExists(params.getMingwBin() / "gcc".addFileExt(ExeExt))
+  let inMingwDir =
+    when defined(windows):
+      fileExists(params.getMingwBin() / "gcc".addFileExt(ExeExt))
+    else: false
   let isInstalled = inPath or inMingwDir
   return not isInstalled
 
