@@ -15,17 +15,17 @@ when defined(windows):
     except:
       result = ""
 
-  proc addToPathEnv(e: string) =
-    # Append e to user PATH to registry
-    var p = tryGetUnicodeValue(r"Environment", "Path", HKEY_CURRENT_USER)
-    let x = if e.contains(Whitespace): "\"" & e & "\"" else: e
-    if p.len > 0:
-      if p[^1] != PathSep:
-        p.add PathSep
-      p.add x
+  proc addToPathEnv(path: string) =
+    # Append path to user PATH to registry
+    var paths = tryGetUnicodeValue(r"Environment", "Path", HKEY_CURRENT_USER)
+    let path = if path.contains(Whitespace): "\"" & path & "\"" else: path
+    if paths.len > 0:
+      if paths[^1] != PathSep:
+        paths.add PathSep
+      paths.add path
     else:
-      p = x
-    setUnicodeValue(r"Environment", "Path", p, HKEY_CURRENT_USER)
+      paths = path
+    setUnicodeValue(r"Environment", "Path", paths, HKEY_CURRENT_USER)
 
   proc setNimbleBinPath*(params: CliParams) =
     # Ask the user and add nimble bin to PATH
@@ -44,7 +44,7 @@ when defined(windows):
     let nimbleDesiredPath = params.getBinDir()
     when defined(windows):
       # Getting PATH from registry since it is the ultimate source of
-      # truth and the session local $PATH can be changed.
+      # truth and session local $PATH can be changed.
       let paths = tryGetUnicodeValue(r"Environment", "Path",
         HKEY_CURRENT_USER) & PathSep & tryGetUnicodeValue(
         r"System\CurrentControlSet\Control\Session Manager\Environment", "Path",
