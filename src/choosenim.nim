@@ -9,6 +9,9 @@ from nimblepkg/packageinfo import getNameVersion
 import choosenimpkg/[download, builder, switcher, common, cliparams, versions]
 import choosenimpkg/[utils, channel, telemetry]
 
+when defined(windows):
+  import env
+
 proc installVersion(version: Version, params: CliParams) =
   # Install the requested version.
   let path = download(version, params)

@@ -5,6 +5,9 @@ from nimblepkg/packageinfo import getNameVersion
 
 import cliparams, common
 
+when defined(windows):
+  import env
+
 proc compileProxyexe() =
   var cmd = "nim c"
   when defined(release):
@@ -89,68 +92,6 @@ proc getNimbleVersion(toolchainPath: string): Version =
   else:
     display("Warning:", "Could not find toolchain's Nimble version.",
             Warning, MediumPriority)
-
-when defined(windows):
-  # From finish.nim in nim-lang/Nim/tools
-  import registry
-
-  proc tryGetUnicodeValue(path, key: string, handle: HKEY): string =
-    # Get a unicode value from the registry or ""
-    try:
-      result = getUnicodeValue(path, key, handle)
-    except:
-      result = ""
-
-  proc addToPathEnv(e: string) =
-    # Append e to user PATH to registry
-    var p = tryGetUnicodeValue(r"Environment", "Path", HKEY_CURRENT_USER)
-    let x = if e.contains(Whitespace): "\"" & e & "\"" else: e
-    if p.len > 0:
-      if p[^1] != PathSep:
-        p.add PathSep
-      p.add x
-    else:
-      p = x
-    setUnicodeValue(r"Environment", "Path", p, HKEY_CURRENT_USER)
-
-  proc setNimbleBinPath*(params: CliParams) =
-    # Ask the user and add nimble bin to PATH
-    let nimbleDesiredPath = params.getBinDir()
-    if prompt(params.nimbleOptions.forcePrompts,
-              nimbleDesiredPath & " is not in your PATH environment variable.\n" &
-              "            Should it be added permanently?"):
-      addToPathEnv(nimbleDesiredPath)
-      display("Note:", "PATH changes will only take effect in new sessions.",
-              priority = HighPriority)
-
-proc isNimbleBinInPath*(params: CliParams): bool =
-  # This proc searches the $PATH variable for the nimble bin directory,
-  # typically ~/.nimble/bin
-  result = false
-  let nimbleDesiredPath = params.getBinDir()
-  when defined(windows):
-    let p = tryGetUnicodeValue(r"Environment", "Path",
-      HKEY_CURRENT_USER) & PathSep & tryGetUnicodeValue(
-      r"System\CurrentControlSet\Control\Session Manager\Environment", "Path",
-      HKEY_LOCAL_MACHINE)
-  else:
-    let p = getEnv("PATH")
-  for x in p.split(PathSep):
-    if x.len == 0: continue
-    let y =
-      try:
-        expandFilename(
-          if x[0] == '"' and x[^1] == '"':
-            substr(x, 1, x.len-2)
-          else: x
-        )
-      except OSError as e:
-        if e.errorCode == 0: x
-        else: ""
-      except: ""
-    if y.cmpIgnoreCase(nimbleDesiredPath) == 0:
-      result = true
-      break
 
 proc writeProxy(bin: string, params: CliParams) =
   # Create the ~/.nimble/bin dir in case it doesn't exist.
