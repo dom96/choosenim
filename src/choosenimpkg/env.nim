@@ -1,5 +1,7 @@
 import os, strutils
 
+import nimblepkg/[cli, options]
+
 import cliparams
 
 when defined(windows):
@@ -51,12 +53,12 @@ when defined(windows):
       let paths = getEnv("PATH")
     for path in paths.split(PathSep):
       if path.len == 0: continue
-      let path = path.strip(chars = {"\""})
+      let path = path.strip(chars = {'"'})
       let expandedPath =
         try:
           expandFilename(path)
         except:
           ""
-      if y.cmpIgnoreCase(nimbleDesiredPath) == 0:
+      if expandedPath.cmpIgnoreCase(nimbleDesiredPath) == 0:
         result = true
         break
