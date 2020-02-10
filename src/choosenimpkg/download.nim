@@ -1,4 +1,4 @@
-import httpclient, strutils, os, terminal, times, json, uri
+import httpclient, strutils, os, osproc, terminal, times, json, uri
 
 when defined(macosx):
   import math
@@ -349,6 +349,49 @@ proc getOfficialReleases*(params: CliParams): seq[Version] =
     if cutOffVersion <= version:
       releases.add(version)
   return releases
+
+template isDevel*(version: Version): bool =
+  $version in ["#head", "#devel"]
+
+proc gitUpdate*(version: Version, extractDir: string): bool =
+  if version.isDevel():
+    let git = findExe("git")
+    if git.len != 0 and fileExists(extractDir / ".git" / "config"):
+      result = true
+
+      let lastDir = getCurrentDir()
+      setCurrentDir(extractDir)
+      defer:
+        setCurrentDir(lastDir)
+
+      display("Fetching", "latest changes", priority = HighPriority)
+      for cmd in [" fetch --all", " reset --hard origin/devel"]:
+        var (outp, errC) = execCmdEx(git & cmd)
+        if errC != QuitSuccess:
+          display("Warning:", "git" & cmd & " failed: " & outp, Warning, priority = HighPriority)
+          return false
+
+proc gitInit*(version: Version, extractDir: string) =
+  createDir(extractDir / ".git")
+  if version.isDevel():
+    let git = findExe("git")
+    if git.len != 0:
+      let lastDir = getCurrentDir()
+      setCurrentDir(extractDir)
+      defer:
+        setCurrentDir(lastDir)
+
+      var init = true
+      display("Setting", "up git repository", priority = HighPriority)
+      for cmd in [" init", " remote add origin https://github.com/nim-lang/nim"]:
+        var (outp, errC) = execCmdEx(git & cmd)
+        if errC != QuitSuccess:
+          display("Warning:", "git" & cmd & " failed: " & outp, Warning, priority = HighPriority)
+          init = false
+          break
+
+      if init:
+        discard gitUpdate(version, extractDir)
 
 when isMainModule:
 
