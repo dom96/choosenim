@@ -18,50 +18,53 @@ proc buildFromCSources(params: CliParams) =
   else:
     doCmdRaw("sh build.sh")
 
-proc buildCompiler(params: CliParams) =
+proc buildCompiler(version: Version, params: CliParams) =
   ## Assumes that CWD contains the compiler (``build`` should have changed it).
   let binDir = getCurrentDir() / "bin"
   if fileExists(binDir / "nim".addFileExt(ExeExt)):
-    display("Compiler: ", "Already built", priority = HighPriority)
-    return
-
-  if fileExists(getCurrentDir() / "build.sh"):
-    buildFromCSources(params)
+    if not version.isDevel():
+      display("Compiler:", "Already built", priority = HighPriority)
+      return
   else:
-    display("Warning:", "Building from latest C sources. They may not be " &
-                        "compatible with the Nim version you have chosen to " &
-                        "install.", Warning, HighPriority)
-    let path = downloadCSources(params)
-    let extractDir = getCurrentDir() / "csources"
-    extract(path, extractDir)
-
-    display("Building", "C sources", priority = HighPriority)
-    setCurrentDir(extractDir) # cd csources
-    buildFromCSources(params) # sh build.sh
-    setCurrentDir(extractDir.parentDir()) # cd ..
-    when defined(windows):
-      display("Building", "koch", priority = HighPriority)
-      doCmdRaw("bin/nim.exe c koch")
-      display("Building", "Nim", priority = HighPriority)
-      doCmdRaw("koch.exe boot -d:release")
+    if fileExists(getCurrentDir() / "build.sh"):
+      buildFromCSources(params)
     else:
-      display("Building", "koch", priority = HighPriority)
-      doCmdRaw("./bin/nim c koch")
-      display("Building", "Nim", priority = HighPriority)
-      doCmdRaw("./koch boot -d:release")
+      display("Warning:", "Building from latest C sources. They may not be " &
+                          "compatible with the Nim version you have chosen to " &
+                          "install.", Warning, HighPriority)
+      let path = downloadCSources(params)
+      let extractDir = getCurrentDir() / "csources"
+      extract(path, extractDir)
+
+      display("Building", "C sources", priority = HighPriority)
+      setCurrentDir(extractDir) # cd csources
+      buildFromCSources(params) # sh build.sh
+      setCurrentDir(extractDir.parentDir()) # cd ..
+
+  when defined(windows):
+    display("Building", "koch", priority = HighPriority)
+    doCmdRaw("bin/nim.exe c koch")
+    display("Building", "Nim", priority = HighPriority)
+    doCmdRaw("koch.exe boot -d:release")
+  else:
+    display("Building", "koch", priority = HighPriority)
+    doCmdRaw("./bin/nim c koch")
+    display("Building", "Nim", priority = HighPriority)
+    doCmdRaw("./koch boot -d:release")
 
   if not fileExists(binDir / "nim".addFileExt(ExeExt)):
     raise newException(ChooseNimError, "Nim binary is missing. Build failed.")
 
-proc buildTools() =
+proc buildTools(version: Version) =
   ## Assumes that CWD contains the compiler.
   let binDir = getCurrentDir() / "bin"
   # TODO: I guess we should check for the other tools too?
-  if fileExists(binDir / "nimble".addFileExt(ExeExt)):
-    display("Tools: ", "Already built", priority = HighPriority)
+  if fileExists(binDir / "nimble".addFileExt(ExeExt)) and
+    not version.isDevel():
+    display("Tools:", "Already built", priority = HighPriority)
     return
 
-  let msg = "tools (nimble, nimgrep, nimpretty, nimsuggest)"
+  let msg = "tools (nimble, nimgrep, nimpretty, nimsuggest, testament)"
   display("Building", msg, priority = HighPriority)
   if fileExists(getCurrentDir() / "build.sh"):
     when defined(windows):
@@ -110,8 +113,8 @@ proc build*(extractDir: string, version: Version, params: CliParams) =
 
   var success = false
   try:
-    buildCompiler(params)
-    buildTools()
+    buildCompiler(version, params)
+    buildTools(version)
     when defined(posix):
       setPermissions() # workaround for #147
     success = true
