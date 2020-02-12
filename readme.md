@@ -84,6 +84,9 @@ install them accordingly.
 
 OpenSSL version can be checked by executing ``openssl version``.
 
+Git is required when installing release versions on platforms other than Windows
+and Linux, or when installing #HEAD or a specific commit of Nim.
+
 ## Usage
 
 ```
