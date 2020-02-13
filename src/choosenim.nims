@@ -1,4 +1,4 @@
 when defined(macosx):
   --define:curl
-
---define:ssl
+else:
+  --define:ssl
