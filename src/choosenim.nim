@@ -9,23 +9,33 @@ from nimblepkg/packageinfo import getNameVersion
 import choosenimpkg/[download, builder, switcher, common, cliparams, versions]
 import choosenimpkg/[utils, channel, telemetry]
 
+when defined(windows):
+  import choosenimpkg/env
+
 proc installVersion(version: Version, params: CliParams) =
-  # Install the requested version.
-  let path = download(version, params)
-  # Extract the downloaded file.
-  let extractDir = params.getInstallationDir(version)
-  # Make sure no stale files from previous installation exist.
-  removeDir(extractDir)
-  extract(path, extractDir)
-  # A "special" version is downloaded from GitHub and thus needs a `.git`
-  # directory in order to let `koch` know that it should download a "devel"
-  # Nimble.
-  if version.isSpecial:
-    createDir(extractDir / ".git")
+  let
+    extractDir = params.getInstallationDir(version)
+    updated = gitUpdate(version, extractDir)
+
+  if not updated:
+    # Install the requested version.
+    let path = download(version, params)
+    defer:
+      # Delete downloaded file
+      discard tryRemoveFile(path)
+    # Make sure no stale files from previous installation exist.
+    removeDir(extractDir)
+    # Extract the downloaded file.
+    extract(path, extractDir)
+
+    # A "special" version is downloaded from GitHub and thus needs a `.git`
+    # directory in order to let `koch` know that it should download a "devel"
+    # Nimble.
+    if version.isSpecial:
+      gitInit(version, extractDir)
+
   # Build the compiler
   build(extractDir, version, params)
-  # Delete downloaded file
-  discard tryRemoveFile(path)
 
 proc chooseVersion(version: string, params: CliParams) =
   # Command is a version.
@@ -35,7 +45,7 @@ proc chooseVersion(version: string, params: CliParams) =
   if params.needsCCInstall():
     when defined(windows):
       # Install MingW.
-      let path = downloadMingw32(params)
+      let path = downloadMingw(params)
       extract(path, getMingwPath(params))
     else:
       raise newException(ChooseNimError,
@@ -68,6 +78,11 @@ proc choose(params: CliParams) =
       setCurrentChannel(params.command, params)
     else:
       chooseVersion(params.command, params)
+
+  when defined(windows):
+    # Check and add ~/.nimble/bin to PATH
+    if not isNimbleBinInPath(params) and params.firstInstall:
+      setNimbleBinPath(params)
 
 proc updateSelf(params: CliParams) =
   display("Updating", "choosenim", priority = HighPriority)
