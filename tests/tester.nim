@@ -1,7 +1,6 @@
 # Copyright (C) Dominik Picheta. All rights reserved.
 # BSD-3-Clause License. Look at license.txt for more info.
-import osproc, streams, unittest, strutils, os, sequtils, future, nre
-from ../src/choosenimpkg/common import chooseNimVersion
+import osproc, streams, unittest, strutils, os, sequtils, future
 
 var rootDir = getCurrentDir().parentDir()
 var exePath = rootDir / "bin" / addFileExt("choosenim", ExeExt)
@@ -195,14 +194,13 @@ test "can update devel with git":
     check inLines(output.processOutput, "building")
 
 test "can update self":
+  # updateSelf() doesn't use options --choosenimDir and --nimbleDir. It's used getAppDir().
+  # This will rewrite $project/bin dir, it's dangerous.
+  # So, this test copy bin/choosenim to test/choosenimDir/choosenim, and use it.
   beginTest()
+  let testExePath = choosenimDir / extractFilename(exePath)
+  copyFileWithPermissions(exePath, testExePath)
   block :
-    let (output, exitCode) = exec(["update", "self", "--debug", "--force"], liveOutput=true)
+    let (output, exitCode) = exec(["update", "self", "--debug", "--force"], exe=testExePath, liveOutput=true)
     check exitCode == QuitSuccess
     check inLines(output.processOutput, "Info: Updated choosenim to version")
-    block cleanup:
-      # Now, ExeFile is release version. Back to current build version.
-      # moveFile don't overwritten on windows. So, delete it.
-      when defined(windows): removeFile(exePath)
-      moveFile(rootDir / "bin" / "choosenim_" & chooseNimVersion.addFileExt(ExeExt),
-               exePath)
