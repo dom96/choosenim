@@ -15,6 +15,7 @@ type
     nimbleOptions*: Options
     analytics*: AsyncAnalytics
     pendingReports*: int ## Count of pending telemetry reports.
+    force*: bool
 
 
 let doc = """
@@ -193,6 +194,7 @@ proc parseCliParams*(params: var CliParams, proxyExeMode = false) =
       of "firstinstall": params.firstInstall = true
       of "y", "yes": params.nimbleOptions.forcePrompts = forcePromptYes
       of "installed": params.onlyInstalled = true
+      of "force", "f": params.force = true
       else:
         if not proxyExeMode:
           raise newException(ChooseNimError, "Unknown flag: --" & key)

@@ -192,3 +192,15 @@ test "can update devel with git":
     check inLines(output.processOutput, "updating")
     check inLines(output.processOutput, "latest changes")
     check inLines(output.processOutput, "building")
+
+test "can update self":
+  # updateSelf() doesn't use options --choosenimDir and --nimbleDir. It's used getAppDir().
+  # This will rewrite $project/bin dir, it's dangerous.
+  # So, this test copy bin/choosenim to test/choosenimDir/choosenim, and use it.
+  beginTest()
+  let testExePath = choosenimDir / extractFilename(exePath)
+  copyFileWithPermissions(exePath, testExePath)
+  block :
+    let (output, exitCode) = exec(["update", "self", "--debug", "--force"], exe=testExePath, liveOutput=true)
+    check exitCode == QuitSuccess
+    check inLines(output.processOutput, "Info: Updated choosenim to version")
