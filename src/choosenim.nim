@@ -15,7 +15,7 @@ when defined(windows):
 proc installVersion(version: Version, params: CliParams) =
   let
     extractDir = params.getInstallationDir(version)
-    updated = gitUpdate(version, extractDir)
+    updated = gitUpdate(version, extractDir, params)
 
   if not updated:
     # Install the requested version.
@@ -32,7 +32,7 @@ proc installVersion(version: Version, params: CliParams) =
     # directory in order to let `koch` know that it should download a "devel"
     # Nimble.
     if version.isSpecial:
-      gitInit(version, extractDir)
+      gitInit(version, extractDir, params)
 
   # Build the compiler
   build(extractDir, version, params)

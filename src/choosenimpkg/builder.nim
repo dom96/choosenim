@@ -22,7 +22,7 @@ proc buildCompiler(version: Version, params: CliParams) =
   ## Assumes that CWD contains the compiler (``build`` should have changed it).
   let binDir = getCurrentDir() / "bin"
   if fileExists(binDir / "nim".addFileExt(ExeExt)):
-    if not version.isDevel():
+    if not version.isDevel() or not params.latest:
       display("Compiler:", "Already built", priority = HighPriority)
       return
   else:
@@ -55,14 +55,14 @@ proc buildCompiler(version: Version, params: CliParams) =
   if not fileExists(binDir / "nim".addFileExt(ExeExt)):
     raise newException(ChooseNimError, "Nim binary is missing. Build failed.")
 
-proc buildTools(version: Version) =
+proc buildTools(version: Version, params: CliParams) =
   ## Assumes that CWD contains the compiler.
   let binDir = getCurrentDir() / "bin"
   # TODO: I guess we should check for the other tools too?
-  if fileExists(binDir / "nimble".addFileExt(ExeExt)) and
-    not version.isDevel():
-    display("Tools:", "Already built", priority = HighPriority)
-    return
+  if fileExists(binDir / "nimble".addFileExt(ExeExt)):
+    if not version.isDevel() or not params.latest:
+      display("Tools:", "Already built", priority = HighPriority)
+      return
 
   let msg = "tools (nimble, nimgrep, nimpretty, nimsuggest, testament)"
   display("Building", msg, priority = HighPriority)
@@ -114,7 +114,7 @@ proc build*(extractDir: string, version: Version, params: CliParams) =
   var success = false
   try:
     buildCompiler(version, params)
-    buildTools(version)
+    buildTools(version, params)
     when defined(posix):
       setPermissions() # workaround for #147
     success = true

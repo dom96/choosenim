@@ -209,9 +209,34 @@ proc needsDownload(params: CliParams, downloadUrl: string,
 proc downloadImpl(version: Version, params: CliParams): string =
   let arch = getGccArch(params)
   if version.isSpecial():
-    let
-      commit = getLatestCommit(githubUrl, "devel")
-      archive = if commit.len != 0: commit else: "devel"
+    var reference, url = ""
+    if $version in ["#devel", "#head"] and not params.latest:
+      # Install nightlies by default for devel channel
+      let rawContents = retrieveUrl(githubNightliesReleasesUrl)
+      let parsedContents = parseJson(rawContents)
+      let os =
+        when defined(windows): "windows"
+        elif defined(linux): "linux"
+        elif defined(macosx): "osx"
+      reference = "devel"
+      for jn in parsedContents.getElems():
+        if jn["name"].getStr().contains("devel"):
+          for asset in jn["assets"].getElems():
+            let aname = asset["name"].getStr()
+            if os in aname:
+              when not defined(macosx):
+                if "x" & $arch in aname:
+                  url = asset["browser_download_url"].getStr()
+              else:
+                url = asset["browser_download_url"].getStr()
+            if url.len != 0:
+              break
+        if url.len != 0:
+          break
+    else:
+      let
+        commit = getLatestCommit(githubUrl, "devel")
+        archive = if commit.len != 0: commit else: "devel"
       reference =
         case normalize($version)
         of "#head":
@@ -353,8 +378,8 @@ proc getOfficialReleases*(params: CliParams): seq[Version] =
 template isDevel*(version: Version): bool =
   $version in ["#head", "#devel"]
 
-proc gitUpdate*(version: Version, extractDir: string): bool =
-  if version.isDevel():
+proc gitUpdate*(version: Version, extractDir: string, params: CliParams): bool =
+  if version.isDevel() and params.latest:
     let git = findExe("git")
     if git.len != 0 and fileExists(extractDir / ".git" / "config"):
       result = true
@@ -371,7 +396,7 @@ proc gitUpdate*(version: Version, extractDir: string): bool =
           display("Warning:", "git" & cmd & " failed: " & outp, Warning, priority = HighPriority)
           return false
 
-proc gitInit*(version: Version, extractDir: string) =
+proc gitInit*(version: Version, extractDir: string, params: CliParams) =
   createDir(extractDir / ".git")
   if version.isDevel():
     let git = findExe("git")
@@ -391,7 +416,7 @@ proc gitInit*(version: Version, extractDir: string) =
           break
 
       if init:
-        discard gitUpdate(version, extractDir)
+        discard gitUpdate(version, extractDir, params)
 
 when isMainModule:
 
