@@ -11,6 +11,7 @@ import cliparams, common, telemetry, utils
 
 const
   githubTagReleasesUrl = "https://api.github.com/repos/nim-lang/Nim/tags"
+  githubNightliesReleasesUrl = "https://api.github.com/repos/nim-lang/nightlies/releases"
   githubUrl = "https://github.com/nim-lang/Nim"
   websiteUrl = "http://nim-lang.org/download/nim-$1.tar.xz"
   csourcesUrl = "https://github.com/nim-lang/csources"
@@ -206,6 +207,7 @@ proc needsDownload(params: CliParams, downloadUrl: string,
             priority=HighPriority)
     return false
 
+proc retrieveUrl*(url: string): string
 proc downloadImpl(version: Version, params: CliParams): string =
   let arch = getGccArch(params)
   if version.isSpecial():
@@ -243,9 +245,9 @@ proc downloadImpl(version: Version, params: CliParams): string =
           archive
         else:
           ($version)[1 .. ^1]
+      url = $(parseUri(githubUrl) / (dlArchive % reference))
     display("Downloading", "Nim $1 from $2" % [reference, "GitHub"],
             priority = HighPriority)
-    let url = $(parseUri(githubUrl) / (dlArchive % reference))
     var outputPath: string
     if not needsDownload(params, url, outputPath): return outputPath
 
