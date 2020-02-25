@@ -185,7 +185,8 @@ test "can install and update devel":
       check inLines(output.processOutput, "devel from")
       check inLines(output.processOutput, "setting")
       when not defined(macosx):
-        check inLines(output.processOutput, "already built")
+        if not inLines(output.processOutput, "recent nightly"):
+          check inLines(output.processOutput, "already built")
       check inLines(output.processOutput, "to Nim #devel")
 
       block:
@@ -200,7 +201,8 @@ test "can install and update devel":
           check inLines(output.processOutput, "devel from")
           check inLines(output.processOutput, "setting")
           when not defined(macosx):
-            check inLines(output.processOutput, "already built")
+            if not inLines(output.processOutput, "recent nightly"):
+              check inLines(output.processOutput, "already built")
 
       block:
         # Update to devel latest

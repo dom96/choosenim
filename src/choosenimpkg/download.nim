@@ -235,7 +235,11 @@ proc downloadImpl(version: Version, params: CliParams): string =
               break
         if url.len != 0:
           break
-    else:
+      if url.len == 0:
+        display("Warning", "Recent nightly release not found, installing latest devel commit.",
+                Warning, priority = HighPriority)
+
+    if url.len == 0:
       let
         commit = getLatestCommit(githubUrl, "devel")
         archive = if commit.len != 0: commit else: "devel"
