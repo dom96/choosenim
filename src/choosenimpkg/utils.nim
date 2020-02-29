@@ -1,4 +1,4 @@
-import httpclient, os, strutils, osproc, uri
+import httpclient, json, os, strutils, osproc, uri
 
 import nimblepkg/[cli, version]
 import nimarchive
@@ -116,3 +116,25 @@ proc getLatestCommit*(repo, branch: string): string =
     else:
       display("Warning", outp & "\ngit ls-remote failed", Warning, HighPriority)
 
+proc getNightliesUrl*(parsedContents: JsonNode, arch: int): string =
+  let os =
+    when defined(windows): "windows"
+    elif defined(linux): "linux"
+    elif defined(macosx): "osx"
+  for jn in parsedContents.getElems():
+    if jn["name"].getStr().contains("devel"):
+      for asset in jn["assets"].getElems():
+        let aname = asset["name"].getStr()
+        if os in aname:
+          when not defined(macosx):
+            if "x" & $arch in aname:
+              result = asset["browser_download_url"].getStr()
+          else:
+            result = asset["browser_download_url"].getStr()
+        if result.len != 0:
+          break
+    if result.len != 0:
+      break
+  if result.len == 0:
+    display("Warning", "Recent nightly release not found, installing latest devel commit.",
+            Warning, priority = HighPriority)

@@ -216,28 +216,8 @@ proc downloadImpl(version: Version, params: CliParams): string =
       # Install nightlies by default for devel channel
       let rawContents = retrieveUrl(githubNightliesReleasesUrl)
       let parsedContents = parseJson(rawContents)
-      let os =
-        when defined(windows): "windows"
-        elif defined(linux): "linux"
-        elif defined(macosx): "osx"
+      url = getNightliesUrl(parsedContents, arch)
       reference = "devel"
-      for jn in parsedContents.getElems():
-        if jn["name"].getStr().contains("devel"):
-          for asset in jn["assets"].getElems():
-            let aname = asset["name"].getStr()
-            if os in aname:
-              when not defined(macosx):
-                if "x" & $arch in aname:
-                  url = asset["browser_download_url"].getStr()
-              else:
-                url = asset["browser_download_url"].getStr()
-            if url.len != 0:
-              break
-        if url.len != 0:
-          break
-      if url.len == 0:
-        display("Warning", "Recent nightly release not found, installing latest devel commit.",
-                Warning, priority = HighPriority)
 
     if url.len == 0:
       let

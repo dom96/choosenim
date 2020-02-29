@@ -34,14 +34,14 @@ Example:
     and then selects it.
   choosenim devel [--latest]
     Installs (if necessary) and selects the most recent nightly build of Nim.
-    The '--latest' flag selects the current commit of Nim.
+    The '--latest' flag selects and builds the latest commit in the devel branch
   choosenim ~/projects/nim
     Selects the specified Nim installation.
   choosenim update stable
     Updates the version installed on the stable release channel.
   choosenim update devel [--latest]
     Updates to the most recent nightly build of Nim.
-    The '--latest' flag updates to the current commit of Nim.
+    The '--latest' flag updates and builds the latest commit in the devel branch
   choosenim versions [--installed]
     Lists the available versions of Nim that choosenim has access to.
 

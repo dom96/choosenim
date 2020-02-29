@@ -172,7 +172,28 @@ when defined(linux):
 
       check not dirExists(choosenimDir / "toolchains" / "nim-1.0.0" / "c_code")
 
-test "can install and update devel":
+test "can update devel with git":
+  beginTest()
+  block:
+    let (output, exitCode) = exec(@["devel", "--latest"], liveOutput=true)
+    check exitCode == QuitSuccess
+
+    check inLines(output.processOutput, "extracting")
+    check inLines(output.processOutput, "setting")
+    check inLines(output.processOutput, "latest changes")
+    check inLines(output.processOutput, "building")
+
+  block:
+    let (output, exitCode) = exec(@["update", "devel", "--latest"], liveOutput=true)
+    check exitCode == QuitSuccess
+
+    check not inLines(output.processOutput, "extracting")
+    check not inLines(output.processOutput, "setting")
+    check inLines(output.processOutput, "updating")
+    check inLines(output.processOutput, "latest changes")
+    check inLines(output.processOutput, "building")
+
+test "can install and update nightlies":
   beginTest()
   block:
     # Install nightly
