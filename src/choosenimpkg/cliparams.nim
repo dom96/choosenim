@@ -16,7 +16,7 @@ type
     analytics*: AsyncAnalytics
     pendingReports*: int ## Count of pending telemetry reports.
     force*: bool
-
+    latest*: bool
 
 let doc = """
 choosenim: The Nim toolchain installer.
@@ -32,13 +32,16 @@ Example:
   choosenim stable
     Installs (if necessary) Nim from the stable channel (latest stable release)
     and then selects it.
-  choosenim #head
-    Installs (if necessary) and selects the latest current commit of Nim.
-    Warning: Your shell may need quotes around `#head`: choosenim "#head".
+  choosenim devel [--latest]
+    Installs (if necessary) and selects the most recent nightly build of Nim.
+    The '--latest' flag selects and builds the latest commit in the devel branch
   choosenim ~/projects/nim
     Selects the specified Nim installation.
   choosenim update stable
     Updates the version installed on the stable release channel.
+  choosenim update devel [--latest]
+    Updates to the most recent nightly build of Nim.
+    The '--latest' flag updates and builds the latest commit in the devel branch
   choosenim versions [--installed]
     Lists the available versions of Nim that choosenim has access to.
 
@@ -195,6 +198,7 @@ proc parseCliParams*(params: var CliParams, proxyExeMode = false) =
       of "y", "yes": params.nimbleOptions.forcePrompts = forcePromptYes
       of "installed": params.onlyInstalled = true
       of "force", "f": params.force = true
+      of "latest", "l": params.latest = true
       else:
         if not proxyExeMode:
           raise newException(ChooseNimError, "Unknown flag: --" & key)

@@ -175,7 +175,7 @@ when defined(linux):
 test "can update devel with git":
   beginTest()
   block:
-    let (output, exitCode) = exec("devel", liveOutput=true)
+    let (output, exitCode) = exec(@["devel", "--latest"], liveOutput=true)
     check exitCode == QuitSuccess
 
     check inLines(output.processOutput, "extracting")
@@ -184,7 +184,7 @@ test "can update devel with git":
     check inLines(output.processOutput, "building")
 
   block:
-    let (output, exitCode) = exec(@["update", "devel"], liveOutput=true)
+    let (output, exitCode) = exec(@["update", "devel", "--latest"], liveOutput=true)
     check exitCode == QuitSuccess
 
     check not inLines(output.processOutput, "extracting")
@@ -192,6 +192,50 @@ test "can update devel with git":
     check inLines(output.processOutput, "updating")
     check inLines(output.processOutput, "latest changes")
     check inLines(output.processOutput, "building")
+
+test "can install and update nightlies":
+  beginTest()
+  block:
+    # Install nightly
+    let (output, exitCode) = exec("devel", liveOutput=true)
+
+    # Travis runs into Github API limit
+    if not inLines(output.processOutput, "403"):
+      check exitCode == QuitSuccess
+
+      check inLines(output.processOutput, "devel from")
+      check inLines(output.processOutput, "setting")
+      when not defined(macosx):
+        if not inLines(output.processOutput, "recent nightly"):
+          check inLines(output.processOutput, "already built")
+      check inLines(output.processOutput, "to Nim #devel")
+
+      block:
+        # Update nightly
+        let (output, exitCode) = exec(@["update", "devel"], liveOutput=true)
+
+        # Travis runs into Github API limit
+        if not inLines(output.processOutput, "403"):
+          check exitCode == QuitSuccess
+
+          check inLines(output.processOutput, "updating")
+          check inLines(output.processOutput, "devel from")
+          check inLines(output.processOutput, "setting")
+          when not defined(macosx):
+            if not inLines(output.processOutput, "recent nightly"):
+              check inLines(output.processOutput, "already built")
+
+      block:
+        # Update to devel latest
+        let (output, exitCode) = exec(@["update", "devel", "--latest"], liveOutput=true)
+        check exitCode == QuitSuccess
+
+        when not defined(macosx):
+          check not inLines(output.processOutput, "extracting")
+        check not inLines(output.processOutput, "setting")
+        check inLines(output.processOutput, "updating")
+        check inLines(output.processOutput, "latest changes")
+        check inLines(output.processOutput, "building")
 
 test "can update self":
   # updateSelf() doesn't use options --choosenimDir and --nimbleDir. It's used getAppDir().

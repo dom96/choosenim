@@ -11,6 +11,7 @@ import cliparams, common, telemetry, utils
 
 const
   githubTagReleasesUrl = "https://api.github.com/repos/nim-lang/Nim/tags"
+  githubNightliesReleasesUrl = "https://api.github.com/repos/nim-lang/nightlies/releases"
   githubUrl = "https://github.com/nim-lang/Nim"
   websiteUrl = "http://nim-lang.org/download/nim-$1.tar.xz"
   csourcesUrl = "https://github.com/nim-lang/csources"
@@ -206,21 +207,31 @@ proc needsDownload(params: CliParams, downloadUrl: string,
             priority=HighPriority)
     return false
 
+proc retrieveUrl*(url: string): string
 proc downloadImpl(version: Version, params: CliParams): string =
   let arch = getGccArch(params)
   if version.isSpecial():
-    let
-      commit = getLatestCommit(githubUrl, "devel")
-      archive = if commit.len != 0: commit else: "devel"
+    var reference, url = ""
+    if $version in ["#devel", "#head"] and not params.latest:
+      # Install nightlies by default for devel channel
+      let rawContents = retrieveUrl(githubNightliesReleasesUrl)
+      let parsedContents = parseJson(rawContents)
+      url = getNightliesUrl(parsedContents, arch)
+      reference = "devel"
+
+    if url.len == 0:
+      let
+        commit = getLatestCommit(githubUrl, "devel")
+        archive = if commit.len != 0: commit else: "devel"
       reference =
         case normalize($version)
         of "#head":
           archive
         else:
           ($version)[1 .. ^1]
+      url = $(parseUri(githubUrl) / (dlArchive % reference))
     display("Downloading", "Nim $1 from $2" % [reference, "GitHub"],
             priority = HighPriority)
-    let url = $(parseUri(githubUrl) / (dlArchive % reference))
     var outputPath: string
     if not needsDownload(params, url, outputPath): return outputPath
 
@@ -353,8 +364,8 @@ proc getOfficialReleases*(params: CliParams): seq[Version] =
 template isDevel*(version: Version): bool =
   $version in ["#head", "#devel"]
 
-proc gitUpdate*(version: Version, extractDir: string): bool =
-  if version.isDevel():
+proc gitUpdate*(version: Version, extractDir: string, params: CliParams): bool =
+  if version.isDevel() and params.latest:
     let git = findExe("git")
     if git.len != 0 and fileExists(extractDir / ".git" / "config"):
       result = true
@@ -371,7 +382,7 @@ proc gitUpdate*(version: Version, extractDir: string): bool =
           display("Warning:", "git" & cmd & " failed: " & outp, Warning, priority = HighPriority)
           return false
 
-proc gitInit*(version: Version, extractDir: string) =
+proc gitInit*(version: Version, extractDir: string, params: CliParams) =
   createDir(extractDir / ".git")
   if version.isDevel():
     let git = findExe("git")
@@ -391,7 +402,7 @@ proc gitInit*(version: Version, extractDir: string) =
           break
 
       if init:
-        discard gitUpdate(version, extractDir)
+        discard gitUpdate(version, extractDir, params)
 
 when isMainModule:
 
