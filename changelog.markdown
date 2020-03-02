@@ -6,8 +6,12 @@ The major new feature is default installation of 64-bit Nim
 binaries on Windows.
 
 Changes:
-* Git is now used for `choosenim update devel` instead of deleting,
-  downloading and bootstrapping from scratch
+* Install latest nightly build of Nim on `choosenim devel` and
+  `choosenim update devel`
+* Install latest devel commit instead of nightlies with the
+  `--latest` flag
+* Git based update for `choosenim update devel --latest` instead
+  of deleting, downloading and bootstrapping from scratch
 * Optionally add `~/.nimble/bin` to PATH on Windows when using the
   `--firstInstall` flag
 * Fix `choosenim update self` failure on Windows
