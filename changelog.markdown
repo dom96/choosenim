@@ -1,6 +1,6 @@
 # Choosenim changelog
 
-## 0.6.0 - TBD
+## 0.6.0 - 06/03/2020
 
 The major new feature is default installation of 64-bit Nim
 binaries on Windows.
