@@ -214,10 +214,16 @@ proc downloadImpl(version: Version, params: CliParams): string =
     var reference, url = ""
     if $version in ["#devel", "#head"] and not params.latest:
       # Install nightlies by default for devel channel
-      let rawContents = retrieveUrl(githubNightliesReleasesUrl)
-      let parsedContents = parseJson(rawContents)
-      url = getNightliesUrl(parsedContents, arch)
-      reference = "devel"
+      try:
+        let rawContents = retrieveUrl(githubNightliesReleasesUrl)
+        let parsedContents = parseJson(rawContents)
+        url = getNightliesUrl(parsedContents, arch)
+        reference = "devel"
+      except HTTPRequestError:
+        # Unable to get nightlies release json from github API, fallback
+        # to `choosenim devel --latest`
+        display("Info:", "Nightlies build unavailable, building latest commit",
+                priority = HighPriority)
 
     if url.len == 0:
       let
@@ -339,8 +345,9 @@ proc retrieveUrl*(url: string): string =
 
     display("Curl", res, priority = DebugPriority)
 
-    doAssert responseCode == 200,
-             "Expected HTTP code $1 got $2 for $3" % [$200, $responseCode, url]
+    if responseCode != 200:
+      raise newException(HTTPRequestError,
+             "Expected HTTP code $1 got $2 for $3" % [$200, $responseCode, url])
 
     return res
   else:
