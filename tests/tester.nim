@@ -200,7 +200,7 @@ test "can install and update nightlies":
     let (output, exitCode) = exec("devel", liveOutput=true)
 
     # Travis runs into Github API limit
-    if not inLines(output.processOutput, "403"):
+    if not inLines(output.processOutput, "unavailable"):
       check exitCode == QuitSuccess
 
       check inLines(output.processOutput, "devel from")
@@ -215,7 +215,7 @@ test "can install and update nightlies":
         let (output, exitCode) = exec(@["update", "devel"], liveOutput=true)
 
         # Travis runs into Github API limit
-        if not inLines(output.processOutput, "403"):
+        if not inLines(output.processOutput, "unavailable"):
           check exitCode == QuitSuccess
 
           check inLines(output.processOutput, "updating")
