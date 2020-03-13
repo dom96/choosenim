@@ -1,17 +1,18 @@
-os:
-  - linux
-  - osx
-  - windows
-
 language: c
 
-env:
-  - BRANCH=1.0.6
+matrix:
+  include:
+  - os: linux
+    env: BRANCH=1.0.6
+  - os: osx
+    osx_image: xcode6.4
+    env: BRANCH=1.0.6
+  - os: windows
+    env: BRANCH=1.0.6
 
 cache:
   directories:
     - "$HOME/.choosenim"
-    - "$TRAVIS_BUILD_DIR/git"
 
 install:
   # Use common Travis script maintained as a gist
