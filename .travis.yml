@@ -5,7 +5,7 @@ matrix:
   - os: linux
     env: BRANCH=1.0.6
   - os: osx
-    osx_image: xcode6.4
+    osx_image: xcode8.3
     env: BRANCH=1.0.6
   - os: windows
     env: BRANCH=1.0.6
@@ -15,10 +15,30 @@ cache:
     - "$HOME/.choosenim"
 
 install:
-  # Use common Travis script maintained as a gist
-  # https://gist.github.com/genotrance/fb53504a4fba88bc5201d3783df5c522
-  - curl https://gist.github.com/genotrance/fb53504a4fba88bc5201d3783df5c522/raw/travis.sh -LsSf -o travis.sh
-  - source travis.sh
+  - |
+    if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+      # OSX 10.10 cannot run current release choosenim
+      if [ ! -d "$HOME/.choosenim/toolchains/nim-$BRANCH" ]; then
+        mkdir -p $HOME/.choosenim/toolchains
+        cd $HOME/.choosenim/toolchains
+        wget https://nim-lang.org/download/nim-$BRANCH.tar.xz
+        tar xvJf nim-$BRANCH.tar.xz
+        cd nim-$BRANCH
+        ./build.sh
+        bin/nim c -d:danger koch
+        ./koch boot -d:danger
+        ./koch tools -d:danger
+        cd $TRAVIS_BUILD_DIR
+      fi
+      mkdir -p $HOME/.nimble
+      ln -sf $HOME/.choosenim/toolchains/nim-$BRANCH/bin $HOME/.nimble/bin
+      export PATH=$HOME/.nimble/bin:$PATH
+    else
+      # Use common Travis script maintained as a gist
+      # https://gist.github.com/genotrance/fb53504a4fba88bc5201d3783df5c522
+      curl https://gist.github.com/genotrance/fb53504a4fba88bc5201d3783df5c522/raw/travis.sh -LsSf -o travis.sh
+      source travis.sh
+    fi
 
 script:
   - nimble install -y -d
