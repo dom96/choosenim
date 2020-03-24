@@ -18,10 +18,23 @@ CHOOSE_VERSION="${CHOOSENIM_CHOOSE_VERSION:-stable}"
 need_tty=yes
 debug=""
 
+has_curl() {
+  command -v curl >/dev/null 2>&1
+}
+
+has_wget() {
+  command -v wget >/dev/null 2>&1
+}
+
 install() {
   get_platform || return 1
   local platform=$RET_VAL
-  local stable_version=`curl -sSfL https://nim-lang.org/choosenim/stable`
+  local stable_version=
+  if has_curl; then
+    stable_version=`curl -sSfL https://nim-lang.org/choosenim/stable`
+  elif has_wget; then
+    stable_version=`wget -qO - https://nim-lang.org/choosenim/stable`
+  fi
   local filename="choosenim-$stable_version"_"$platform"
   local url="$url_prefix"v"$stable_version/$filename"
 
@@ -42,7 +55,11 @@ install() {
   esac
 
   say "Downloading $filename"
-  curl -sSfL "$url" -o "$temp_prefix/$filename"
+  if has_curl; then
+    curl -sSfL "$url" -o "$temp_prefix/$filename"
+  elif has_wget; then
+    wget -qO "$temp_prefix/$filename" "$url"
+  fi
   chmod +x "$temp_prefix/$filename"
   if [ "$platform" = "windows_amd64" ]; then
     # Extract ZIP for Windows

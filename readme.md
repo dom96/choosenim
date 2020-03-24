@@ -39,6 +39,9 @@ prompts and enjoy your new Nim and choosenim installation.
 ```
 curl https://nim-lang.org/choosenim/init.sh -sSf | sh
 ```
+```
+wget -qO - https://nim-lang.org/choosenim/init.sh | sh
+```
 
 **Optional:** You can specify the initial version you would like the `init.sh`
               script to install by specifying the ``CHOOSENIM_CHOOSE_VERSION``
@@ -77,6 +80,7 @@ install them accordingly.
 | C compiler | *Downloaded automatically*    |      gcc/clang     |      gcc/clang        |
 | OpenSSL    |          >= 1.0.2k            |      >= 1.0.2k     |         N/A           |
 | curl       |             N/A               |         N/A        | Any recent version    |
+| wget       |             N/A               |      >= 1.20.1     |      >= 1.20.1        |
 
 \* Many macOS dependencies should already be installed. You may need to install
    a C compiler however. More information on dependencies is available
