@@ -29,7 +29,7 @@ Nim Compiler Version 1.0.0 [Linux: amd64]
 ### Windows
 
 Download the latest Windows version from the
-[releases](https://github.com/dom96/choosenim/releases) page.
+[releases](https://github.com/dom96/choosenim/releases) page (the .zip file).
 
 Extract the zip archive and run the ``runme.bat`` script. Follow any on screen
 prompts and enjoy your new Nim and choosenim installation.
