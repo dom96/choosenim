@@ -53,7 +53,7 @@ Summaries of the data may be released in the future to the public.
 
 ## Where is the code?
 
-The code is viewable in [telemetry.nim](https://github.com/dom96/choosenim/blob/master/src/choosenim/telemetry.nim).
+The code is viewable in [telemetry.nim](https://github.com/dom96/choosenim/blob/master/src/choosenimpkg/telemetry.nim).
 
 The reporting is done asynchronously and will fail fast to avoid any
 delay in execution.
