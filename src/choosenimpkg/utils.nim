@@ -105,7 +105,7 @@ proc getLatestCommit*(repo, branch: string): string =
   if git.len != 0:
     var
       cmd = when defined(windows): "cmd /c " else: ""
-    cmd &= git & " ls-remote " & repo & " " & branch
+    cmd &= git.quoteShell & " ls-remote " & repo & " " & branch
 
     let
       (outp, errC) = execCmdEx(cmd)
