@@ -384,7 +384,7 @@ proc gitUpdate*(version: Version, extractDir: string, params: CliParams): bool =
 
       display("Fetching", "latest changes", priority = HighPriority)
       for cmd in [" fetch --all", " reset --hard origin/devel"]:
-        var (outp, errC) = execCmdEx(git & cmd)
+        var (outp, errC) = execCmdEx(git.quoteShell & cmd)
         if errC != QuitSuccess:
           display("Warning:", "git" & cmd & " failed: " & outp, Warning, priority = HighPriority)
           return false
@@ -402,7 +402,7 @@ proc gitInit*(version: Version, extractDir: string, params: CliParams) =
       var init = true
       display("Setting", "up git repository", priority = HighPriority)
       for cmd in [" init", " remote add origin https://github.com/nim-lang/nim"]:
-        var (outp, errC) = execCmdEx(git & cmd)
+        var (outp, errC) = execCmdEx(git.quoteShell & cmd)
         if errC != QuitSuccess:
           display("Warning:", "git" & cmd & " failed: " & outp, Warning, priority = HighPriority)
           init = false
