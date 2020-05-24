@@ -56,8 +56,20 @@ proc chooseVersion(version: string, params: CliParams) =
   when defined(windows):
     if params.needsDLLInstall():
       # Install DLLs.
-      let path = downloadDLLs(params)
-      extract(path, getBinDir(params))
+      let
+        path = downloadDLLs(params)
+        tempDir = getTempDir() / "choosenim-dlls"
+        binDir = getBinDir(params)
+      removeDir(tempDir)
+      createDir(tempDir)
+      extract(path, tempDir)
+      for kind, path in walkDir(tempDir, relative = true):
+        if kind == pcFile:
+          try:
+            moveFile(tempDir / path, binDir / path)
+          except:
+            display("Warning:", "Could not copy '$1'" % path, Warning, HighPriority)
+      removeDir(tempDir)
 
   if not params.isVersionInstalled(version):
     installVersion(version, params)
