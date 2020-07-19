@@ -6,7 +6,7 @@ os:
 language: c
 
 env:
-  - BRANCH=1.0.6
+  - BRANCH=1.2.4
 
 cache:
   directories:
