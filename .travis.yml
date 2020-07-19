@@ -23,7 +23,7 @@ script:
   - nimble install -y -d
   - nim c src/choosenim
   - nimble test
-  - yes | choosenim stable # Workaround tester overwriting our Nimble install.
+  - yes | ./bin/choosenim stable # Workaround tester overwriting our Nimble install.
   - export VERSION="$(./bin/choosenim --version | cut -f2,2 -d' ' | sed 's/v//')"
   - export EXT=""
   - if [[ "$TRAVIS_OS_NAME" == "windows" ]]; then export EXT=".exe"; fi
