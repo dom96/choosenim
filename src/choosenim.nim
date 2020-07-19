@@ -12,6 +12,8 @@ import choosenimpkg/[utils, channel, telemetry]
 when defined(windows):
   import choosenimpkg/env
 
+  import times
+
 proc installVersion(version: Version, params: CliParams) =
   let
     extractDir = params.getInstallationDir(version)
@@ -66,10 +68,15 @@ proc chooseVersion(version: string, params: CliParams) =
       for kind, path in walkDir(tempDir, relative = true):
         if kind == pcFile:
           try:
-            moveFile(tempDir / path, binDir / path)
+            if not fileExists(binDir / path) or
+              getLastModificationTime(binDir / path) < getLastModificationTime(tempDir / path):
+              moveFile(tempDir / path, binDir / path)
+              display("Info:", "Copied '$1' to '$2'" % [path, binDir], priority = HighPriority)
           except:
-            display("Warning:", "Could not copy '$1'" % path, Warning, HighPriority)
-      removeDir(tempDir)
+            discard
+      while dirExists(tempDir):
+        removeDir(tempDir)
+        sleep(500)
 
   if not params.isVersionInstalled(version):
     installVersion(version, params)

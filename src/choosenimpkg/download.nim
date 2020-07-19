@@ -201,7 +201,7 @@ proc needsDownload(params: CliParams, downloadUrl: string,
   ## The `outputPath` argument is filled with the valid download path.
   result = true
   outputPath = params.getDownloadPath(downloadUrl)
-  if outputPath.existsFile():
+  if outputPath.fileExists():
     # TODO: Verify sha256.
     display("Info:", "$1 already downloaded" % outputPath,
             priority=HighPriority)
