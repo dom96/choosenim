@@ -60,7 +60,7 @@ proc addGithubAuthentication(url:string):string =
   if ghtoken == "":
     return url
   else:
-    return url.replace("https://api.github.com", &"https://{ghtoken}@api.guthub.com")
+    return url.replace("https://api.github.com", "https://" & ghtoken & "@api.guthub.com")
 
 when defined(curl):
   proc checkCurl(code: Code) =
