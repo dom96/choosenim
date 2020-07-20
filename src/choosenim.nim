@@ -74,9 +74,7 @@ proc chooseVersion(version: string, params: CliParams) =
               display("Info:", "Copied '$1' to '$2'" % [path, binDir], priority = HighPriority)
           except:
             discard
-      while dirExists(tempDir):
-        removeDir(tempDir)
-        sleep(500)
+      removeDir(tempDir)
 
   if not params.isVersionInstalled(version):
     installVersion(version, params)
