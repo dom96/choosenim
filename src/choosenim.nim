@@ -12,6 +12,8 @@ import choosenimpkg/[utils, channel, telemetry]
 when defined(windows):
   import choosenimpkg/env
 
+  import times
+
 proc installVersion(version: Version, params: CliParams) =
   let
     extractDir = params.getInstallationDir(version)
@@ -56,8 +58,23 @@ proc chooseVersion(version: string, params: CliParams) =
   when defined(windows):
     if params.needsDLLInstall():
       # Install DLLs.
-      let path = downloadDLLs(params)
-      extract(path, getBinDir(params))
+      let
+        path = downloadDLLs(params)
+        tempDir = getTempDir() / "choosenim-dlls"
+        binDir = getBinDir(params)
+      removeDir(tempDir)
+      createDir(tempDir)
+      extract(path, tempDir)
+      for kind, path in walkDir(tempDir, relative = true):
+        if kind == pcFile:
+          try:
+            if not fileExists(binDir / path) or
+              getLastModificationTime(binDir / path) < getLastModificationTime(tempDir / path):
+              moveFile(tempDir / path, binDir / path)
+              display("Info:", "Copied '$1' to '$2'" % [path, binDir], priority = HighPriority)
+          except:
+            discard
+      removeDir(tempDir)
 
   if not params.isVersionInstalled(version):
     installVersion(version, params)
