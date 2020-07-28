@@ -61,6 +61,12 @@ Commands:
                                  `--installed` only displays versions that
                                  are installed locally (no network requests).
 
+Environment variables:
+  GITHUB_TOKEN          GitHub API Token. Some actions use the GitHub API.
+                        To avoid anonymous-access rate limits, supply a token
+                        generated at https://github.com/settings/tokens/new
+                        with the `public_repo` scope.
+
 Options:
   -h --help             Show this output.
   -y --yes              Agree to every question.

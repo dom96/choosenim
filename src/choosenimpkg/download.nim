@@ -55,6 +55,15 @@ proc showBar(fraction: float, speed: BiggestInt) =
                 ])
   stdout.flushFile()
 
+proc addGithubAuthentication(url: string): string =
+  let ghtoken = getEnv("GITHUB_TOKEN")
+  if ghtoken == "":
+    return url
+  else:
+    display("Info:", "Using the 'GITHUB_TOKEN' environment variable for GitHub API Token.",
+            priority=HighPriority)
+    return url.replace("https://api.github.com", "https://" & ghtoken & "@api.github.com")
+
 when defined(curl):
   proc checkCurl(code: Code) =
     if code != E_OK:
@@ -215,7 +224,7 @@ proc downloadImpl(version: Version, params: CliParams): string =
     if $version in ["#devel", "#head"] and not params.latest:
       # Install nightlies by default for devel channel
       try:
-        let rawContents = retrieveUrl(githubNightliesReleasesUrl)
+        let rawContents = retrieveUrl(githubNightliesReleasesUrl.addGithubAuthentication())
         let parsedContents = parseJson(rawContents)
         url = getNightliesUrl(parsedContents, arch)
         reference = "devel"
@@ -356,7 +365,7 @@ proc retrieveUrl*(url: string): string =
     return client.getContent(url)
 
 proc getOfficialReleases*(params: CliParams): seq[Version] =
-  let rawContents = retrieveUrl(githubTagReleasesUrl)
+  let rawContents = retrieveUrl(githubTagReleasesUrl.addGithubAuthentication())
   let parsedContents = parseJson(rawContents)
   let cutOffVersion = newVersion("0.16.0")
 
