@@ -55,7 +55,7 @@ proc showBar(fraction: float, speed: BiggestInt) =
                 ])
   stdout.flushFile()
 
-proc addGithubAuthentication(url:string):string =
+proc addGithubAuthentication(url: string): string =
   let ghtoken = getEnv("GITHUB_TOKEN")
   if ghtoken == "":
     return url
