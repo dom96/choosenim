@@ -39,7 +39,7 @@ install() {
   local url="$url_prefix"v"$stable_version/$filename"
 
   case $platform in
-    *macosx_amd64* | *linux_amd64* )
+    *macosx_amd64* | *linux_amd64* | *linux_arm64* | *linux_powerpc64* )
       ;;
     *windows_amd64* )
       # Download ZIP for Windows

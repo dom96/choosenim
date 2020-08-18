@@ -1,12 +1,18 @@
-os:
-  - linux
-  - osx
-  - windows
-
 language: c
 
 env:
   - BRANCH=1.2.4
+
+matrix:
+  include:
+    - os: linux
+      arch: amd64
+    - os: linux
+      arch: arm64
+    - os: linux
+      arch: ppc64le
+    - os: osx
+    - os: windows
 
 cache:
   directories:
@@ -24,12 +30,23 @@ script:
   - nim c src/choosenim
   - nimble test
   - yes | ./bin/choosenim stable # Workaround tester overwriting our Nimble install.
-  - export VERSION="$(./bin/choosenim --version | cut -f2,2 -d' ' | sed 's/v//')"
-  - export EXT=""
-  - if [[ "$TRAVIS_OS_NAME" == "windows" ]]; then export EXT=".exe"; fi
-  - export OSNAME="$TRAVIS_OS_NAME"
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then export OSNAME="macosx"; fi
-  - export ARCH="amd64"
+  - |
+    export VERSION="$(./bin/choosenim --version | cut -f2,2 -d' ' | sed 's/v//')"
+    export OSNAME="$TRAVIS_OS_NAME"
+    export ARCH="$TRAVIS_CPU_ARCH"
+    export EXT=""
+    case $TRAVIS_OS_NAME in
+      windows )
+        export EXT=".exe" ;;
+      osx )
+        export OSNAME="macosx" ;;
+      linux )
+        case $TRAVIS_CPU_ARCH in
+          ppc64le )
+            export ARCH="powerpc64" ;;
+        esac
+        ;;
+    esac
   - mv "bin/choosenim${EXT}" "bin/choosenim-${VERSION}_${OSNAME}_${ARCH}_debug${EXT}"
   - nimble build -d:release
   - mv "bin/choosenim${EXT}" "bin/choosenim-${VERSION}_${OSNAME}_${ARCH}${EXT}"
