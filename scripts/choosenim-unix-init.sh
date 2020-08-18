@@ -39,7 +39,7 @@ install() {
   local url="$url_prefix"v"$stable_version/$filename"
 
   case $platform in
-    *macosx_amd64* | *linux_amd64* )
+    *macosx_amd64* | *linux_amd64* | *linux_arm64* | *linux_powerpc64el* )
       ;;
     *windows_amd64* )
       # Download ZIP for Windows
@@ -128,9 +128,6 @@ get_platform() {
       ;;
     *darwin* )
       local myos="macosx"
-      if [ "$HOSTTYPE" = "x86_64" ] ; then
-        local ucpu="amd64"
-      fi
       ;;
     *aix* )
       local myos="aix"
@@ -160,16 +157,18 @@ get_platform() {
         local mycpu="sparc64"
       fi
       ;;
+    *ppc64le* )
+      local mycpu="powerpc64el" ;;
     *ppc64* )
       local mycpu="powerpc64" ;;
     *power*|*ppc* )
       local mycpu="powerpc" ;;
     *mips* )
       local mycpu="mips" ;;
-    *arm*|*armv6l* )
-      local mycpu="arm" ;;
-    *aarch64* )
+    *aarch64*|*arm64* )
       local mycpu="arm64" ;;
+    *arm* )
+      local mycpu="arm" ;;
     *)
       err "unknown processor: $ucpu"
       ;;

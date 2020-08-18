@@ -1,6 +1,6 @@
 # Copyright (C) Dominik Picheta. All rights reserved.
 # BSD-3-Clause License. Look at license.txt for more info.
-import os, strutils, algorithm
+import os, strutils, algorithm, httpclient
 
 import nimblepkg/[cli, version]
 import nimblepkg/common as nimbleCommon
@@ -11,7 +11,6 @@ import choosenimpkg/[utils, channel, telemetry]
 
 when defined(windows):
   import choosenimpkg/env
-
   import times
 
 proc installVersion(version: Version, params: CliParams) =
@@ -113,14 +112,43 @@ proc updateSelf(params: CliParams) =
   # https://stackoverflow.com/a/9163044/492186
   let tag = "v" & $version
   let filename = "choosenim-" & $version & "_" & hostOS & "_" & hostCPU.addFileExt(ExeExt)
-  let url = "https://github.com/dom96/choosenim/releases/download/$1/$2" % [
+  let binUrl = "https://github.com/dom96/choosenim/releases/download/$1/$2" % [
     tag, filename
   ]
   let newFilename = getAppDir() / "choosenim_new".addFileExt(ExeExt)
-  downloadFile(url, newFilename, params)
+  try:
+    downloadFile(binUrl, newFilename, params)
+  except HttpRequestError:
+    display("Info:", "Binary " & filename & " not available, building from source",
+            priority = HighPriority)
+    let ext =
+      when defined(windows): ".zip"
+      else: ".tar.gz"
+    let sourceUrl = "https://github.com/dom96/choosenim/archive/$1$2" % [
+      tag, ext
+    ]
+    let sourceDir = getTempDir() / "choosenim-" & tag
+    let sourceName = sourceDir & ext
+    downloadFile(sourceUrl, sourceName, params)
+    defer:
+      # Delete temporary build files
+      discard tryRemoveFile(sourceName)
+      removeDir(sourceDir)
+    # Make sure no stale files from previous build exist.
+    removeDir(sourceDir)
+    # Extract and build
+    extract(sourceName, sourceDir)
+    display("Building", "choosenim", priority = HighPriority)
+    doCmdRaw(
+      "nim c --path:" & params.nimbleOptions.nimbleDir & " src/choosenim",
+      workingDir=sourceDir
+    )
+    let binName = sourceDir/"src"/"choosenim".addFileExt(ExeExt)
+    moveFile(binName, newFileName)
 
   let appFilename = getAppFilename()
-  # Move choosenim.exe to choosenim_ver.exe
+
+  # Move current choosenim.exe to choosenim_ver.exe
   let oldFilename = "choosenim_" & chooseNimVersion.addFileExt(ExeExt)
   display("Info:", "Renaming '$1' to '$2'" % [appFilename, oldFilename])
   moveFile(appFilename, getAppDir() / oldFilename)
@@ -129,7 +157,7 @@ proc updateSelf(params: CliParams) =
   display("Info:", "Renaming '$1' to '$2'" % [newFilename, appFilename])
   moveFile(newFilename, appFilename)
 
-  display("Info:", "Setting +x on downloaded file")
+  display("Info:", "Setting +x on $1" % [appFileName])
   inclFilePermissions(appFilename, {fpUserExec, fpGroupExec})
 
   display("Info:", "Updated choosenim to version " & $version,

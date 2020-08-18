@@ -1,4 +1,7 @@
 when defined(macosx):
-  --define:curl
+  switch("define", "curl")
 else:
-  --define:ssl
+  switch("define", "ssl")
+
+when hostCPU in ["i386", "amd64"]:
+  switch("define", "x86")

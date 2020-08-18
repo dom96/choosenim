@@ -10,10 +10,9 @@ when defined(windows):
 
 proc buildFromCSources(params: CliParams) =
   when defined(windows):
-    let arch = getGccArch(params)
-    if arch == 32:
+    when hostCPU in ["i386", "arm"]:
       doCmdRaw("build.bat")
-    elif arch == 64:
+    elif hostCPU in ["amd64", "arm64"]:
       doCmdRaw("build64.bat")
   else:
     doCmdRaw("sh build.sh")

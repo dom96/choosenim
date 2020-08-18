@@ -1,10 +1,9 @@
 import httpclient, strutils, os, osproc, terminal, times, json, uri
 
-when defined(macosx):
-  import math
-
 import nimblepkg/[version, cli]
+
 when defined(curl):
+  import math
   import libcurl except Version
 
 import cliparams, common, telemetry, utils
@@ -16,7 +15,7 @@ const
   websiteUrl = "http://nim-lang.org/download/nim-$1.tar.xz"
   csourcesUrl = "https://github.com/nim-lang/csources"
   dlArchive = "archive/$1.tar.gz"
-  binaryUrl = "http://nim-lang.org/download/nim-$1$2_x$3" & getBinArchiveFormat()
+  binaryUrl = "http://nim-lang.org/download/nim-$1$2_$3" & getBinArchiveFormat()
 
 const # Windows-only
   mingwUrl = "http://nim-lang.org/download/mingw$1.7z"
@@ -218,7 +217,6 @@ proc needsDownload(params: CliParams, downloadUrl: string,
 
 proc retrieveUrl*(url: string): string
 proc downloadImpl(version: Version, params: CliParams): string =
-  let arch = getGccArch(params)
   if version.isSpecial():
     var reference, url = ""
     if $version in ["#devel", "#head"] and not params.latest:
@@ -226,7 +224,7 @@ proc downloadImpl(version: Version, params: CliParams): string =
       try:
         let rawContents = retrieveUrl(githubNightliesReleasesUrl.addGithubAuthentication())
         let parsedContents = parseJson(rawContents)
-        url = getNightliesUrl(parsedContents, arch)
+        url = getNightliesUrl(parsedContents)
         reference = "devel"
       except HTTPRequestError:
         # Unable to get nightlies release json from github API, fallback
@@ -258,9 +256,12 @@ proc downloadImpl(version: Version, params: CliParams): string =
 
     var outputPath: string
 
-    # Use binary builds for Windows and Linux
-    when defined(Windows) or defined(linux):
+    # Use binary builds for x86 Windows and Linux).
+    when defined(x86) and (defined(windows) or defined(linux)):
       let os = when defined(linux): "-linux" else: ""
+      let arch =
+        when hostCPU == "i386": "x32"
+        else: "x64"
       let binUrl = binaryUrl % [$version, os, $arch]
       if not needsDownload(params, binUrl, outputPath): return outputPath
       try:
@@ -421,5 +422,4 @@ proc gitInit*(version: Version, extractDir: string, params: CliParams) =
         discard gitUpdate(version, extractDir, params)
 
 when isMainModule:
-
   echo retrieveUrl("https://nim-lang.org")

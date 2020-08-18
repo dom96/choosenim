@@ -3,7 +3,7 @@ import httpclient, json, os, strutils, osproc, uri
 import nimblepkg/[cli, version]
 import nimarchive
 
-import cliparams, common
+import common
 
 when defined(windows):
   import switcher
@@ -28,11 +28,16 @@ proc parseVersion*(versionStr: string): Version =
 
   result = newVersion(versionStr)
 
-proc doCmdRaw*(cmd: string) =
+proc doCmdRaw*(cmd: string, workingDir: string = "") =
   # To keep output in sequence
   stdout.flushFile()
   stderr.flushFile()
+  let currentDir = getCurrentDir()
+  defer:
+    setCurrentDir(currentDir)
 
+  if workingDir.len != 0:
+    setCurrentDir(workingDir)
   displayDebug("Executing", cmd)
   let (output, exitCode) = execCmdEx(cmd)
   displayDebug("Finished", "with exit code " & $exitCode)
@@ -75,27 +80,6 @@ proc getProxy*(): Proxy =
   else:
     return nil
 
-proc getGccArch*(params: CliParams): int =
-  ## Get gcc arch by getting pointer size x 8
-  var
-    outp = ""
-    errC = 0
-
-  when defined(windows):
-    # Add MingW bin dir to PATH so getGccArch can find gcc.
-    let pathEnv = getEnv("PATH")
-    if not isDefaultCCInPath(params) and dirExists(params.getMingwBin()):
-      putEnv("PATH", params.getMingwBin() & PathSep & pathEnv)
-
-    (outp, errC) = execCmdEx("cmd /c echo int main^(^) { return sizeof^(void *^); } | gcc -xc - -o archtest && archtest")
-
-    putEnv("PATH", pathEnv)
-  else:
-    (outp, errC) = execCmdEx("echo \"int main() { return sizeof(void *); }\" | gcc -xc - -o archtest && ./archtest")
-
-  removeFile("archtest".addFileExt(ExeExt))
-  return errC * 8
-
 proc getLatestCommit*(repo, branch: string): string =
   ## Get latest commit for remote Git repo with ls-remote
   ##
@@ -116,25 +100,30 @@ proc getLatestCommit*(repo, branch: string): string =
     else:
       display("Warning", outp & "\ngit ls-remote failed", Warning, HighPriority)
 
-proc getNightliesUrl*(parsedContents: JsonNode, arch: int): string =
+proc getNightliesUrl*(parsedContents: JsonNode): string =
   let os =
-    when defined(windows): "windows"
-    elif defined(linux): "linux"
+    when defined(linux): "linux"
+    elif defined(windows): "windows"
     elif defined(macosx): "osx"
-  for jn in parsedContents.getElems():
-    if jn["name"].getStr().contains("devel"):
-      for asset in jn["assets"].getElems():
-        let aname = asset["name"].getStr()
-        if os in aname:
-          when not defined(macosx):
-            if "x" & $arch in aname:
-              result = asset["browser_download_url"].getStr()
-          else:
-            result = asset["browser_download_url"].getStr()
-        if result.len != 0:
-          break
-    if result.len != 0:
-      break
+  let key =
+    when defined(macosx):
+      when hostCPU == "amd64": os
+      else: os & "_" & hostCPU # osx_arm64 nightlies might exist someday
+    else:
+      when hostCPU == "i386": os & "_x32"
+      elif hostCPU == "amd64": os & "_x64"
+      else: os & "_" & hostCPU
+
+  if key.len != 0:
+    for jn in parsedContents.getElems():
+      if jn["name"].getStr().contains("devel"):
+        for asset in jn["assets"].getElems():
+          let aname = asset["name"].getStr()
+          if key in aname:
+            let downloadUrl = asset["browser_download_url"].getStr()
+            if downloadUrl.len != 0:
+              return downloadUrl
+
   if result.len == 0:
     display("Warning", "Recent nightly release not found, installing latest devel commit.",
             Warning, priority = HighPriority)

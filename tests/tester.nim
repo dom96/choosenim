@@ -135,42 +135,49 @@ test "fails on bad flag":
   check inLines(output.processOutput, "flag")
 
 test "can choose v0.16.0":
-  beginTest()
-  block:
-    let (output, exitCode) = exec("0.16.0", liveOutput=true)
-    check exitCode == QuitSuccess
-
-    check inLines(output.processOutput, "building")
-    check inLines(output.processOutput, "downloading")
-    when defined(windows):
-      check inLines(output.processOutput, "already built")
-    else:
-      check inLines(output.processOutput, "building tools")
-    check hasLine(output.processOutput, "switched to nim 0.16.0")
-
-  block:
-    let (output, exitCode) = exec("0.16.0")
-    check exitCode == QuitSuccess
-
-    check hasLine(output.processOutput, "info: version 0.16.0 already selected")
-
-  block:
-    let (output, exitCode) = exec("--version", exe=nimbleDir / "bin" / "nimble")
-    check exitCode == QuitSuccess
-    check inLines(output.processOutput, "v0.8.2")
-
-when defined(linux):
-  test "linux binary install":
+  when defined(x86):
+    # 0.16.0 doesn't build on non-x86
     beginTest()
     block:
-      let (output, exitCode) = exec("1.0.0", liveOutput=true)
+      let (output, exitCode) = exec("0.16.0", liveOutput=true)
       check exitCode == QuitSuccess
 
+      check inLines(output.processOutput, "building")
       check inLines(output.processOutput, "downloading")
-      check inLines(output.processOutput, "already built")
-      check hasLine(output.processOutput, "switched to nim 1.0.0")
+      when defined(windows):
+        check inLines(output.processOutput, "already built")
+      else:
+        check inLines(output.processOutput, "building tools")
+      check hasLine(output.processOutput, "switched to nim 0.16.0")
 
-      check not dirExists(choosenimDir / "toolchains" / "nim-1.0.0" / "c_code")
+    block:
+      let (output, exitCode) = exec("0.16.0")
+      check exitCode == QuitSuccess
+
+      check hasLine(output.processOutput, "info: version 0.16.0 already selected")
+
+    block:
+      let (output, exitCode) = exec("--version", exe=nimbleDir / "bin" / "nimble")
+      check exitCode == QuitSuccess
+      check inLines(output.processOutput, "v0.8.2")
+  else:
+    skip()
+
+test "can choose 1.0.0":
+  beginTest()
+  block:
+    let (output, exitCode) = exec("1.0.0", liveOutput=true)
+    check exitCode == QuitSuccess
+
+    check inLines(output.processOutput, "downloading")
+    check(
+      inLines(output.processOutput, "already built") or
+      # Official Nim binaries not available for the platform, so was built
+      inLines(output.processOutput, "building nim")
+    )
+
+    check hasLine(output.processOutput, "switched to nim 1.0.0")
+    check not dirExists(choosenimDir / "toolchains" / "nim-1.0.0" / "c_code")
 
 test "can update devel with git":
   beginTest()
@@ -205,7 +212,7 @@ test "can install and update nightlies":
 
       check inLines(output.processOutput, "devel from")
       check inLines(output.processOutput, "setting")
-      when not defined(macosx):
+      when defined(x86) and (defined(windows) or defined(linux)):
         if not inLines(output.processOutput, "recent nightly"):
           check inLines(output.processOutput, "already built")
       check inLines(output.processOutput, "to Nim #devel")
@@ -221,7 +228,7 @@ test "can install and update nightlies":
           check inLines(output.processOutput, "updating")
           check inLines(output.processOutput, "devel from")
           check inLines(output.processOutput, "setting")
-          when not defined(macosx):
+          when defined(x86) and (defined(windows) or defined(linux)):
             if not inLines(output.processOutput, "recent nightly"):
               check inLines(output.processOutput, "already built")
 
@@ -230,8 +237,10 @@ test "can install and update nightlies":
         let (output, exitCode) = exec(@["update", "devel", "--latest"], liveOutput=true)
         check exitCode == QuitSuccess
 
-        when not defined(macosx):
+        when defined(x86) and (defined(windows) or defined(linux)):
           check not inLines(output.processOutput, "extracting")
+        else:
+          check inLines(output.processOutput, "extracting")
         check not inLines(output.processOutput, "setting")
         check inLines(output.processOutput, "updating")
         check inLines(output.processOutput, "latest changes")
@@ -244,7 +253,8 @@ test "can update self":
   beginTest()
   let testExePath = choosenimDir / extractFilename(exePath)
   copyFileWithPermissions(exePath, testExePath)
-  block :
+  block:
     let (output, exitCode) = exec(["update", "self", "--debug", "--force"], exe=testExePath, liveOutput=true)
+
     check exitCode == QuitSuccess
     check inLines(output.processOutput, "Info: Updated choosenim to version")

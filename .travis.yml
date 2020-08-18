@@ -1,35 +1,45 @@
-os:
-  - linux
-  - osx
-  - windows
-
 language: c
+os: linux
+env: BRANCH=1.2.4
 
-env:
-  - BRANCH=1.2.4
+matrix:
+  include:
+    - arch: amd64
+    - arch: arm64
+    - arch: ppc64le
+    - os: osx
+    - os: windows
 
 cache:
   directories:
     - "$HOME/.choosenim"
     - "$TRAVIS_BUILD_DIR/git"
+    - "$HOME/Nim"
 
 install:
   # Use common Travis script maintained as a gist
-  # https://gist.github.com/genotrance/fb53504a4fba88bc5201d3783df5c522
-  - curl https://gist.github.com/genotrance/fb53504a4fba88bc5201d3783df5c522/raw/travis.sh -LsSf -o travis.sh
+  # https://gist.github.com/elijahr/a72a228b9617b759a1c24062d35cc23d
+  - curl https://gist.github.com/elijahr/a72a228b9617b759a1c24062d35cc23d/raw/travis.sh -LsSf -o travis.sh
   - source travis.sh
 
 script:
+  - set -ex
   - nimble install -y -d
   - nim c src/choosenim
-  - nimble test
+  - sh -c "nimble test & wait" # Workaround travis not correctly identifying test process completion
   - yes | ./bin/choosenim stable # Workaround tester overwriting our Nimble install.
-  - export VERSION="$(./bin/choosenim --version | cut -f2,2 -d' ' | sed 's/v//')"
-  - export EXT=""
-  - if [[ "$TRAVIS_OS_NAME" == "windows" ]]; then export EXT=".exe"; fi
-  - export OSNAME="$TRAVIS_OS_NAME"
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then export OSNAME="macosx"; fi
-  - export ARCH="amd64"
+  - |
+    export VERSION="$(./bin/choosenim --version | cut -f2,2 -d' ' | sed 's/v//')"
+    export OSNAME="$TRAVIS_OS_NAME"
+    export ARCH="$TRAVIS_CPU_ARCH"
+    export EXT=""
+    case $TRAVIS_OS_NAME in
+      windows ) export EXT=".exe" ;;
+      osx ) export OSNAME="macosx" ;; # match nim system.hostOS value
+    esac
+    case $TRAVIS_CPU_ARCH in
+      ppc64le ) export ARCH="powerpc64el" ;; # match nim system.hostCPU value
+    esac
   - mv "bin/choosenim${EXT}" "bin/choosenim-${VERSION}_${OSNAME}_${ARCH}_debug${EXT}"
   - nimble build -d:release
   - mv "bin/choosenim${EXT}" "bin/choosenim-${VERSION}_${OSNAME}_${ARCH}${EXT}"
