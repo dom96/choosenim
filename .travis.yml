@@ -24,17 +24,21 @@ install:
   # https://gist.github.com/genotrance/fb53504a4fba88bc5201d3783df5c522
   - curl https://gist.github.com/genotrance/fb53504a4fba88bc5201d3783df5c522/raw/travis.sh -LsSf -o travis.sh
   - |
-    build_nim () {
-      pushd ~
-      git clone -b v${BRANCH} --single-branch https://github.com/nim-lang/Nim.git
-      pushd Nim
-      sh build_all.sh
-      popd
-      popd
-    }
-
     # Use choosenim if available for platform, otherwise build nim
-    source travis.sh || build_nim
+    case $TRAVIS_CPU_ARCH in
+      amd64 )
+        source travis.sh
+        ;;
+      * )
+        pushd ~
+        git clone -b v${BRANCH} --single-branch https://github.com/nim-lang/Nim.git
+        pushd Nim
+        sh build_all.sh
+        popd
+        popd
+        ;;
+    esac
+
 
 script:
   - set -ex
