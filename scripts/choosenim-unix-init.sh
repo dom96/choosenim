@@ -94,8 +94,12 @@ install() {
   if [ "$platform" != "windows_amd64" ]; then
     say "Place the following line in the ~/.profile or ~/.bashrc file."
     say "    export PATH=$nimbleBinDir:\$PATH"
-    say "Running fish shell? Enter the following command:"
-    say "set -U fish_user_paths $nimbleBinDir $fish_user_paths"
+    case "$SHELL" in
+      *fish*)
+      say "Running fish shell? Enter the following command:"
+      say "set -U fish_user_paths $nimbleBinDir $fish_user_paths"
+    ;;
+    esac
   fi
 }
 
