@@ -96,8 +96,8 @@ install() {
     say "    export PATH=$nimbleBinDir:\$PATH"
     case "$SHELL" in
       *fish*)
-      say "Running fish shell? Enter the following command:"
-      say "set -U fish_user_paths $nimbleBinDir $fish_user_paths"
+      say "Running fish shell?"
+      say "set -ga fish_user_paths $nimbleBinDir"
     ;;
     esac
   fi
