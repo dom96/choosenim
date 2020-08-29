@@ -6,8 +6,7 @@
 # This script performs some platform detection, downloads the latest version
 # of choosenim and initiates its installation.
 
-set -u
-set -e
+set -ue
 
 url_prefix="https://github.com/dom96/choosenim/releases/download/"
 
