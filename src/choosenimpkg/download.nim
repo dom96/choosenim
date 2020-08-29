@@ -229,8 +229,11 @@ proc downloadImpl(version: Version, params: CliParams): string =
       except HTTPRequestError:
         # Unable to get nightlies release json from github API, fallback
         # to `choosenim devel --latest`
-        display("Info:", "Nightlies build unavailable, building latest commit",
-                priority = HighPriority)
+        display(
+          "Info:",
+          "Nightlies build unavailable for " & nightliesPlatformKey & ", building latest commit",
+          priority = HighPriority,
+        )
 
     if url.len == 0:
       let
@@ -256,11 +259,11 @@ proc downloadImpl(version: Version, params: CliParams): string =
 
     var outputPath: string
 
-    # Use binary builds for x86 Windows and Linux).
-    when defined(x86) and (defined(windows) or defined(linux)):
+    # Use binary builds for x86 Windows and Linux.
+    when (defined(i386) or defined(amd64)) and (defined(windows) or defined(linux)):
       let os = when defined(linux): "-linux" else: ""
       let arch =
-        when hostCPU == "i386": "x32"
+        when defined(i386): "x32"
         else: "x64"
       let binUrl = binaryUrl % [$version, os, $arch]
       if not needsDownload(params, binUrl, outputPath): return outputPath
@@ -392,6 +395,10 @@ proc gitUpdate*(version: Version, extractDir: string, params: CliParams): bool =
       defer:
         setCurrentDir(lastDir)
 
+      # Clear dependencies (nimble, fusion) so they can be pulled correctly by koch
+      if dirExists(extractDir/"dist"):
+        removeDir(extractDir/"dist")
+
       display("Fetching", "latest changes", priority = HighPriority)
       for cmd in [" fetch --all", " reset --hard origin/devel"]:
         var (outp, errC) = execCmdEx(git.quoteShell & cmd)
@@ -411,7 +418,7 @@ proc gitInit*(version: Version, extractDir: string, params: CliParams) =
 
       var init = true
       display("Setting", "up git repository", priority = HighPriority)
-      for cmd in [" init", " remote add origin https://github.com/nim-lang/nim"]:
+      for cmd in [" init", " remote add origin https://github.com/nim-lang/nim.git"]:
         var (outp, errC) = execCmdEx(git.quoteShell & cmd)
         if errC != QuitSuccess:
           display("Warning:", "git" & cmd & " failed: " & outp, Warning, priority = HighPriority)

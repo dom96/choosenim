@@ -1,5 +1,6 @@
 language: c
 os: linux
+dist: bionic
 env: BRANCH=1.2.4
 
 matrix:
@@ -15,19 +16,66 @@ cache:
     - "$HOME/.choosenim"
     - "$TRAVIS_BUILD_DIR/git"
     - "$HOME/Nim"
+    - "$HOME/.ccache"
 
 install:
+  # Use cacche and persist ~/.ccache to reduce nim build time
+  - |
+    if [[ "$TRAVIS_OS_NAME" == "macosx" ]]
+    then
+      brew update
+      brew install ccache
+      export PATH="/usr/local/opt/ccache/libexec:$PATH"
+    else
+      # ccache already installed on linux
+      export PATH="/usr/lib/ccache:$PATH"
+    fi
+    find $HOME/.ccache/
+
+  - |
+    # Non-amd64 workarounds, specific to Travis
+    if [[ "$TRAVIS_CPU_ARCH" != "amd64" ]]
+    then
+      # By default, choosenim does not echo build output. This means that when
+      # building nim from source, there can be long silences in stdout/stderr.
+      # Travis will timeout if no output is received in 10m. Non-amd64 archs do
+      # more nim-building than amd64, since fewer nim binaries are available, so
+      # there are more silences, and Travis will timeout. travis_wait is an
+      # option, but I couldn't get it to work consistently and it swallows
+      # output, which is not ideal. Setting CHOOSENIM_DEBUG=1 causes choosenim
+      # to echo all build output and thus prevents Travis from timing out.
+      export CHOOSENIM_DEBUG=1
+
+      # If ~/.ccache is empty, skip some tests to prevent builds from timing
+      # out. An initial build with a cold cache will fill ~/.ccache, which is
+      # persisted by Travis, and subsequent builds will run all tests.
+      # Generally this should be fine, but it could result in a PR build passing
+      # and then subsequent builds for that same branch failing, or a PR build
+      # passing and then tests for master failing once the PR is merged, since
+      # skips will have hidden an issue. If the builds are failing because of
+      # a Travis timeout, re-triggering the builds should work because ~/.ccache
+      # is persisted even after failed builds, and the next build will be
+      # faster and is less likely to timeout. Tests are never skipped for tags
+      # or master.
+      ccache_size=`(du -s ~/.ccache || echo 0) | cut -f1`
+      echo "ccache_size=${ccache_size}"
+      if [[ "$ccache_size" == "0" && -z "$TRAVIS_TAG" && "$TRAVIS_BRANCH" != "master" ]]
+      then
+        export CHOOSENIM_SKIP_TESTS="can choose v1.0.0,can update devel with git"
+      fi
+    fi
+
   # Use common Travis script maintained as a gist
-  # https://gist.github.com/elijahr/a72a228b9617b759a1c24062d35cc23d
-  - curl https://gist.github.com/elijahr/a72a228b9617b759a1c24062d35cc23d/raw/travis.sh -LsSf -o travis.sh
+  # https://gist.github.com/genotrance/fb53504a4fba88bc5201d3783df5c522
+  - curl https://gist.github.com/genotrance/fb53504a4fba88bc5201d3783df5c522/raw/travis.sh -LsSf -o travis.sh
   - source travis.sh
 
 script:
   - set -ex
   - nimble install -y -d
-  - nim c src/choosenim
-  - sh -c "nimble test & wait" # Workaround travis not correctly identifying test process completion
-  - yes | ./bin/choosenim stable # Workaround tester overwriting our Nimble install.
+  - nim c --out:bin/choosenim src/choosenim
+  - nimble test
+  - yes | ./bin/choosenim stable # Workaround for `tester` overwriting original Nimble install.
   - |
     export VERSION="$(./bin/choosenim --version | cut -f2,2 -d' ' | sed 's/v//')"
     export OSNAME="$TRAVIS_OS_NAME"

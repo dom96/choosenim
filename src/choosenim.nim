@@ -2,7 +2,7 @@
 # BSD-3-Clause License. Look at license.txt for more info.
 import os, strutils, algorithm, httpclient
 
-import nimblepkg/[cli, version]
+import nimblepkg/[cli, options, version]
 import nimblepkg/common as nimbleCommon
 from nimblepkg/packageinfo import getNameVersion
 
@@ -134,14 +134,14 @@ proc updateSelf(params: CliParams) =
       # Delete temporary build files
       discard tryRemoveFile(sourceName)
       removeDir(sourceDir)
-    # Make sure no stale files from previous build exist.
-    removeDir(sourceDir)
+
     # Extract and build
     extract(sourceName, sourceDir)
     display("Building", "choosenim", priority = HighPriority)
     doCmdRaw(
-      "nim c --path:" & params.nimbleOptions.nimbleDir & " src/choosenim",
-      workingDir=sourceDir
+      "nim c --path:" & params.nimbleOptions.getNimbleDir() & " src/choosenim",
+      workingDir=sourceDir,
+      liveOutput=params.debug,
     )
     let binName = sourceDir/"src"/"choosenim".addFileExt(ExeExt)
     moveFile(binName, newFileName)
@@ -322,7 +322,7 @@ when isMainModule:
   var params = newCliParams(proxyExeMode = false)
   try:
     parseCliParams(params)
-    createDir(params.chooseNimDir)
+    createDir(params.choosenimDir)
     discard loadAnalytics(params)
     performAction(params)
   except NimbleError:

@@ -1,12 +1,19 @@
-import httpclient, json, os, strutils, osproc, uri
+import httpclient, json, os, streams, strutils, osproc, uri
 
 import nimblepkg/[cli, version]
 import nimarchive
 
-import common
+import common, cliparams
 
 when defined(windows):
   import switcher
+
+
+const nightliesPlatformKey* =
+  when defined(i386): hostOS & "_x32"
+  elif defined(amd64): hostOS & "_x64"
+  else: hostOS & "_" & hostCPU
+
 
 proc parseVersion*(versionStr: string): Version =
   if versionStr[0] notin {'#', '\0'} + Digits:
@@ -28,7 +35,43 @@ proc parseVersion*(versionStr: string): Version =
 
   result = newVersion(versionStr)
 
-proc doCmdRaw*(cmd: string, workingDir: string = "") =
+proc outputReader(stream: Stream, missedEscape: var bool): string =
+  result = ""
+
+  template handleEscape: untyped {.dirty.} =
+    missedEscape = false
+    result.add('\27')
+    let escape = stream.readStr(1)
+    result.add(escape)
+    if escape[0] == '[':
+      result.add(stream.readStr(2))
+
+    return
+
+  # TODO: This would be much easier to implement if `peek` was supported.
+  if missedEscape:
+    handleEscape()
+
+  while true:
+    let c = stream.readStr(1)
+
+    if c.len() == 0:
+      return
+
+    case c[0]
+    of '\c', '\l':
+      result.add(c[0])
+      return
+    of '\27':
+      if result.len > 0:
+        missedEscape = true
+        return
+
+      handleEscape()
+    else:
+      result.add(c[0])
+
+proc doCmdRaw*(cmd: string, workingDir: string = "", liveOutput=false) =
   # To keep output in sequence
   stdout.flushFile()
   stderr.flushFile()
@@ -39,7 +82,28 @@ proc doCmdRaw*(cmd: string, workingDir: string = "") =
   if workingDir.len != 0:
     setCurrentDir(workingDir)
   displayDebug("Executing", cmd)
-  let (output, exitCode) = execCmdEx(cmd)
+
+  var
+    output = ""
+    exitCode: int
+  if not liveOutput:
+    (output, exitCode) = execCmdEx(cmd)
+  else:
+    let process = startProcess(cmd, options={poEvalCommand, poStdErrToStdOut})
+    var missedEscape = false
+    while true:
+      if not process.outputStream.atEnd:
+        let line = process.outputStream.outputReader(missedEscape)
+        output.add(line)
+        stdout.write(line)
+        if line.len() != 0 and line[0] != '\27':
+          stdout.flushFile()
+      else:
+        exitCode = process.peekExitCode()
+        if exitCode != -1: break
+
+    process.close()
+
   displayDebug("Finished", "with exit code " & $exitCode)
   displayDebug("Output", output)
 
@@ -101,29 +165,16 @@ proc getLatestCommit*(repo, branch: string): string =
       display("Warning", outp & "\ngit ls-remote failed", Warning, HighPriority)
 
 proc getNightliesUrl*(parsedContents: JsonNode): string =
-  let os =
-    when defined(linux): "linux"
-    elif defined(windows): "windows"
-    elif defined(macosx): "osx"
-  let key =
-    when defined(macosx):
-      when hostCPU == "amd64": os
-      else: os & "_" & hostCPU # osx_arm64 nightlies might exist someday
-    else:
-      when hostCPU == "i386": os & "_x32"
-      elif hostCPU == "amd64": os & "_x64"
-      else: os & "_" & hostCPU
-
-  if key.len != 0:
-    for jn in parsedContents.getElems():
-      if jn["name"].getStr().contains("devel"):
-        for asset in jn["assets"].getElems():
-          let aname = asset["name"].getStr()
-          if key in aname:
-            let downloadUrl = asset["browser_download_url"].getStr()
-            if downloadUrl.len != 0:
-              return downloadUrl
+  for jn in parsedContents.getElems():
+    if "devel" in jn["name"].getStr():
+      for asset in jn["assets"].getElems():
+        let aname = asset["name"].getStr()
+        if nightliesPlatformKey in aname:
+          let downloadUrl = asset["browser_download_url"].getStr()
+          if downloadUrl.len != 0:
+            return downloadUrl
 
   if result.len == 0:
     display("Warning", "Recent nightly release not found, installing latest devel commit.",
             Warning, priority = HighPriority)
+

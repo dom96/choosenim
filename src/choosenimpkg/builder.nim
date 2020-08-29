@@ -11,11 +11,11 @@ when defined(windows):
 proc buildFromCSources(params: CliParams) =
   when defined(windows):
     when hostCPU in ["i386", "arm"]:
-      doCmdRaw("build.bat")
+      doCmdRaw("build.bat", liveOutput=params.debug)
     elif hostCPU in ["amd64", "arm64"]:
-      doCmdRaw("build64.bat")
+      doCmdRaw("build64.bat", liveOutput=params.debug)
   else:
-    doCmdRaw("sh build.sh")
+    doCmdRaw("sh build.sh", liveOutput=params.debug)
 
 proc buildCompiler(version: Version, params: CliParams) =
   ## Assumes that CWD contains the compiler (``build`` should have changed it).
@@ -42,14 +42,14 @@ proc buildCompiler(version: Version, params: CliParams) =
 
   when defined(windows):
     display("Building", "koch", priority = HighPriority)
-    doCmdRaw("bin/nim.exe c koch")
+    doCmdRaw("bin/nim.exe c koch", liveOutput=params.debug)
     display("Building", "Nim", priority = HighPriority)
-    doCmdRaw("koch.exe boot -d:release")
+    doCmdRaw("koch.exe boot -d:release", liveOutput=params.debug)
   else:
     display("Building", "koch", priority = HighPriority)
-    doCmdRaw("./bin/nim c koch")
+    doCmdRaw("./bin/nim c koch", liveOutput=params.debug)
     display("Building", "Nim", priority = HighPriority)
-    doCmdRaw("./koch boot -d:release")
+    doCmdRaw("./koch boot -d:release", liveOutput=params.debug)
 
   if not fileExists(binDir / "nim".addFileExt(ExeExt)):
     raise newException(ChooseNimError, "Nim binary is missing. Build failed.")
@@ -67,16 +67,16 @@ proc buildTools(version: Version, params: CliParams) =
   display("Building", msg, priority = HighPriority)
   if fileExists(getCurrentDir() / "build.sh"):
     when defined(windows):
-      doCmdRaw("bin/nim.exe c koch")
-      doCmdRaw("koch.exe tools -d:release")
+      doCmdRaw("bin/nim.exe c koch", liveOutput=params.debug)
+      doCmdRaw("koch.exe tools -d:release", liveOutput=params.debug)
     else:
-      doCmdRaw("./bin/nim c koch")
-      doCmdRaw("./koch tools -d:release")
+      doCmdRaw("./bin/nim c koch", liveOutput=params.debug)
+      doCmdRaw("./koch tools -d:release", liveOutput=params.debug)
   else:
     when defined(windows):
-      doCmdRaw("koch.exe tools -d:release")
+      doCmdRaw("koch.exe tools -d:release", liveOutput=params.debug)
     else:
-      doCmdRaw("./koch tools -d:release")
+      doCmdRaw("./koch tools -d:release", liveOutput=params.debug)
 
 # Workaround for #147
 when defined(posix):

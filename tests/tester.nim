@@ -1,6 +1,6 @@
 # Copyright (C) Dominik Picheta. All rights reserved.
 # BSD-3-Clause License. Look at license.txt for more info.
-import osproc, streams, unittest, strutils, os, sequtils, future
+import osproc, streams, unittest, strutils, os, sequtils, sugar
 
 var rootDir = getCurrentDir().parentDir()
 var exePath = rootDir / "bin" / addFileExt("choosenim", ExeExt)
@@ -17,9 +17,11 @@ template cd*(dir: string, body: untyped) =
 
 template beginTest() =
   # Clear custom dirs.
-  removeDir(nimbleDir)
+  if dirExists(choosenimDir):
+    removeDir(nimbleDir)
   createDir(nimbleDir)
-  removeDir(choosenimDir)
+  if dirExists(choosenimDir):
+    removeDir(choosenimDir)
   createDir(choosenimDir)
 
 proc outputReader(stream: Stream, missedEscape: var bool): string =
@@ -68,7 +70,7 @@ proc exec(args: varargs[string], exe=exePath,
   if not global:
     quotedArgs.add("--nimbleDir:" & nimbleDir)
     if exe != "nimble":
-      quotedArgs.add("--chooseNimDir:" & choosenimDir)
+      quotedArgs.add("--choosenimDir:" & choosenimDir)
   quotedArgs.add("--noColor")
 
   for i in 0..quotedArgs.len-1:
@@ -135,8 +137,10 @@ test "fails on bad flag":
   check inLines(output.processOutput, "flag")
 
 test "can choose v0.16.0":
-  when defined(x86):
-    # 0.16.0 doesn't build on non-x86
+  when not (defined(i386) or defined(amd64)):
+    # 0.16.0 doesn't compile on arm/ppc
+    skip()
+  else:
     beginTest()
     block:
       let (output, exitCode) = exec("0.16.0", liveOutput=true)
@@ -158,47 +162,61 @@ test "can choose v0.16.0":
 
     block:
       let (output, exitCode) = exec("--version", exe=nimbleDir / "bin" / "nimble")
+
       check exitCode == QuitSuccess
       check inLines(output.processOutput, "v0.8.2")
-  else:
+
+test "can choose v1.0.0":
+  if "can choose v1.0.0" in getEnv("CHOOSENIM_SKIP_TESTS"):
     skip()
+  else:
+    beginTest()
+    block:
+      let (output, exitCode) = exec("1.0.0", liveOutput=true)
+      check exitCode == QuitSuccess
 
-test "can choose 1.0.0":
-  beginTest()
-  block:
-    let (output, exitCode) = exec("1.0.0", liveOutput=true)
-    check exitCode == QuitSuccess
+      check inLines(output.processOutput, "downloading")
+      check(
+        inLines(output.processOutput, "already built") or
+        # Official Nim binaries not available for the platform, so was built
+        inLines(output.processOutput, "building nim")
+      )
 
-    check inLines(output.processOutput, "downloading")
-    check(
-      inLines(output.processOutput, "already built") or
-      # Official Nim binaries not available for the platform, so was built
-      inLines(output.processOutput, "building nim")
-    )
-
-    check hasLine(output.processOutput, "switched to nim 1.0.0")
-    check not dirExists(choosenimDir / "toolchains" / "nim-1.0.0" / "c_code")
+      check hasLine(output.processOutput, "switched to nim 1.0.0")
+      check not dirExists(choosenimDir / "toolchains" / "nim-1.0.0" / "c_code")
 
 test "can update devel with git":
-  beginTest()
-  block:
-    let (output, exitCode) = exec(@["devel", "--latest"], liveOutput=true)
-    check exitCode == QuitSuccess
+  if "can update devel with git" in getEnv("CHOOSENIM_SKIP_TESTS"):
+    skip()
+  else:
+    beginTest()
+    block:
+      let (output, exitCode) = exec(@["devel", "--latest"], liveOutput=true)
 
-    check inLines(output.processOutput, "extracting")
-    check inLines(output.processOutput, "setting")
-    check inLines(output.processOutput, "latest changes")
-    check inLines(output.processOutput, "building")
+      # Travis runs into Github API limit
+      if not inLines(output.processOutput, "unavailable"):
+        check exitCode == QuitSuccess
+
+        check not inLines(output.processOutput, "updating devel")
+        check inLines(output.processOutput, "downloading nim devel from github")
+        check inLines(output.processOutput, "setting up git repository")
+        check inLines(output.processOutput, "building nim #devel")
+        check inLines(output.processOutput, "switched to nim #devel")
 
   block:
     let (output, exitCode) = exec(@["update", "devel", "--latest"], liveOutput=true)
-    check exitCode == QuitSuccess
 
-    check not inLines(output.processOutput, "extracting")
-    check not inLines(output.processOutput, "setting")
-    check inLines(output.processOutput, "updating")
-    check inLines(output.processOutput, "latest changes")
-    check inLines(output.processOutput, "building")
+    # Travis runs into Github API limit
+    if not inLines(output.processOutput, "unavailable"):
+      check exitCode == QuitSuccess
+
+      check not inLines(output.processOutput, "extracting")
+      check not inLines(output.processOutput, "setting up git repository")
+
+      check inLines(output.processOutput, "updating devel")
+      check inLines(output.processOutput, "fetching latest changes")
+      check inLines(output.processOutput, "building nim #devel")
+      check inLines(output.processOutput, "updated to #devel")
 
 test "can install and update nightlies":
   beginTest()
@@ -210,12 +228,17 @@ test "can install and update nightlies":
     if not inLines(output.processOutput, "unavailable"):
       check exitCode == QuitSuccess
 
-      check inLines(output.processOutput, "devel from")
-      check inLines(output.processOutput, "setting")
-      when defined(x86) and (defined(windows) or defined(linux)):
-        if not inLines(output.processOutput, "recent nightly"):
-          check inLines(output.processOutput, "already built")
-      check inLines(output.processOutput, "to Nim #devel")
+      check not inLines(output.processOutput, "updating devel")
+      check inLines(output.processOutput, "downloading nim devel from github")
+      check inLines(output.processOutput, "setting up git repository")
+      check(
+        (
+          inLines(output.processOutput, "recent nightly release not found") and
+          inLines(output.processOutput, "building nim #devel")
+        ) or
+        inLines(output.processOutput, "already built")
+      )
+      check inLines(output.processOutput, "switched to nim #devel")
 
       block:
         # Update nightly
@@ -225,26 +248,30 @@ test "can install and update nightlies":
         if not inLines(output.processOutput, "unavailable"):
           check exitCode == QuitSuccess
 
-          check inLines(output.processOutput, "updating")
-          check inLines(output.processOutput, "devel from")
-          check inLines(output.processOutput, "setting")
-          when defined(x86) and (defined(windows) or defined(linux)):
-            if not inLines(output.processOutput, "recent nightly"):
-              check inLines(output.processOutput, "already built")
+          check inLines(output.processOutput, "updating devel")
+          check inLines(output.processOutput, "downloading nim devel from github")
+          check inLines(output.processOutput, "setting up git repository")
+          check(
+            (
+              inLines(output.processOutput, "recent nightly release not found") and
+              inLines(output.processOutput, "building nim #devel")
+            ) or
+            inLines(output.processOutput, "already built")
+          )
+          check inLines(output.processOutput, "updated to #devel")
 
       block:
-        # Update to devel latest
+        # Update to devel latest using git
         let (output, exitCode) = exec(@["update", "devel", "--latest"], liveOutput=true)
         check exitCode == QuitSuccess
 
-        when defined(x86) and (defined(windows) or defined(linux)):
-          check not inLines(output.processOutput, "extracting")
-        else:
-          check inLines(output.processOutput, "extracting")
-        check not inLines(output.processOutput, "setting")
-        check inLines(output.processOutput, "updating")
-        check inLines(output.processOutput, "latest changes")
-        check inLines(output.processOutput, "building")
+        check not inLines(output.processOutput, "extracting")
+        check not inLines(output.processOutput, "setting up git repository")
+
+        check inLines(output.processOutput, "updating devel")
+        check inLines(output.processOutput, "fetching latest changes")
+        check inLines(output.processOutput, "building nim #devel")
+        check inLines(output.processOutput, "updated to #devel")
 
 test "can update self":
   # updateSelf() doesn't use options --choosenimDir and --nimbleDir. It's used getAppDir().
@@ -257,4 +284,4 @@ test "can update self":
     let (output, exitCode) = exec(["update", "self", "--debug", "--force"], exe=testExePath, liveOutput=true)
 
     check exitCode == QuitSuccess
-    check inLines(output.processOutput, "Info: Updated choosenim to version")
+    check inLines(output.processOutput, "updated choosenim to version")

@@ -17,6 +17,7 @@ type
     pendingReports*: int ## Count of pending telemetry reports.
     force*: bool
     latest*: bool
+    debug*: bool ## If true, show realtime build output
 
 let doc = """
 choosenim: The Nim toolchain installer.
@@ -86,13 +87,13 @@ proc command*(params: CliParams): string =
   return params.commands[0]
 
 proc getDownloadDir*(params: CliParams): string =
-  return params.chooseNimDir / "downloads"
+  return params.choosenimDir / "downloads"
 
 proc getInstallDir*(params: CliParams): string =
-  return params.chooseNimDir / "toolchains"
+  return params.choosenimDir / "toolchains"
 
 proc getChannelsDir*(params: CliParams): string =
-  return params.chooseNimDir / "channels"
+  return params.choosenimDir / "channels"
 
 proc getBinDir*(params: CliParams): string =
   return params.nimbleOptions.getBinDir()
@@ -101,13 +102,13 @@ proc getCurrentFile*(params: CliParams): string =
   ## Returns the path to the file which specifies the currently selected
   ## installation. The contents of this file is a path to the selected Nim
   ## directory.
-  return params.chooseNimDir / "current"
+  return params.choosenimDir / "current"
 
 proc getCurrentChannelFile*(params: CliParams): string =
-  return params.chooseNimDir / "current-channel"
+  return params.choosenimDir / "current-channel"
 
 proc getAnalyticsFile*(params: CliParams): string =
-  return params.chooseNimDir / "analytics"
+  return params.choosenimDir / "analytics"
 
 proc getCpuArch*(): int =
   ## Get CPU arch on Windows - get env var PROCESSOR_ARCHITECTURE
@@ -196,7 +197,9 @@ proc parseCliParams*(params: var CliParams, proxyExeMode = false) =
         # should be copied.
         if not proxyExeMode: writeNimbleBinDir(params)
       of "verbose": setVerbosity(LowPriority)
-      of "debug": setVerbosity(DebugPriority)
+      of "debug":
+        setVerbosity(DebugPriority)
+        params.debug = true
       of "nocolor": setShowColor(false)
       of "choosenimdir": params.choosenimDir = val.absolutePath()
       of "nimbledir": params.nimbleOptions.nimbleDir = val.absolutePath()
@@ -209,6 +212,10 @@ proc parseCliParams*(params: var CliParams, proxyExeMode = false) =
         if not proxyExeMode:
           raise newException(ChooseNimError, "Unknown flag: --" & key)
     of cmdEnd: assert(false)
+
+  if getEnv("CHOOSENIM_DEBUG") == "1":
+    setVerbosity(DebugPriority)
+    params.debug = true
 
   if params.commands.len == 0 and not proxyExeMode:
     writeHelp()
