@@ -19,21 +19,10 @@ cache:
     - "$HOME/.ccache"
 
 install:
-  # Use cacche and persist ~/.ccache to reduce nim build time
   - |
-    if [[ "$TRAVIS_OS_NAME" == "macosx" ]]
-    then
-      brew update
-      brew install ccache
-      export PATH="/usr/local/opt/ccache/libexec:$PATH"
-    else
-      # ccache already installed on linux
-      export PATH="/usr/lib/ccache:$PATH"
-    fi
-    find $HOME/.ccache/
+    export CCACHE_SIZE=`(du -s ~/.ccache || echo 0) | cut -f1`
 
-  - |
-    # Non-amd64 workarounds, specific to Travis
+    # Non-amd64 workarounds
     if [[ "$TRAVIS_CPU_ARCH" != "amd64" ]]
     then
       # By default, choosenim does not echo build output. This means that when
@@ -44,27 +33,36 @@ install:
       # option, but I couldn't get it to work consistently and it swallows
       # output, which is not ideal. Setting CHOOSENIM_DEBUG=1 causes choosenim
       # to echo all build output and thus prevents Travis from timing out.
+      # *tldr; echos everything, helps prevent timeouts
       export CHOOSENIM_DEBUG=1
 
-      # If ~/.ccache is empty, skip some tests to prevent builds from timing
-      # out. An initial build with a cold cache will fill ~/.ccache, which is
-      # persisted by Travis, and subsequent builds will run all tests.
+      # If ~/.ccache is <=64 bytes, skip some tests to prevent timeouts.
+      # An initial build with a cold cache will fill ~/.ccache, which is
+      # persisted by Travis, and subsequent builds will not skip the tests.
       # Generally this should be fine, but it could result in a PR build passing
-      # and then subsequent builds for that same branch failing, or a PR build
+      # and then subsequent builds for that same PR failing, or a PR build
       # passing and then tests for master failing once the PR is merged, since
-      # skips will have hidden an issue. If the builds are failing because of
-      # a Travis timeout, re-triggering the builds should work because ~/.ccache
+      # skips will have hidden an issue. But if the builds are failing because
+      # of a Travis timeout, re-triggering the builds should work because ccache
       # is persisted even after failed builds, and the next build will use the
-      # cache and is thus less likely to timeout. Tests are never skipped for
-      # tags or master.
-      # tdlr; If arm64 or ppc64le builds timeout, try re-triggering the build.
-      ccache_size=`(du -s ~/.ccache || echo 0) | cut -f1`
-      echo "ccache_size=$ccache_size" # skip tests if ~/.ccache is <= 64 bytes, i.e. is empty or only contains a config file
-      if [[ "$ccache_size" -le 64 && "$TRAVIS_PULL_REQUEST" != "false" ]]
+      # cache and is thus less likely to timeout. Note that tests are never
+      # skipped for tags or master.
+      # *tdlr; If arm64 or ppc64le builds timeout, try re-triggering the build.
+      if [[ "$CCACHE_SIZE" -le 64 && "$TRAVIS_PULL_REQUEST" != "false" ]]
       then
         export CHOOSENIM_SKIP_TESTS="can choose v1.0.0,can update devel with git"
       fi
     fi
+
+    if [[ "$TRAVIS_OS_NAME" == "linux" ]]
+    then
+      # Enable ccache on Linux only; it doesn't offer gains on Windows/macOS
+      export PATH="/usr/lib/ccache:$PATH"
+    fi
+
+    # Output for debugging builds
+    find $HOME/.ccache/
+    echo "CCACHE_SIZE=$CCACHE_SIZE"
     echo "CHOOSENIM_SKIP_TESTS=$CHOOSENIM_SKIP_TESTS"
 
   # Use common Travis script maintained as a gist
