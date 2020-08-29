@@ -65,9 +65,8 @@ install:
     echo "CCACHE_SIZE=$CCACHE_SIZE"
     echo "CHOOSENIM_SKIP_TESTS=$CHOOSENIM_SKIP_TESTS"
 
-  # Use common Travis script maintained as a gist
-  # https://gist.github.com/genotrance/fb53504a4fba88bc5201d3783df5c522
-  - curl https://gist.github.com/genotrance/fb53504a4fba88bc5201d3783df5c522/raw/travis.sh -LsSf -o travis.sh
+  # Use common Travis script maintained at https://github.com/genotrance/nim-travis
+  - curl https://raw.githubusercontent.com/genotrance/nim-travis/master/travis.sh -LsSf -o travis.sh
   - source travis.sh
 
 script:
