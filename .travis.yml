@@ -57,9 +57,10 @@ install:
       # is persisted even after failed builds, and the next build will be
       # faster and is less likely to timeout. Tests are never skipped for tags
       # or master.
+      # tdlr; If arm64 or ppc64le builds timeout, re-trigger the build.
       ccache_size=`(du -s ~/.ccache || echo 0) | cut -f1`
-      echo "ccache_size=${ccache_size}"
-      if [[ "$ccache_size" == "0" && -z "$TRAVIS_TAG" && "$TRAVIS_BRANCH" != "master" ]]
+      echo "ccache_size=${ccache_size}" # skip tests if ~/.ccache is <= 64 bytes, i.e. is empty or only contains a config file
+      if [[ "$ccache_size" -le 64 && -z "$TRAVIS_TAG" && "$TRAVIS_BRANCH" != "master" ]]
       then
         export CHOOSENIM_SKIP_TESTS="can choose v1.0.0,can update devel with git"
       fi
