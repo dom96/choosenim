@@ -72,7 +72,7 @@ install:
 script:
   - set -ex
   - nimble install -y -d
-  - nim c --out:bin/choosenim src/choosenim
+  - nim c src/choosenim
   - nimble test
   - yes | ./bin/choosenim stable # Workaround for `tester` overwriting original Nimble install.
   - |
