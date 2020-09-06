@@ -51,7 +51,7 @@ proc chooseVersion(version: string, params: CliParams) =
       extract(path, getMingwPath(params))
     else:
       let binName =
-        when defined(OSX):
+        when defined(macosx):
           "clang"
         else:
           "gcc"
