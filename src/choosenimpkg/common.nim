@@ -12,7 +12,8 @@ const
       "nimgrep",
       "nimpretty",
       "nimsuggest",
-      "testament"
+      "testament",
+      "nim-gdb",
     ]
 
   mingwProxies* = [
