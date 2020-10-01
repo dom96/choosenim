@@ -10,8 +10,9 @@ when defined(windows):
 
 proc parseVersion*(versionStr: string): Version =
   if versionStr[0] notin {'#', '\0'} + Digits:
-    let msg = "Invalid version, path or unknown channel. " &
-              "Try 0.16.0, #head, #commitHash, or stable. " &
+    let msg = "Invalid version, path or unknown channel.\n" &
+              "Try 1.0.6, #head, #commitHash, or stable.\n" &
+              "For example: choosenim #head.\n  \n"&
               "See --help for more examples."
     raise newException(ChooseNimError, msg)
 
