@@ -162,6 +162,7 @@ proc update(params: CliParams) =
   if not canUpdate(version, params):
     display("Info:", "Already up to date at version " & $version,
             Success, HighPriority)
+    pinChannelVersion(channel, $version, params)
     if getSelectedVersion(params) != version:
       switchTo(version, params)
     return
