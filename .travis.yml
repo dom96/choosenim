@@ -6,12 +6,18 @@ os:
 language: c
 
 env:
-  - BRANCH=1.2.4
+  - BRANCH=1.2.6
 
 cache:
   directories:
     - "$HOME/.choosenim"
     - "$TRAVIS_BUILD_DIR/git"
+
+addons:
+  apt:
+    update: true
+    packages:
+      - musl-tools
 
 install:
   # Use common Travis script maintained as a gist
