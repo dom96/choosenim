@@ -1,5 +1,13 @@
 # Choosenim changelog
 
+## 0.6.2 - xx/xx/2020
+
+Changes:
+
+* The `update` command will now always change to the newly installed version.
+  In previous versions this would only happen when the currently selected
+  channel is updated.
+
 ## 0.6.0 - 06/03/2020
 
 The major new feature is default installation of 64-bit Nim

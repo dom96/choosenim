@@ -177,10 +177,8 @@ proc update(params: CliParams) =
 
   display("Updated", "to " & $version, Success, HighPriority)
 
-  # If the currently selected channel is the one that was updated, switch to
-  # the new version.
-  if getCurrentChannel(params) == channel:
-    switchTo(version, params)
+  # Always switch to the updated version.
+  switchTo(version, params)
 
 proc show(params: CliParams) =
   let channel = getCurrentChannel(params)
