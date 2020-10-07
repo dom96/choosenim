@@ -117,25 +117,24 @@ proc getLatestCommit*(repo, branch: string): string =
     else:
       display("Warning", outp & "\ngit ls-remote failed", Warning, HighPriority)
 
-proc getNightliesUrl*(parsedContents: JsonNode, arch: int): string =
+proc getNightliesUrl*(parsedContents: JsonNode, arch: int): (string, string) =
   let os =
     when defined(windows): "windows"
     elif defined(linux): "linux"
     elif defined(macosx): "osx"
   for jn in parsedContents.getElems():
     if jn["name"].getStr().contains("devel"):
+      let tagName = jn{"tag_name"}.getStr("")
       for asset in jn["assets"].getElems():
         let aname = asset["name"].getStr()
+        let url = asset{"browser_download_url"}.getStr("")
         if os in aname:
           when not defined(macosx):
             if "x" & $arch in aname:
-              result = asset["browser_download_url"].getStr()
+              result = (url, tagName)
           else:
-            result = asset["browser_download_url"].getStr()
-        if result.len != 0:
+            result = (url, tagName)
+        if result[0].len != 0:
           break
-    if result.len != 0:
+    if result[0].len != 0:
       break
-  if result.len == 0:
-    display("Warning", "Recent nightly release not found, installing latest devel commit.",
-            Warning, priority = HighPriority)

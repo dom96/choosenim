@@ -175,6 +175,9 @@ proc downloadFileNim(url, outputPath: string) =
   client.downloadFile(url, outputPath)
 
 proc downloadFile*(url, outputPath: string, params: CliParams) =
+  # For debugging.
+  display("GET:", url, priority = DebugPriority)
+
   # Telemetry
   let startTime = epochTime()
 
@@ -226,13 +229,18 @@ proc downloadImpl(version: Version, params: CliParams): string =
       try:
         let rawContents = retrieveUrl(githubNightliesReleasesUrl.addGithubAuthentication())
         let parsedContents = parseJson(rawContents)
-        url = getNightliesUrl(parsedContents, arch)
-        reference = "devel"
+        (url, reference) = getNightliesUrl(parsedContents, arch)
+        if url.len == 0:
+          display(
+            "Warning", "Recent nightly release not found, installing latest devel commit.",
+            Warning, HighPriority
+          )
+        reference = if reference.len == 0: "devel" else: reference
       except HTTPRequestError:
         # Unable to get nightlies release json from github API, fallback
         # to `choosenim devel --latest`
-        display("Info:", "Nightlies build unavailable, building latest commit",
-                priority = HighPriority)
+        display("Warning", "Nightlies build unavailable, building latest commit",
+                Warning, HighPriority)
 
     if url.len == 0:
       let
