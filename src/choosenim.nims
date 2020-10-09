@@ -11,7 +11,7 @@ when not defined(OSX):
 switch("define", "ssl")
 
 when defined(windows):
-  # Issue nim#15520
+  # TODO: change once issue nim#15520 is resolved
   switch("define", "noOpenSSLHacks")
   switch("dynlibOverride", "ssl-")
   switch("dynlibOverride", "crypto-")
