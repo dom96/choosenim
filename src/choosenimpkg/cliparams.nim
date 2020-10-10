@@ -44,6 +44,8 @@ Example:
     The '--latest' flag updates and builds the latest commit in the devel branch
   choosenim versions [--installed]
     Lists the available versions of Nim that choosenim has access to.
+  choosenim remove 0.16.0
+    Removes (if version installed) version 0.16.0 of Nim.
 
 Channels:
   stable
@@ -60,6 +62,7 @@ Commands:
   versions  [--installed]        Lists available versions of Nim, passing
                                  `--installed` only displays versions that
                                  are installed locally (no network requests).
+  remove    <version>            Removes specified version (if installed).
 
 Environment variables:
   GITHUB_TOKEN          GitHub API Token. Some actions use the GitHub API.

@@ -274,6 +274,28 @@ proc versions(params: CliParams) =
         display("", $version & isLatestTag(params, version), priority = HighPriority)
     echo ""
 
+proc remove(params: CliParams) =
+  if params.commands.len != 2:
+    raise newException(ChooseNimError,
+                       "Expected 1 parameter to 'remove' command")
+
+  let version = params.commands[1].newVersion
+
+  let isInstalled = isVersionInstalled(params, version)
+  if not isInstalled:
+    raise newException(ChooseNimError,
+                       "Version $1 is not installed." % $version)
+
+  display("Removing", $version, priority = HighPriority)
+
+  let extractDir = params.getInstallationDir(version)
+  removeDir(extractDir)
+
+  display("Info:", "Removed version " & $version,
+          Success, HighPriority)
+
+  # TODO: switch to latest available version if current was removed
+
 proc performAction(params: CliParams) =
   # Report telemetry.
   report(initEvent(ActionEvent), params)
@@ -285,6 +307,8 @@ proc performAction(params: CliParams) =
     show(params)
   of "versions":
     versions(params)
+  of "remove":
+    remove(params)
   else:
     choose(params)
 
