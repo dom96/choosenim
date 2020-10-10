@@ -249,7 +249,6 @@ test "can update self":
     check exitCode == QuitSuccess
     check inLines(output.processOutput, "Info: Updated choosenim to version")
 
-# TODO: should work fine, needs checking
 test "can remove v0.16.0":
   beginTest()
   block:
@@ -265,7 +264,7 @@ test "can remove v0.16.0":
     check hasLine(output.processOutput, "switched to nim 0.16.0")
 
   block:
-    let (output, exitCode) = exec("remove 0.16.0")
+    let (output, exitCode) = exec("remove", "0.16.0", liveOutput=true)
     check exitCode == QuitSuccess
 
     check hasLine(output.processOutput, "Info: Removing 0.16.0")
