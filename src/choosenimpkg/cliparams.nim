@@ -45,7 +45,7 @@ Example:
   choosenim versions [--installed]
     Lists the available versions of Nim that choosenim has access to.
   choosenim remove 0.16.0
-    Removes (if version installed) version 0.16.0 of Nim.
+    Removes (if installed) version 0.16.0 of Nim.
 
 Channels:
   stable
