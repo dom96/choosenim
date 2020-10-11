@@ -159,6 +159,18 @@ test "can choose v0.16.0":
     check exitCode == QuitSuccess
     check inLines(output.processOutput, "v0.8.2")
 
+test "can remove v0.16.0":
+  #beginTest() #skip prev test cleanup to have version to remove
+  block:
+    let (output, exitCode) = exec("1.0.0", liveOutput=true)
+    check exitCode == QuitSuccess
+
+  block:
+    let (output, exitCode) = exec(["remove", "0.16.0"], liveOutput=true)
+    check exitCode == QuitSuccess
+
+    check hasLine(output.processOutput, "Info: Removed version 0.16.0")
+
 when defined(linux):
   test "linux binary install":
     beginTest()
@@ -249,10 +261,3 @@ test "can update self":
     check exitCode == QuitSuccess
     check inLines(output.processOutput, "Info: Updated choosenim to version")
 
-test "can remove v0.16.0":
-  beginTest()
-  block:
-    let (output, exitCode) = exec(["remove", "0.16.0"], liveOutput=true)
-    check exitCode == QuitSuccess
-
-    check hasLine(output.processOutput, "Info: Removing 0.16.0")
