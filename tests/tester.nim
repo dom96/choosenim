@@ -265,4 +265,3 @@ test "can update self":
     let (output, exitCode) = exec(["update", "self", "--debug", "--force"], exe=testExePath, liveOutput=true)
     check exitCode == QuitSuccess
     check inLines(output.processOutput, "Info: Updated choosenim to version")
-
