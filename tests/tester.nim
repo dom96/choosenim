@@ -252,19 +252,7 @@ test "can update self":
 test "can remove v0.16.0":
   beginTest()
   block:
-    let (output, exitCode) = exec("0.16.0", liveOutput=true)
-    check exitCode == QuitSuccess
-
-    check inLines(output.processOutput, "building")
-    check inLines(output.processOutput, "downloading")
-    when defined(windows):
-      check inLines(output.processOutput, "already built")
-    else:
-      check inLines(output.processOutput, "building tools")
-    check hasLine(output.processOutput, "switched to nim 0.16.0")
-
-  block:
-    let (output, exitCode) = exec("remove 0.16.0", liveOutput=true)
+    let (output, exitCode) = exec(["remove", "0.16.0"], liveOutput=true)
     check exitCode == QuitSuccess
 
     check hasLine(output.processOutput, "Info: Removing 0.16.0")

@@ -286,23 +286,15 @@ proc remove(params: CliParams) =
     raise newException(ChooseNimError,
                        "Version $1 is not installed." % $version)
 
-  let isCurrentVersionRemove = version == getCurrentVersion(params)
-  display("Removing", $version, priority = HighPriority)
+  if version == getCurrentVersion(params):
+    raise newException(ChooseNimError,
+                       "Cannot remove current version.")
 
   let extractDir = params.getInstallationDir(version)
   removeDir(extractDir)
 
   display("Info:", "Removed version " & $version,
           Success, HighPriority)
-
-  if isCurrentVersionRemove:
-    let installedVersions = getInstalledVersions(params)
-    if installedVersions.len > 0:
-      let versionToUse = installedVersions[0]
-      display("Warning:", "Removed version was selected, replace with " & $versionToUse, Warning, priority = HighPriority)
-      switchTo(versionToUse, params)
-    else:
-      display("Warning:", "Removed version was selected", Warning, priority = HighPriority)
 
 
   # TODO: switch to latest available version if current was removed
