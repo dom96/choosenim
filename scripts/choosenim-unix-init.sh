@@ -14,6 +14,8 @@ url_prefix="https://github.com/dom96/choosenim/releases/download/"
 temp_prefix="${TMPDIR:-/tmp}"
 
 CHOOSE_VERSION="${CHOOSENIM_CHOOSE_VERSION:-stable}"
+CHOOSENIM_INTERACTIVE=${CHOOSENIM_INTERACTIVE:-1}
+CHOOSENIM_NO_ANALYTICS=${CHOOSENIM_NO_ANALYTICS:-0}
 
 need_tty=yes
 debug=""
@@ -67,7 +69,8 @@ install() {
     local filename="choosenim/choosenim.exe"
   fi
 
-  if [ "$need_tty" = "yes" ]; then
+  export CHOOSENIM_NO_ANALYTICS
+  if [ "$need_tty" = "yes" ] && [ $CHOOSENIM_INTERACTIVE = 1 ]; then
     # The installer is going to want to ask for confirmation by
     # reading stdin.  This script was piped into `sh` though and
     # doesn't have stdin to pass to its children. Instead we're going
