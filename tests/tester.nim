@@ -159,6 +159,24 @@ test "can choose v0.16.0":
     check exitCode == QuitSuccess
     check inLines(output.processOutput, "v0.8.2")
 
+test "cannot remove current v0.16.0":
+  # skip prev test cleanup to have version to remove (thus faster ci/cd)
+  # TODO: clean state, prepare data for test, do not rely on prev test state
+  #beginTest()
+  block:
+    let (output, exitCode) = exec(["remove", "0.16.0"], liveOutput=true)
+    check exitCode == QuitFailure
+
+    check inLines(output.processOutput, "Cannot remove current version.")
+
+test "cannot remove not installed v0.16.0":
+  beginTest()
+  block:
+    let (output, exitCode) = exec(["remove", "0.16.0"], liveOutput=true)
+    check exitCode == QuitFailure
+
+    check inLines(output.processOutput, "Version 0.16.0 is not installed.")
+
 when defined(linux):
   test "linux binary install":
     beginTest()
