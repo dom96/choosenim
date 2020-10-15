@@ -297,8 +297,6 @@ proc remove(params: CliParams) =
           Success, HighPriority)
 
 
-  # TODO: switch to latest available version if current was removed
-
 proc performAction(params: CliParams) =
   # Report telemetry.
   report(initEvent(ActionEvent), params)

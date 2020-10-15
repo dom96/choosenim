@@ -160,7 +160,8 @@ test "can choose v0.16.0":
     check inLines(output.processOutput, "v0.8.2")
 
 test "cannot remove current v0.16.0":
-  # skip prev test cleanup to have version to remove
+  # skip prev test cleanup to have version to remove (thus faster ci/cd)
+  # TODO: clean state, prepare data for test, do not rely on prev test state
   #beginTest()
   block:
     let (output, exitCode) = exec(["remove", "0.16.0"], liveOutput=true)
