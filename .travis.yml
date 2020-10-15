@@ -11,7 +11,6 @@ env:
 cache:
   directories:
     - "$HOME/.choosenim"
-    - "$TRAVIS_BUILD_DIR/git"
 
 addons:
   apt:
@@ -19,38 +18,34 @@ addons:
     packages:
       - musl-tools
 
-install:
-  # Use common Travis script maintained as a gist
-  # https://gist.github.com/genotrance/fb53504a4fba88bc5201d3783df5c522
-  - curl https://gist.github.com/genotrance/fb53504a4fba88bc5201d3783df5c522/raw/travis.sh -LsSf -o travis.sh
-  - source travis.sh
-
 script:
-  - nimble install -y -d
-  - nim c src/choosenim
-  - nimble test
-  - yes | ./bin/choosenim stable # Workaround tester overwriting our Nimble install.
-  - export VERSION="$(./bin/choosenim --version | cut -f2,2 -d' ' | sed 's/v//')"
-  - export EXT=""
-  - if [[ "$TRAVIS_OS_NAME" == "windows" ]]; then export EXT=".exe"; fi
-  - export OSNAME="$TRAVIS_OS_NAME"
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then export OSNAME="macosx"; fi
-  - export ARCH="amd64"
-  - mv "bin/choosenim${EXT}" "bin/choosenim-${VERSION}_${OSNAME}_${ARCH}_debug${EXT}"
-  - nimble build -d:release
-  - mv "bin/choosenim${EXT}" "bin/choosenim-${VERSION}_${OSNAME}_${ARCH}${EXT}"
-  - ls -l bin
+  - source build.sh
 
 notifications:
   irc: "chat.freenode.net#nimbuild"
 
+before_deploy:
+  - git config --local user.name "${GIT_TAG_USER_NAME}"
+  - git config --local user.email "${GIT_TAG_USER_EMAIL}"
+
 deploy:
-  provider: releases
-  api_key:
-    secure: "h7HQnn/pVHyR119IViY811WeX4lMl+hLpmMMND09r3LVOaH9MpMSkwQXa4aYF+/YV3vHaQINOExqTOXpzc/nP5O5VJMzfaEdA+o6HtkVgY1qsWllquUt0xnrvcFCLHcNQc/fwoS6Cow4yINsRTyGgo7p4zLnk5+yGSQTJiLTiMWHQiiRyCdrywBHFzcXG63MqRD7JJveA0OE/JoRNBNESGP6JTK6V7W2eanmlAjbjH8+dUJsxDr5LjoeRUUF+A+4AfulAOCsbPtURW3CIBD1jqYrFXzBYRgxbHaHwY5XxfPjHnWPHONYIruXx9oYyjL8uyrHzYSNCEnoQtBY0gzYOBFfUCNB3bcNDrSkzTXnRlnMcWcC6XyrTxUI7Lc+bZB5OFGoqYJzZK54qd5wmIDqZ+Wa2n1vq/hNfZ+95fYhG7oXgW/zeLWFdr8i46dRoBDfcD2e+OhJLk73FoGVwySffR2p5hCGWLdXFyMKiph1RC8JPiwMr4l6n9LmO1fbOwAjwTEXzj645mC1ExmsiTckGlOQC8UuvnxWg9xNggO40PCTuO64hF4YucDi6SzYttNn5VNli2XoWz9SkgQiKAxf4u2VN+S2Vt0Mtue8Z6CTb2GjEO+QrmVrW3oQmiCFM0LkiAo+0zoo8JK7PuT5EoAabfc0aZt/Ds8cLhPpoHQFxMY="
+- provider: releases
+  api_key: "${GITHUB_OAUTH_TOKEN}"
   file_glob: true
-  file: bin/*
+  file: bin/choosenim-*
   skip_cleanup: true
+  overwrite: true
+  prerelease: false
   on:
-    repo: dom96/choosenim
     tags: true
+    condition: "-z ${PRERELEASE+x}"
+- provider: releases
+  api_key: "${GITHUB_OAUTH_TOKEN}"
+  file_glob: true
+  file: bin/choosenim-*
+  skip_cleanup: true
+  overwrite: true
+  prerelease: true
+  on:
+    tags: true
+    condition: "! -z ${PRERELEASE+x}"
