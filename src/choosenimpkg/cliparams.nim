@@ -44,8 +44,8 @@ Example:
     The '--latest' flag updates and builds the latest commit in the devel branch
   choosenim versions [--installed]
     Lists the available versions of Nim that choosenim has access to.
-  choosenim remove 0.16.0
-    Removes (if installed) version 0.16.0 of Nim.
+  choosenim remove 1.0.6
+    Removes (if installed) version 1.0.6 of Nim.
 
 Channels:
   stable
