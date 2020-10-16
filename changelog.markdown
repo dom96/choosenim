@@ -1,12 +1,21 @@
 # Choosenim changelog
 
-## 0.6.2 - xx/xx/2020
+## 0.7.0 - 16/10/2020
+
+The major new feature is that all builds are now static. There should be no
+runtime dependencies for choosenim anymore.
 
 Changes:
 
+* A critical bug was fixed where choosenim would fail if existng DLLs were present.
 * The `update` command will now always change to the newly installed version.
   In previous versions this would only happen when the currently selected
   channel is updated.
+* A new `remove` command is now available.
+* The `nim-gdb` utility is now shimmed.
+* Various small bug fixes, #203 and #195.
+* The `GITHUB_TOKEN` env var will now be used if present for certain actions.
+* Better messages when downloading nightlies.
 
 ## 0.6.0 - 06/03/2020
 
