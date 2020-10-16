@@ -1,6 +1,6 @@
 # Package
 
-version       = "0.6.1"
+version       = "0.7.0"
 author        = "Dominik Picheta"
 description   = "The Nim toolchain installer."
 license       = "MIT"
