@@ -1,6 +1,6 @@
 # Choosenim changelog
 
-## 0.7.1 - 17/10/2020
+## 0.7.2 - 17/10/2020
 
 This is a bug fix release to resolve a regression caused by changes in Nimble
 which prevented choosenim from finding the Nimble directory.
