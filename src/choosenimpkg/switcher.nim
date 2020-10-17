@@ -135,6 +135,8 @@ proc writeProxy(bin: string, params: CliParams) =
 
   # Check whether this is in the user's PATH.
   let fromPATH = findExe(bin)
+  display("Debug:", "Proxy path: " & proxyPath, priority = DebugPriority)
+  display("Debug:", "findExe: " & fromPATH, priority = DebugPriority)
   if fromPATH == "" and not params.firstInstall:
     let msg =
       when defined(windows):

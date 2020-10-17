@@ -1,5 +1,10 @@
 # Choosenim changelog
 
+## 0.7.1 - 17/10/2020
+
+This is a bug fix release to resolve a regression caused by changes in Nimble
+which prevented choosenim from finding the Nimble directory.
+
 ## 0.7.0 - 16/10/2020
 
 The major new feature is that all builds are now static. There should be no
