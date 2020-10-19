@@ -19,7 +19,7 @@ addons:
       - musl-tools
 
 script:
-  - source build.sh
+  - source ./scripts/build.sh
 
 notifications:
   irc: "chat.freenode.net#nimbuild"
