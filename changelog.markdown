@@ -1,5 +1,13 @@
 # Choosenim changelog
 
+## 0.7.4 - 20/10/2020
+
+This is a bug fix release to resolve a regression where a spurious `pkgs`
+directory was being created when any choosenim shim was executed.
+
+Once choosenim is upgraded, simply switch Nim versions and the shims will be
+regenerated, solving the issue.
+
 ## 0.7.2 - 17/10/2020
 
 This is a bug fix release to resolve a regression caused by changes in Nimble

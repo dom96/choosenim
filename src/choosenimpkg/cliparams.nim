@@ -176,7 +176,7 @@ proc newCliParams*(proxyExeMode: bool): CliParams =
     result.nimbleOptions = initOptions()
     if not proxyExeMode:
       result.nimbleOptions.config = parseConfig()
-    setNimbleDir(result.nimbleOptions)
+      setNimbleDir(result.nimbleOptions)
   except NimbleQuit:
     discard
 
