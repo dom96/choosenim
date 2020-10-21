@@ -1,6 +1,6 @@
 import strutils
 
-import nimterop/[build, cimport]
+import nimterop/build
 
 # Download openssl from JuliaBinaryWrappers
 setDefines(@[
