@@ -1,8 +1,8 @@
 # Copyright (C) Dominik Picheta. All rights reserved.
 # BSD-3-Clause License. Look at license.txt for more info.
-import osproc, streams, unittest, strutils, os, sequtils, future
+import osproc, streams, unittest, strutils, os, sequtils, sugar
 
-var rootDir = getCurrentDir().parentDir()
+var rootDir = getCurrentDir()
 var exePath = rootDir / "bin" / addFileExt("choosenim", ExeExt)
 var nimbleDir = rootDir / "tests" / "nimbleDir"
 var choosenimDir = rootDir / "tests" / "choosenimDir"
@@ -106,8 +106,8 @@ proc hasLine(lines: seq[string], line: string): bool =
   for i in lines:
     if i.normalize.strip() == line.normalize(): return true
 
-test "can compile choosenim":
-  cd "..":
+when not defined(skipBuild):
+  test "can compile choosenim":
     let (_, exitCode) = exec("build", exe="nimble", global=true, liveOutput=true)
     check exitCode == QuitSuccess
 

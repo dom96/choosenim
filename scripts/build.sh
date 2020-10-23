@@ -25,12 +25,22 @@ else
     export OSNAME="$TRAVIS_OS_NAME"
   fi
 
-  # Build and test
+  if [[ "$OSNAME" == "linux" ]]; then
+    # musl-gcc static build for Linux
+    export CC=musl-gcc # for nimterop
+    export FLAGS="--gcc.exe:musl-gcc --gcc.linkerexe:musl-gcc --passL:-static"
+  elif [[ "$OSNAME" == "windows" ]]; then
+    # Static build on Windows
+    export FLAGS="--passL:-static"
+  fi
+
+  # Build release version
   nimble install -y -d
-  nim c src/choosenim
+  nim c -d:release --outdir:bin ${FLAGS} src/choosenim
+  strip "bin/choosenim${EXT}"
 
   # Set version and tag info
-  export CHOOSENIM_VERSION="$(./src/choosenim --version | cut -f2,2 -d' ' | sed 's/v//')"
+  export CHOOSENIM_VERSION="$(./bin/choosenim --version | cut -f2,2 -d' ' | sed 's/v//')"
   echo "Version: v${CHOOSENIM_VERSION}"
   if [[ -z "${COMMIT_TAG}" ]]; then
     # Create tag with date, not an official tagged release
@@ -53,16 +63,16 @@ else
   fi
   echo "Travis tag: ${TRAVIS_TAG}"
   echo "Prerelease: ${PRERELEASE}"
+  echo "Flags: ${FLAGS}"
   export FILENAME="bin/choosenim-${VERSION_TAG}_${OSNAME}_${TRAVIS_CPU_ARCH}"
   echo "Filename: ${FILENAME}"
 
   # Run tests
-  nimble test
-  yes | ./bin/choosenim stable # Workaround tester overwriting our Nimble install.
+  nimble test -d:skipBuild
   mv "bin/choosenim${EXT}" "${FILENAME}_debug${EXT}"
 
-  # Build release version
-  nimble build -d:release
-  strip "bin/choosenim${EXT}"
+  # Build debug version
+  nim c -g --outdir:bin ${FLAGS} src/choosenim
+  ./bin/choosenim${EXT} -v
   mv "bin/choosenim${EXT}" "${FILENAME}${EXT}"
 fi
