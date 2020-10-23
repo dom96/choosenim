@@ -106,10 +106,14 @@ proc hasLine(lines: seq[string], line: string): bool =
   for i in lines:
     if i.normalize.strip() == line.normalize(): return true
 
-when not defined(skipBuild):
-  test "can compile choosenim":
-    let (_, exitCode) = exec("build", exe="nimble", global=true, liveOutput=true)
-    check exitCode == QuitSuccess
+test "can compile choosenim":
+  var args = @["build"]
+  when defined(release):
+    args.add "-d:release"
+  when defined(staticBuild):
+    args.add "-d:staticBuild"
+  let (_, exitCode) = exec(args, exe="nimble", global=true, liveOutput=true)
+  check exitCode == QuitSuccess
 
 test "refuses invalid path":
   beginTest()

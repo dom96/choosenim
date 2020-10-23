@@ -8,16 +8,17 @@ import cliparams, common
 when defined(windows):
   import env
 
-when not defined(skipBuild):
-  proc compileProxyexe() =
-    var cmd = "nim c"
-    when defined(release):
-      cmd.add " -d:release"
-    cmd.add " proxyexe"
-    let (output, exitCode) = gorgeEx(cmd)
-    doAssert exitCode == 0, $(output, cmd)
+proc compileProxyexe() =
+  var cmd = "nim c"
+  when defined(release):
+    cmd.add " -d:danger"
+  when defined(staticBuild):
+    cmd.add " -d:staticBuild"
+  cmd.add " proxyexe"
+  let (output, exitCode) = gorgeEx(cmd)
+  doAssert exitCode == 0, $(output, cmd)
 
-  static: compileProxyexe()
+static: compileProxyexe()
 
 const
   proxyExe = staticRead("proxyexe".addFileExt(ExeExt))

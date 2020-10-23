@@ -10,7 +10,5 @@ else:
   switch("dynlibOverride", "ssl")
   switch("dynlibOverride", "crypto")
 
-when defined(linux):
-  switch("passL", "-lpthread")
-elif defined(windows):
-  switch("passL", "-lws2_32")
+when defined(staticBuild):
+  import "choosenimpkg/proxyexe.nims"
