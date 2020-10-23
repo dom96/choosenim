@@ -36,7 +36,8 @@ else
 
   # Build release version
   nimble install -y -d
-  nim c -d:release --outdir:bin ${FLAGS} src/choosenim
+  nim c -d:release ${FLAGS} src/choosenimpkg/proxyexe
+  nim c -d:release --outdir:bin -d:skipBuild ${FLAGS} src/choosenim
   strip "bin/choosenim${EXT}"
 
   # Set version and tag info
@@ -72,7 +73,8 @@ else
   mv "bin/choosenim${EXT}" "${FILENAME}_debug${EXT}"
 
   # Build debug version
-  nim c -g --outdir:bin ${FLAGS} src/choosenim
+  nim c -g ${FLAGS} src/choosenimpkg/proxyexe
+  nim c -g --outdir:bin -d:skipBuild ${FLAGS} src/choosenim
   ./bin/choosenim${EXT} -v
   mv "bin/choosenim${EXT}" "${FILENAME}${EXT}"
 fi
