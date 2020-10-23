@@ -1,8 +1,3 @@
-when defined(linux):
-  switch("passL", "-lpthread")
-elif defined(windows):
-  switch("passL", "-lws2_32")
-
 switch("define", "ssl")
 
 when defined(windows):
@@ -11,7 +6,11 @@ when defined(windows):
   switch("dynlibOverride", "ssl-")
   switch("dynlibOverride", "crypto-")
   switch("define", "sslVersion:(")
-
 else:
   switch("dynlibOverride", "ssl")
   switch("dynlibOverride", "crypto")
+
+when defined(linux):
+  switch("passL", "-lpthread")
+elif defined(windows):
+  switch("passL", "-lws2_32")
