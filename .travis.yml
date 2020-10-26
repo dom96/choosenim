@@ -18,6 +18,11 @@ addons:
     packages:
       - musl-tools
 
+# Don't rebuild autotagged
+branches:
+  except:
+  - /^v[0-9.]+-[0-9]+-[0-9a-f]+$/
+
 script:
   - source ./scripts/build.sh
 
