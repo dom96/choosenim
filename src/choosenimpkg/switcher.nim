@@ -11,7 +11,7 @@ when defined(windows):
 proc compileProxyexe() =
   var cmd = "nim c"
   when defined(release):
-    cmd.add " -d:danger"
+    cmd.add " -d:release"
   when defined(staticBuild):
     cmd.add " -d:staticBuild"
   cmd.add " proxyexe"

@@ -82,7 +82,6 @@ install() {
   # Copy choosenim binary to Nimble bin.
   local nimbleBinDir=`"$temp_prefix/$filename" --getNimbleBin`
   cp "$temp_prefix/$filename" "$nimbleBinDir/choosenim$ext"
-  fi
   say "ChooseNim installed in $nimbleBinDir"
   say "You must now ensure that the Nimble bin dir is in your PATH."
   if [ "$platform" != "windows_amd64" ]; then
