@@ -12,6 +12,8 @@ proc compileProxyexe() =
   var cmd = "nim c"
   when defined(release):
     cmd.add " -d:release"
+  when defined(staticBuild):
+    cmd.add " -d:staticBuild"
   cmd.add " proxyexe"
   let (output, exitCode) = gorgeEx(cmd)
   doAssert exitCode == 0, $(output, cmd)

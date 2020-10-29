@@ -1,6 +1,8 @@
+{.used}
+
 import strutils
 
-import nimterop/[build, cimport]
+import nimterop/build
 
 # Download openssl from JuliaBinaryWrappers
 setDefines(@[
@@ -18,3 +20,9 @@ const
 
 # Link static binaries
 {.passL: sslLPath & " " & cryptoLPath.}
+
+# Deps for openssl
+when defined(linux):
+  {.passL: "-lpthread".}
+elif defined(windows):
+  {.passL: "-lws2_32".}

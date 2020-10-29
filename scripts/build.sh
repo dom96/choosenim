@@ -6,63 +6,60 @@ source travis.sh
 
 # Skip building autotagged version
 export COMMIT_TAG=`git tag --points-at HEAD | head -n 1`
+export COMMIT_HASH=`git rev-parse --short HEAD`
 export CURRENT_BRANCH="${TRAVIS_BRANCH}"
 echo "Commit tag: ${COMMIT_TAG}"
+echo "Commit hash: ${COMMIT_HASH}"
 echo "Current branch: ${CURRENT_BRANCH}"
-if [[ "${COMMIT_TAG}" =~ ^v[0-9.]+-[0-9]+$ ]]; then
-  echo "Skipping build since autotagged version"
+
+# Environment vars
+if [[ "$TRAVIS_OS_NAME" == "windows" ]]; then
+  export EXT=".exe"
 else
-  # Environment vars
-  if [[ "$TRAVIS_OS_NAME" == "windows" ]]; then
-    export EXT=".exe"
-  else
-    export EXT=""
-  fi
-
-  if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-    export OSNAME="macosx"
-  else
-    export OSNAME="$TRAVIS_OS_NAME"
-  fi
-
-  # Build and test
-  nimble install -y -d
-  nim c src/choosenim
-
-  # Set version and tag info
-  export CHOOSENIM_VERSION="$(./src/choosenim --version | cut -f2,2 -d' ' | sed 's/v//')"
-  echo "Version: v${CHOOSENIM_VERSION}"
-  if [[ -z "${COMMIT_TAG}" ]]; then
-    # Create tag with date, not an official tagged release
-    export VERSION_TAG="${CHOOSENIM_VERSION}-$(date +'%Y%m%d')"
-    if [[ "${CURRENT_BRANCH}" == "master" ]]; then
-      # Deploy only on main branch
-      export TRAVIS_TAG="v${VERSION_TAG}"
-      export PRERELEASE=true
-    fi
-  elif [[ "${COMMIT_TAG}" == "v${CHOOSENIM_VERSION}" ]]; then
-    # Official tagged release
-    export VERSION_TAG="${CHOOSENIM_VERSION}"
-    export TRAVIS_TAG="${COMMIT_TAG}"
-  else
-    echo "Tag does not match choosenim version"
-    echo "  Commit tag: ${COMMIT_TAG}"
-    echo "  Version: v${CHOOSENIM_VERSION}"
-    echo "  Current branch: ${CURRENT_BRANCH}"
-    travis_terminate 1
-  fi
-  echo "Travis tag: ${TRAVIS_TAG}"
-  echo "Prerelease: ${PRERELEASE}"
-  export FILENAME="bin/choosenim-${VERSION_TAG}_${OSNAME}_${TRAVIS_CPU_ARCH}"
-  echo "Filename: ${FILENAME}"
-
-  # Run tests
-  nimble test
-  yes | ./bin/choosenim stable # Workaround tester overwriting our Nimble install.
-  mv "bin/choosenim${EXT}" "${FILENAME}_debug${EXT}"
-
-  # Build release version
-  nimble build -d:release
-  strip "bin/choosenim${EXT}"
-  mv "bin/choosenim${EXT}" "${FILENAME}${EXT}"
+  export EXT=""
 fi
+
+if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+  export OSNAME="macosx"
+else
+  export OSNAME="$TRAVIS_OS_NAME"
+fi
+
+# Build release version
+nimble build -y -d:release -d:staticBuild
+
+# Set version and tag info
+export CHOOSENIM_VERSION="$(./bin/choosenim --version | cut -f2,2 -d' ' | sed 's/v//')"
+echo "Version: v${CHOOSENIM_VERSION}"
+if [[ -z "${COMMIT_TAG}" ]]; then
+  # Create tag with date and hash, not an official tagged release
+  export VERSION_TAG="${CHOOSENIM_VERSION}-$(date +'%Y%m%d')-${COMMIT_HASH}"
+  if [[ "${CURRENT_BRANCH}" == "master" ]]; then
+    # Deploy only on main branch
+    export TRAVIS_TAG="v${VERSION_TAG}"
+    export PRERELEASE=true
+  fi
+elif [[ "${COMMIT_TAG}" == "v${CHOOSENIM_VERSION}" ]]; then
+  # Official tagged release
+  export VERSION_TAG="${CHOOSENIM_VERSION}"
+  export TRAVIS_TAG="${COMMIT_TAG}"
+else
+  # Other tag, mostly autotagged rebuild
+  export VERSION_TAG="${COMMIT_TAG:1}"
+  export TRAVIS_TAG="${COMMIT_TAG}"
+  export PRERELEASE=true
+fi
+echo "Travis tag: ${TRAVIS_TAG}"
+echo "Prerelease: ${PRERELEASE}"
+export FILENAME="bin/choosenim-${VERSION_TAG}_${OSNAME}_${TRAVIS_CPU_ARCH}"
+echo "Filename: ${FILENAME}"
+
+# Run tests
+nimble test -d:release -d:staticBuild
+strip "bin/choosenim${EXT}"
+mv "bin/choosenim${EXT}" "${FILENAME}${EXT}"
+
+# Build debug version
+nimble build -g -d:staticBuild
+./bin/choosenim${EXT} -v
+mv "bin/choosenim${EXT}" "${FILENAME}_debug${EXT}"
