@@ -15,7 +15,7 @@ echo "Current branch: ${CURRENT_BRANCH}"
 # Environment vars
 if [[ "$TRAVIS_OS_NAME" == "windows" ]]; then
   export EXT=".exe"
-  choco install --no-progress -y innosetup
+  choco install --no-progress -y innosetup --version 6.0.5
   export PATH="/C/Program Files (x86)/Inno Setup 6":$PATH
 else
   export EXT=""
