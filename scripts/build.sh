@@ -15,6 +15,8 @@ echo "Current branch: ${CURRENT_BRANCH}"
 # Environment vars
 if [[ "$TRAVIS_OS_NAME" == "windows" ]]; then
   export EXT=".exe"
+  choco install --no-progress -y innosetup
+  export PATH="/C/Program Files (x86)/Inno Setup 6":$PATH
 else
   export EXT=""
 fi
@@ -57,6 +59,14 @@ echo "Filename: ${FILENAME}"
 # Run tests
 nimble test -d:release -d:staticBuild
 strip "bin/choosenim${EXT}"
+
+# Generate setup for Windows only on main branch
+if [[ "$TRAVIS_OS_NAME" == "windows" ]] && [[ "${CURRENT_BRANCH}" == "master" ]]; then
+    ISCC.exe scripts/inno-choosenim-setup.iss
+    mv "bin/choosenim-setup${EXT}" "bin/choosenim-setup-${VERSION_TAG}_${OSNAME}_${TRAVIS_CPU_ARCH}${EXT}"
+fi
+
+# Rename release
 mv "bin/choosenim${EXT}" "${FILENAME}${EXT}"
 
 # Build debug version

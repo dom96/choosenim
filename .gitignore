@@ -1,5 +1,5 @@
 nimcache
-bin/choosenim
+bin
 src/choosenimpkg/proxyexe
 *.exe
 
@@ -7,4 +7,3 @@ tests/nimcache
 tests/choosenimDir
 tests/nimbleDir
 tests/tester
-
