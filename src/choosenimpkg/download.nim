@@ -14,7 +14,7 @@ const
   githubNightliesReleasesUrl = "https://api.github.com/repos/nim-lang/nightlies/releases"
   githubUrl = "https://github.com/nim-lang/Nim"
   websiteUrl = "http://nim-lang.org/download/nim-$1.tar.xz"
-  csourcesUrl = "https://github.com/nim-lang/csources"
+  csourcesUrl = "https://github.com/nim-lang/csources_v1"
   dlArchive = "archive/$1.tar.gz"
   binaryUrl = "http://nim-lang.org/download/nim-$1$2_x$3" & getBinArchiveFormat()
 
