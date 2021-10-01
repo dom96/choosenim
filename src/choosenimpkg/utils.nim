@@ -1,7 +1,8 @@
 import httpclient, json, os, strutils, osproc, uri
 
 import nimblepkg/[cli, version]
-import nimarchive
+import zippy/tarballs as zippy_tarballs
+import zippy/ziparchives as zippy_zips
 
 import cliparams, common
 
@@ -47,8 +48,30 @@ proc doCmdRaw*(cmd: string) =
 proc extract*(path: string, extractDir: string) =
   display("Extracting", path.extractFilename(), priority = HighPriority)
 
+  if path.splitFile().ext == ".xz":
+    when defined(windows):
+      # We don't ship with `unxz` on Windows, instead assume that we get
+      # a .zip on this platform.
+      raise newException(
+        ChooseNimError, "Unable to extract. Tar.xz files are not supported on Windows."
+      )
+    else:
+      let tarFile = path.changeFileExt("")
+      removeFile(tarFile) # just in case it exists, if it does `unxz` fails.
+      doCmdRaw("unxz " & quoteShell(path))
+      extract(tarFile, extractDir) # We remove the .xz extension
+      return
+
   try:
-    nimarchive.extract(path, extractDir)
+    case path.splitFile.ext
+    of ".zip":
+      zippy_zips.extractAll(path, extractDir)
+    of ".tar", ".gz":
+      zippy_tarballs.extractAll(path, extractDir)
+    else:
+      raise newException(
+        ValueError, "Unsupported format for extraction: " & path
+      )
   except Exception as exc:
     raise newException(ChooseNimError, "Unable to extract. Error was '$1'." %
                        exc.msg)
