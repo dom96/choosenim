@@ -7,7 +7,7 @@ import nimblepkg/common as nimbleCommon
 from nimblepkg/packageinfo import getNameVersion
 
 import choosenimpkg/[download, builder, switcher, common, cliparams, versions]
-import choosenimpkg/[utils, channel, ssl, telemetry]
+import choosenimpkg/[utils, channel, telemetry]
 
 when defined(windows):
   import choosenimpkg/env
