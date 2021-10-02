@@ -1,5 +1,22 @@
 # Choosenim changelog
 
+## 0.8.0 - 02/10/2021
+
+This is a major new release containing many new significant improvements.
+In particular:
+
+* unxz/tar and the Nim zippy library are now used for extracting archives.
+* puppy is used for downloading via HTTP on Windows.
+* curl is used again for downloading via HTTP on macOS.
+* fixed issues building new Nim source code that relies on the new `build_all`
+scripts.
+* choosenim binaries no longer rely on musl.
+* better handling of antivirus false positives.
+
+See the full list of changes here:
+
+https://github.com/dom96/choosenim/compare/v0.7.4...0.8.0
+
 ## 0.7.4 - 20/10/2020
 
 This is a bug fix release to resolve a regression where a spurious `pkgs`
