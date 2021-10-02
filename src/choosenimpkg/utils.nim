@@ -64,6 +64,7 @@ proc extract*(path: string, extractDir: string) =
       return
 
   let tempDir = getTempDir() / "choosenim-extraction"
+  removeDir(tempDir)
 
   try:
     case path.splitFile.ext
