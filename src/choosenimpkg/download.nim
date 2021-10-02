@@ -365,7 +365,8 @@ proc retrieveUrl*(url: string): string =
     checkCurl curl.easy_setopt(OPT_WRITEFUNCTION, onWrite)
     checkCurl curl.easy_setopt(OPT_WRITEDATA, addr res)
 
-    checkCurl curl.easy_setopt(OPT_USERAGENT, addr userAgent[0])
+    let usrAgentCopy = userAgent
+    checkCurl curl.easy_setopt(OPT_USERAGENT, unsafeAddr usrAgentCopy[0])
 
     # Download the file.
     checkCurl curl.easy_perform()
