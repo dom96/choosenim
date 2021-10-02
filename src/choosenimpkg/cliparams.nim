@@ -17,6 +17,7 @@ type
     pendingReports*: int ## Count of pending telemetry reports.
     force*: bool
     latest*: bool
+    skipClean*: bool
 
 let doc = """
 choosenim: The Nim toolchain installer.
@@ -83,6 +84,7 @@ Options:
   --nimbleDir:<dir>     Specify the Nimble directory where binaries will be
                         placed. Default: ~/.nimble.
   --firstInstall        Used by install script.
+  --skipClean           Skip cleaning of failed builds.
 """
 
 proc command*(params: CliParams): string =
@@ -209,6 +211,7 @@ proc parseCliParams*(params: var CliParams, proxyExeMode = false) =
       of "installed": params.onlyInstalled = true
       of "force", "f": params.force = true
       of "latest", "l": params.latest = true
+      of "skipclean": params.skipClean = true
       else:
         if not proxyExeMode:
           raise newException(ChooseNimError, "Unknown flag: --" & key)
