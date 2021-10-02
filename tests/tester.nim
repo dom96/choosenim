@@ -79,6 +79,7 @@ proc exec(args: varargs[string], exe=exePath,
     result = execCmdEx(quotedArgs.join(" "))
   else:
     result.output = ""
+    echo "exec(): ", quotedArgs.join(" ")
     let process = startProcess(quotedArgs.join(" "),
                                options={poEvalCommand, poStdErrToStdOut})
     var missedEscape = false
@@ -138,10 +139,10 @@ test "fails on bad flag":
   check inLines(output.processOutput, "unknown")
   check inLines(output.processOutput, "flag")
 
-test "can choose v0.16.0":
+test "can choose #v1.0.0":
   beginTest()
   block:
-    let (output, exitCode) = exec("0.16.0", liveOutput=true)
+    let (output, exitCode) = exec("#v1.0.0", liveOutput=true)
     check exitCode == QuitSuccess
 
     check inLines(output.processOutput, "building")
@@ -153,7 +154,7 @@ test "can choose v0.16.0":
     check hasLine(output.processOutput, "switched to nim 0.16.0")
 
   block:
-    let (output, exitCode) = exec("0.16.0")
+    let (output, exitCode) = exec("#v1.0.0")
     check exitCode == QuitSuccess
 
     check hasLine(output.processOutput, "info: version 0.16.0 already selected")
@@ -163,12 +164,9 @@ test "can choose v0.16.0":
     check exitCode == QuitSuccess
     check inLines(output.processOutput, "v0.8.2")
 
-test "cannot remove current v0.16.0":
-  # skip prev test cleanup to have version to remove (thus faster ci/cd)
-  # TODO: clean state, prepare data for test, do not rely on prev test state
-  #beginTest()
+  # Verify that we cannot remove currently selected #v1.0.0.
   block:
-    let (output, exitCode) = exec(["remove", "0.16.0"], liveOutput=true)
+    let (output, exitCode) = exec(["remove", "#v1.0.0"], liveOutput=true)
     check exitCode == QuitFailure
 
     check inLines(output.processOutput, "Cannot remove current version.")
