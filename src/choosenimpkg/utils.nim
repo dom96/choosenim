@@ -71,7 +71,12 @@ proc extract*(path: string, extractDir: string) =
     of ".zip":
       zippy_zips.extractAll(path, tempDir)
     of ".tar", ".gz":
-      zippy_tarballs.extractAll(path, tempDir)
+      if findExe("tar") != "":
+        # TODO: Workaround for high mem usage of zippy (https://github.com/guzba/zippy/issues/31).
+        createDir(tempDir)
+        doCmdRaw("tar xf " & quoteShell(path) & " -C " & quoteShell(tempDir))
+      else:
+        zippy_tarballs.extractAll(path, tempDir)
     else:
       raise newException(
         ValueError, "Unsupported format for extraction: " & path
