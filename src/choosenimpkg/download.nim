@@ -381,6 +381,11 @@ proc retrieveUrl*(url: string): string =
              "Expected HTTP code $1 got $2 for $3" % [$200, $responseCode, url])
 
     return res
+  elif defined(windows):
+    return fetch(
+      url,
+      headers = @[Header(key: "User-Agent", value: userAgent)]
+    )
   else:
     display("Http", "Requesting " & url, priority = DebugPriority)
     var client = newHttpClient(proxy = getProxy(), userAgent = userAgent)
