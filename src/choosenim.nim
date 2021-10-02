@@ -84,10 +84,28 @@ proc chooseVersion(version: string, params: CliParams) =
             discard
       removeDir(tempDir)
 
-  if not params.isVersionInstalled(version):
+  var wasInstalled = params.isVersionInstalled(version)
+  if not wasInstalled:
     installVersion(version, params)
 
-  switchTo(version, params)
+  try:
+    switchTo(version, params)
+  except Exception as exc:
+    # If we cannot switch to the newly installed version for whatever reason
+    # we assume the installation failed. This can happen for example on
+    # Windows when Windows Defender flags one of the binaries as a virus.
+    display("Exception:", exc.msg, Error, HighPriority)
+    # Perform clean up.
+    if not wasInstalled and not params.skipClean:
+      display("Cleaning", "failed install of " & $version, priority = HighPriority)
+      try:
+        removeDir(params.getInstallationDir(version))
+      except Exception as exc:
+        display("Warning:", "Cleaning failed: " & exc.msg, Warning)
+
+    # Report telemetry.
+    report(initEvent(ErrorEvent, label=exc.msg), params)
+    raise newException(ChooseNimError, "Installation failed")
 
 proc choose(params: CliParams) =
   if dirExists(params.command):
