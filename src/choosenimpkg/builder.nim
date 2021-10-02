@@ -138,7 +138,7 @@ proc build*(extractDir: string, version: Version, params: CliParams) =
       report(initEvent(BuildSuccessEvent), params)
       report(initTiming(BuildTime, $version, startTime, $LabelSuccess), params)
 
-    if not success:
+    if not success and not params.skipClean:
       # Perform clean up.
       display("Cleaning", "failed build", priority = HighPriority)
       # TODO: Seems I cannot use a try inside a finally?
