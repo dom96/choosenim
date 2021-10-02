@@ -134,7 +134,10 @@ proc build*(extractDir: string, version: Version, params: CliParams) =
         success = true
         return
 
-    if fileExists(getCurrentDir() / "build_all.sh"):
+    if (
+      fileExists(getCurrentDir() / "build_all.sh") and
+      fileExists(getCurrentDir() / "build_all.bat")
+    ):
       buildAll()
     else:
       buildCompiler(version, params)
