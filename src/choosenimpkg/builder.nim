@@ -20,26 +20,23 @@ proc buildFromCSources(params: CliParams) =
 
 proc buildCompiler(version: Version, params: CliParams) =
   ## Assumes that CWD contains the compiler (``build`` should have changed it).
+  ##
+  ## Assumes that binary hasn't already been built.
   let binDir = getCurrentDir() / "bin"
-  if fileExists(binDir / "nim".addFileExt(ExeExt)):
-    if not version.isDevel() or not params.latest:
-      display("Compiler:", "Already built", priority = HighPriority)
-      return
+  if fileExists(getCurrentDir() / "build.sh"):
+    buildFromCSources(params)
   else:
-    if fileExists(getCurrentDir() / "build.sh"):
-      buildFromCSources(params)
-    else:
-      display("Warning:", "Building from latest C sources. They may not be " &
-                          "compatible with the Nim version you have chosen to " &
-                          "install.", Warning, HighPriority)
-      let path = downloadCSources(params)
-      let extractDir = getCurrentDir() / "csources"
-      extract(path, extractDir)
+    display("Warning:", "Building from latest C sources. They may not be " &
+                        "compatible with the Nim version you have chosen to " &
+                        "install.", Warning, HighPriority)
+    let path = downloadCSources(params)
+    let extractDir = getCurrentDir() / "csources"
+    extract(path, extractDir)
 
-      display("Building", "C sources", priority = HighPriority)
-      setCurrentDir(extractDir) # cd csources
-      buildFromCSources(params) # sh build.sh
-      setCurrentDir(extractDir.parentDir()) # cd ..
+    display("Building", "C sources", priority = HighPriority)
+    setCurrentDir(extractDir) # cd csources
+    buildFromCSources(params) # sh build.sh
+    setCurrentDir(extractDir.parentDir()) # cd ..
 
   when defined(windows):
     display("Building", "koch", priority = HighPriority)
@@ -79,6 +76,24 @@ proc buildTools(version: Version, params: CliParams) =
     else:
       doCmdRaw("./koch tools -d:release")
 
+proc buildAll() =
+  ## New method of building Nim. See https://github.com/dom96/choosenim/issues/256.
+  ##
+  ## This proc assumes that the extracted Nim sources contain a `build_all`
+  ## script.
+  ##
+  ## Also assumes that CWD is set properly.
+  when defined(windows):
+    display("Building", "Nim using build_all.bat", priority = HighPriority)
+    doCmdRaw("./build_all.bat")
+  else:
+    display("Building", "Nim using build_all.sh", priority = HighPriority)
+    doCmdRaw("sh build_all.sh")
+
+  let binDir = getCurrentDir() / "bin"
+  if not fileExists(binDir / "nim".addFileExt(ExeExt)):
+    raise newException(ChooseNimError, "Nim binary is missing. Build failed.")
+
 # Workaround for #147
 when defined(posix):
   proc setPermissions() =
@@ -113,8 +128,17 @@ proc build*(extractDir: string, version: Version, params: CliParams) =
 
   var success = false
   try:
-    buildCompiler(version, params)
-    buildTools(version, params)
+    if fileExists(getCurrentDir() / "bin" / "nim".addFileExt(ExeExt)):
+      if not version.isDevel() or not params.latest:
+        display("Compiler:", "Already built", priority = HighPriority)
+        success = true
+        return
+
+    if fileExists(getCurrentDir() / "build_all.sh"):
+      buildAll()
+    else:
+      buildCompiler(version, params)
+      buildTools(version, params)
     when defined(posix):
       setPermissions() # workaround for #147
     success = true
