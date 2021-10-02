@@ -39,6 +39,26 @@ proc installVersion(version: Version, params: CliParams) =
   # Build the compiler
   build(extractDir, version, params)
 
+proc safeSwitchTo(version: Version, params: CliParams, wasInstalled: bool) =
+  try:
+    switchTo(version, params)
+  except Exception as exc:
+    # If we cannot switch to the newly installed version for whatever reason
+    # we assume the installation failed. This can happen for example on
+    # Windows when Windows Defender flags one of the binaries as a virus.
+    display("Exception:", exc.msg, Error, HighPriority)
+    # Perform clean up.
+    if not wasInstalled and not params.skipClean:
+      display("Cleaning", "failed install of " & $version, priority = HighPriority)
+      try:
+        removeDir(params.getInstallationDir(version))
+      except Exception as exc:
+        display("Warning:", "Cleaning failed: " & exc.msg, Warning)
+
+    # Report telemetry.
+    report(initEvent(ErrorEvent, label=exc.msg), params)
+    raise newException(ChooseNimError, "Installation failed")
+
 proc chooseVersion(version: string, params: CliParams) =
   # Command is a version.
   let version = parseVersion(version)
@@ -90,24 +110,7 @@ proc chooseVersion(version: string, params: CliParams) =
   if not wasInstalled:
     installVersion(version, params)
 
-  try:
-    switchTo(version, params)
-  except Exception as exc:
-    # If we cannot switch to the newly installed version for whatever reason
-    # we assume the installation failed. This can happen for example on
-    # Windows when Windows Defender flags one of the binaries as a virus.
-    display("Exception:", exc.msg, Error, HighPriority)
-    # Perform clean up.
-    if not wasInstalled and not params.skipClean:
-      display("Cleaning", "failed install of " & $version, priority = HighPriority)
-      try:
-        removeDir(params.getInstallationDir(version))
-      except Exception as exc:
-        display("Warning:", "Cleaning failed: " & exc.msg, Warning)
-
-    # Report telemetry.
-    report(initEvent(ErrorEvent, label=exc.msg), params)
-    raise newException(ChooseNimError, "Installation failed")
+  safeSwitchTo(version, params, wasInstalled)
 
 proc choose(params: CliParams) =
   if dirExists(params.command):
@@ -198,7 +201,7 @@ proc update(params: CliParams) =
   display("Updated", "to " & $version, Success, HighPriority)
 
   # Always switch to the updated version.
-  switchTo(version, params)
+  safeSwitchTo(version, params, wasInstalled=false)
 
 proc show(params: CliParams) =
   let channel = getCurrentChannel(params)
