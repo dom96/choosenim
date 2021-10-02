@@ -9,12 +9,18 @@ when defined(windows):
   import env
 
 proc compileProxyexe() =
-  var cmd = "nim c"
+  var cmd =
+    when defined(windows):
+      "cmd /C \"cd ../../ && nimble c"
+    else:
+      "cd ../../ && nimble c"
   when defined(release):
     cmd.add " -d:release"
   when defined(staticBuild):
     cmd.add " -d:staticBuild"
-  cmd.add " proxyexe"
+  cmd.add " src/choosenimpkg/proxyexe"
+  when defined(windows):
+    cmd.add("\"")
   let (output, exitCode) = gorgeEx(cmd)
   doAssert exitCode == 0, $(output, cmd)
 
