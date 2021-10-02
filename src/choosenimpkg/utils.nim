@@ -1,4 +1,4 @@
-import httpclient, json, os, strutils, osproc, uri
+import httpclient, json, os, strutils, osproc, uri, sequtils
 
 import nimblepkg/[cli, version]
 import zippy/tarballs as zippy_tarballs
@@ -63,12 +63,14 @@ proc extract*(path: string, extractDir: string) =
       extract(tarFile, extractDir) # We remove the .xz extension
       return
 
+  let tempDir = getTempDir() / "choosenim-extraction"
+
   try:
     case path.splitFile.ext
     of ".zip":
-      zippy_zips.extractAll(path, extractDir)
+      zippy_zips.extractAll(path, tempDir)
     of ".tar", ".gz":
-      zippy_tarballs.extractAll(path, extractDir)
+      zippy_tarballs.extractAll(path, tempDir)
     else:
       raise newException(
         ValueError, "Unsupported format for extraction: " & path
@@ -76,6 +78,19 @@ proc extract*(path: string, extractDir: string) =
   except Exception as exc:
     raise newException(ChooseNimError, "Unable to extract. Error was '$1'." %
                        exc.msg)
+
+  # Skip outer directory.
+  # Same as: https://github.com/dom96/untar/blob/d21f7229b/src/untar.nim
+  #
+  # Determine which directory to copy.
+  var srcDir = tempDir
+  let contents = toSeq(walkDir(srcDir))
+  if contents.len == 1:
+    # Skip the outer directory.
+    srcDir = contents[0][1]
+
+  # Finally copy the directory to what the user specified.
+  copyDir(srcDir, extractDir)
 
 proc getProxy*(): Proxy =
   ## Returns ``nil`` if no proxy is specified.
