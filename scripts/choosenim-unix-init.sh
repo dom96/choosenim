@@ -124,6 +124,10 @@ get_platform() {
       if [ "$HOSTTYPE" = "x86_64" ] ; then
         local ucpu="amd64"
       fi
+      if [ "$HOSTTYPE" = "arm" ] ; then
+        # TODO: We don't have arm binaries for choosenim so far, rely on Rosetta.
+        local ucpu="amd64"
+      fi
       ;;
     *aix* )
       local myos="aix"
