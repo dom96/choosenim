@@ -36,6 +36,7 @@ proc doCmdRaw*(cmd: string) =
   stderr.flushFile()
 
   displayDebug("Executing", cmd)
+  displayDebug("Work Dir", getCurrentDir())
   let (output, exitCode) = execCmdEx(cmd)
   displayDebug("Finished", "with exit code " & $exitCode)
   displayDebug("Output", output)
