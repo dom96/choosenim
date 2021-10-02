@@ -89,8 +89,10 @@ Prompt: Can choosenim record and send anonymised telemetry data? [y/n]
 Answer:
 ```
 
-You can also set the ``CHOOSENIM_NO_ANALYTICS`` variable in your environment:
+You can also set the ``CHOOSENIM_NO_ANALYTICS`` or ``DO_NOT_TRACK`` variable in your environment:
 
 ```
 export CHOOSENIM_NO_ANALYTICS=1
+# or
+export DO_NOT_TRACK=1
 ```
