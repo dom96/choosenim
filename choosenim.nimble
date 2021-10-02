@@ -18,3 +18,5 @@ requires "nim >= 1.2.6", "nimble#8f7af86"
 requires "analytics >= 0.2.0"
 requires "osinfo >= 0.3.0"
 requires "https://github.com/dom96/zippy#fixes-29"
+when defined(windows):
+  requires "puppy 1.2.1"

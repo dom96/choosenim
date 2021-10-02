@@ -17,6 +17,7 @@ const
   csourcesUrl = "https://github.com/nim-lang/csources"
   dlArchive = "archive/$1.tar.gz"
   binaryUrl = "http://nim-lang.org/download/nim-$1$2_x$3" & getBinArchiveFormat()
+  userAgent = "choosenim/" & chooseNimVersion
 
 const # Windows-only
   mingwUrl = "http://nim-lang.org/download/mingw$1.7z"
@@ -70,6 +71,7 @@ when defined(curl):
       raise newException(AssertionError, "CURL failed: " & $easy_strerror(code))
 
   proc downloadFileCurl(url, outputPath: string) =
+    displayDebug("Downloading using Curl")
     # Based on: https://curl.haxx.se/libcurl/c/url2file.html
     let curl = libcurl.easy_init()
     defer:
@@ -160,6 +162,7 @@ when defined(curl):
              "Expected HTTP code $1 got $2" % [$200, $responseCode])
 
 proc downloadFileNim(url, outputPath: string) =
+  displayDebug("Downloading using HttpClient")
   var client = newHttpClient(proxy = getProxy())
 
   var lastProgressPos = 0
@@ -173,6 +176,16 @@ proc downloadFileNim(url, outputPath: string) =
   client.onProgressChanged = onProgressChanged
 
   client.downloadFile(url, outputPath)
+
+when defined(windows):
+  import puppy
+  proc downloadFilePuppy(url, outputPath: string) =
+    displayDebug("Downloading using Puppy")
+    let data = fetch(
+      url,
+      headers = @[Header(key: "User-Agent", value: userAgent)]
+    )
+    writeFile(outputPath, data)
 
 proc downloadFile*(url, outputPath: string, params: CliParams) =
   # For debugging.
@@ -189,6 +202,8 @@ proc downloadFile*(url, outputPath: string, params: CliParams) =
   try:
     when defined(curl):
       downloadFileCurl(url, tempOutputPath)
+    elif defined(windows):
+      downloadFilePuppy(url, tempOutputPath)
     else:
       downloadFileNim(url, tempOutputPath)
   except HttpRequestError:
@@ -328,7 +343,6 @@ proc downloadDLLs*(params: CliParams): string =
   return outputPath
 
 proc retrieveUrl*(url: string): string =
-  var userAgent = "choosenim/" & chooseNimVersion
   when defined(curl):
     display("Curl", "Requesting " & url, priority = DebugPriority)
     # Based on: https://curl.haxx.se/libcurl/c/simple.html
