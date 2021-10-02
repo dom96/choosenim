@@ -91,9 +91,9 @@ proc analyticsPrompt(params: CliParams) =
 proc report*(obj: Event | Timing | ref Exception, params: CliParams)
 proc loadAnalytics*(params: CliParams): bool =
   ## Returns ``true`` if ``analytics`` object has been loaded successfully.
-  if getEnv("CHOOSENIM_NO_ANALYTICS") == "1":
+  if getEnv("CHOOSENIM_NO_ANALYTICS") == "1" or getEnv("DO_NOT_TRACK") == "1":
     display("Info:",
-            "Not sending analytics because CHOOSENIM_NO_ANALYTICS is set.",
+            "Not sending analytics because either CHOOSENIM_NO_ANALYTICS or DO_NOT_TRACK is set.",
             priority=MediumPriority)
     return false
 
