@@ -84,7 +84,7 @@ proc chooseVersion(version: string, params: CliParams) =
             display("Warning:", "Error copying '$1' to '$2': $3" % [path, binDir, getCurrentExceptionMsg()], Warning, priority = HighPriority)
       removeDir(tempDir)
     else:
-      display("Info:", "DLLs already installed", priority = HighPriority)
+      display("Info:", "DLLs already installed", priority = MediumPriority)
 
   if not params.isVersionInstalled(version):
     installVersion(version, params)
