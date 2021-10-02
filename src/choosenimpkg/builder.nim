@@ -85,7 +85,7 @@ proc buildAll() =
   ## Also assumes that CWD is set properly.
   when defined(windows):
     display("Building", "Nim using build_all.bat", priority = HighPriority)
-    doCmdRaw("./build_all.bat")
+    doCmdRaw("build_all.bat")
   else:
     display("Building", "Nim using build_all.sh", priority = HighPriority)
     doCmdRaw("sh build_all.sh")

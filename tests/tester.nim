@@ -142,19 +142,16 @@ test "fails on bad flag":
 test "can choose #v1.0.0":
   beginTest()
   block:
-    let (output, exitCode) = exec("\\#v1.0.0", liveOutput=true)
+    let (output, exitCode) = exec("\"#v1.0.0\"", liveOutput=true)
     check exitCode == QuitSuccess
 
     check inLines(output.processOutput, "building")
     check inLines(output.processOutput, "downloading")
-    when defined(windows):
-      check inLines(output.processOutput, "already built")
-    else:
-      check inLines(output.processOutput, "building tools")
+    check inLines(output.processOutput, "building tools")
     check hasLine(output.processOutput, "switched to nim #v1.0.0")
 
   block:
-    let (output, exitCode) = exec("\\#v1.0.0")
+    let (output, exitCode) = exec("\"#v1.0.0\"")
     check exitCode == QuitSuccess
 
     check hasLine(output.processOutput, "info: version #v1.0.0 already selected")
@@ -166,7 +163,7 @@ test "can choose #v1.0.0":
 
   # Verify that we cannot remove currently selected #v1.0.0.
   block:
-    let (output, exitCode) = exec(["remove", "\\#v1.0.0"], liveOutput=true)
+    let (output, exitCode) = exec(["remove", "\"#v1.0.0\""], liveOutput=true)
     check exitCode == QuitFailure
 
     check inLines(output.processOutput, "Cannot remove current version.")
