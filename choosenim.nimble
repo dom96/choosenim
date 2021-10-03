@@ -21,3 +21,6 @@ requires "osinfo >= 0.3.0"
 requires "https://github.com/dom96/zippy#fixes-29"
 when defined(windows):
   requires "puppy 1.2.1"
+
+task release, "Build a release binary":
+  exec "nimble build -d:release"
