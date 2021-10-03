@@ -13,7 +13,7 @@ type
     choosenimDir*: string
     firstInstall*: bool
     nimbleOptions*: Options
-    analytics*: AsyncAnalytics
+    analytics*: PuppyAnalytics
     pendingReports*: int ## Count of pending telemetry reports.
     force*: bool
     latest*: bool

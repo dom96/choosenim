@@ -117,8 +117,9 @@ proc loadAnalytics*(params: CliParams): bool =
             priority=LowPriority)
     return false
 
-  params.analytics = newAsyncAnalytics("UA-105812497-1", clientID, "choosenim",
-                                       chooseNimVersion, proxy = getProxy())
+  params.analytics = newPuppyAnalytics("UA-105812497-1", clientID, "choosenim",
+                                       chooseNimVersion, proxy = getProxy(),
+                                       timeout=5)
 
   # Report OS info only once.
   if prompted:
@@ -141,12 +142,6 @@ proc reportAsyncError(fut: Future[void], params: CliParams) =
 
 proc hasPendingReports*(params: CliParams): bool = params.pendingReports > 0
 
-proc waitForReport*(duration: float, params: CliParams) =
-  ## Duration in seconds.
-  var startTime = epochTime()
-  while hasPendingOperations() and params.hasPendingReports():
-    if (epochTime() - startTime) > duration: break
-    poll(500)
 
 proc report*(obj: Event | Timing | ref Exception, params: CliParams) =
   try:
@@ -161,17 +156,13 @@ proc report*(obj: Event | Timing | ref Exception, params: CliParams) =
 
   try:
     when obj is Event:
-      let fut = params.analytics.reportEvent($obj.category, obj.action,
+      params.analytics.reportEvent($obj.category, obj.action,
                                              obj.label, obj.value)
     elif obj is Timing:
-      let fut = params.analytics.reportTiming($obj.category, obj.name,
+      params.analytics.reportTiming($obj.category, obj.name,
                                               obj.time, obj.label)
     else:
-      let fut = params.analytics.reportException(obj.msg)
-
-    params.pendingReports.inc()
-    reportAsyncError(fut, params)
-    waitForReport(2, params) # 2 seconds
+      params.analytics.reportException(obj.msg)
 
   except Exception as exc:
     display("Warning:", "Could not report to analytics due to error:" &
