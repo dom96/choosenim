@@ -1,5 +1,17 @@
 # Choosenim changelog
 
+## 0.8.2 - 05/10/2021
+
+This is mainly a bug fix release to resolve a few regressions and other bugs in
+0.8.0.
+
+This release also includes a new feature: you can now get the path of the
+selected Nim toolchain via `choosenim show path`.
+
+See the full list of changes here:
+
+https://github.com/dom96/choosenim/compare/v0.8.0...0.8.2
+
 ## 0.8.0 - 02/10/2021
 
 This is a major new release containing many new significant improvements.
