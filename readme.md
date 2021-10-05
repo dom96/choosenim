@@ -135,6 +135,7 @@ Commands:
   update    <version/channel>    Installs the latest release of the specified
                                  version or channel.
   show                           Displays the selected version and channel.
+  show      path                 Prints only the path of the current Nim version.
   update    self                 Updates choosenim itself.
   versions  [--installed]        Lists available versions of Nim, passing
                                  `--installed` only displays versions that
