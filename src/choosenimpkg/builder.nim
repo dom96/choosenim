@@ -94,19 +94,17 @@ proc buildAll() =
   if not fileExists(binDir / "nim".addFileExt(ExeExt)):
     raise newException(ChooseNimError, "Nim binary is missing. Build failed.")
 
-# Workaround for #147
-when defined(posix):
-  proc setPermissions() =
-    ## Assumes that CWD contains the compiler
-    let binDir = getCurrentDir() / "bin"
-    for kind, path in walkDir(binDir):
-      if kind == pcFile:
-        setFilePermissions(path,
-                           {fpUserRead, fpUserWrite, fpUserExec,
-                            fpGroupRead, fpGroupExec,
-                            fpOthersRead, fpOthersExec}
-        )
-        display("Info", "Setting rwxr-xr-x permissions: " & path, Message, LowPriority)
+proc setPermissions() =
+  ## Assumes that CWD contains the compiler
+  let binDir = getCurrentDir() / "bin"
+  for kind, path in walkDir(binDir):
+    if kind == pcFile:
+      setFilePermissions(path,
+                          {fpUserRead, fpUserWrite, fpUserExec,
+                          fpGroupRead, fpGroupExec,
+                          fpOthersRead, fpOthersExec}
+      )
+      display("Info", "Setting rwxr-xr-x permissions: " & path, Message, LowPriority)
 
 proc build*(extractDir: string, version: Version, params: CliParams) =
   # Report telemetry.
@@ -142,8 +140,6 @@ proc build*(extractDir: string, version: Version, params: CliParams) =
     else:
       buildCompiler(version, params)
       buildTools(version, params)
-    when defined(posix):
-      setPermissions() # workaround for #147
     success = true
   except NimbleError as exc:
     # Display error and output from build separately.
@@ -154,6 +150,9 @@ proc build*(extractDir: string, version: Version, params: CliParams) =
     raise newError
   finally:
     if success:
+      # Ensure permissions are set correctly.
+      setPermissions()
+
       # Delete c_code / csources
       try:
         removeDir(extractDir / "c_code")
