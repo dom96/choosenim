@@ -20,7 +20,7 @@ const
   userAgent = "choosenim/" & chooseNimVersion
 
 const # Windows-only
-  mingwUrl = "http://nim-lang.org/download/mingw$1.7z"
+  mingwUrl = "http://nim-lang.org/download/mingw$1.zip"
   dllsUrl = "http://nim-lang.org/download/dlls.zip"
 
 const
