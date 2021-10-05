@@ -209,7 +209,7 @@ proc show(params: CliParams) =
   let (_, version) = getNameVersion(path)
   if params.commands.len == 2:
     let whatToShow = params.commands[1]
-    if whatToShow.toLowerAscii()=="path":
+    if whatToShow.toLowerAscii() == "path":
       echo path
       return
   if version != "":
