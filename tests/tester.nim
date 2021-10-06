@@ -58,9 +58,9 @@ proc outputReader(stream: Stream, missedEscape: var bool): string =
     else:
       result.add(c[0])
 
-proc exec(args: varargs[string], exe=exePath,
-          yes=true, liveOutput=false,
-          global=false): tuple[output: string, exitCode: int] =
+proc exec(args: varargs[string], exe = exePath,
+          yes = true, liveOutput = false,
+          global = false): tuple[output: string, exitCode: int] =
   var quotedArgs: seq[string] = @[exe]
   if yes:
     quotedArgs.add("-y")
@@ -81,7 +81,7 @@ proc exec(args: varargs[string], exe=exePath,
   else:
     result.output = ""
     let process = startProcess(quotedArgs.join(" "),
-                               options={poEvalCommand, poStdErrToStdOut})
+                               options = {poEvalCommand, poStdErrToStdOut})
     var missedEscape = false
     while true:
       if not process.outputStream.atEnd:
@@ -107,13 +107,15 @@ proc hasLine(lines: seq[string], line: string): bool =
   for i in lines:
     if i.normalize.strip() == line.normalize(): return true
 
+
 test "can compile choosenim":
   var args = @["build"]
   when defined(release):
     args.add "-d:release"
   when defined(staticBuild):
     args.add "-d:staticBuild"
-  let (_, exitCode) = exec(args, exe="nimble", global=true, liveOutput=true)
+  let (_, exitCode) = exec(args, exe = "nimble", global = true,
+      liveOutput = true)
   check exitCode == QuitSuccess
 
 test "refuses invalid path":
@@ -142,7 +144,7 @@ test "fails on bad flag":
 test "can choose #v1.0.0":
   beginTest()
   block:
-    let (output, exitCode) = exec("\"#v1.0.0\"", liveOutput=true)
+    let (output, exitCode) = exec("\"#v1.0.0\"", liveOutput = true)
     check exitCode == QuitSuccess
 
     check inLines(output.processOutput, "building")
@@ -163,7 +165,7 @@ test "can choose #v1.0.0":
 
   # Verify that we cannot remove currently selected #v1.0.0.
   block:
-    let (output, exitCode) = exec(["remove", "\"#v1.0.0\""], liveOutput=true)
+    let (output, exitCode) = exec(["remove", "\"#v1.0.0\""], liveOutput = true)
     check exitCode == QuitFailure
 
     check inLines(output.processOutput, "Cannot remove current version.")
@@ -171,7 +173,7 @@ test "can choose #v1.0.0":
 test "cannot remove not installed v0.16.0":
   beginTest()
   block:
-    let (output, exitCode) = exec(["remove", "0.16.0"], liveOutput=true)
+    let (output, exitCode) = exec(["remove", "0.16.0"], liveOutput = true)
     check exitCode == QuitFailure
 
     check inLines(output.processOutput, "Version 0.16.0 is not installed.")
@@ -180,7 +182,7 @@ when defined(linux):
   test "linux binary install":
     beginTest()
     block:
-      let (output, exitCode) = exec("1.0.0", liveOutput=true)
+      let (output, exitCode) = exec("1.0.0", liveOutput = true)
       check exitCode == QuitSuccess
 
       check inLines(output.processOutput, "downloading")
@@ -192,7 +194,7 @@ when defined(linux):
 test "can update devel with git":
   beginTest()
   block:
-    let (output, exitCode) = exec(@["devel", "--latest"], liveOutput=true)
+    let (output, exitCode) = exec(@["devel", "--latest"], liveOutput = true)
 
     check inLines(output.processOutput, "extracting")
     check inLines(output.processOutput, "setting")
@@ -205,7 +207,8 @@ test "can update devel with git":
       warn("Could not build latest `devel` of Nim, possibly a bug in choosenim")
 
   block:
-    let (output, exitCode) = exec(@["update", "devel", "--latest"], liveOutput=true)
+    let (output, exitCode) = exec(@["update", "devel", "--latest"],
+        liveOutput = true)
 
     # TODO: Below lines could fail in rare circumstances: if new commit is
     # made just after the above tests starts.
@@ -226,7 +229,7 @@ test "can install and update nightlies":
   beginTest()
   block:
     # Install nightly
-    let (output, exitCode) = exec("devel", liveOutput=true)
+    let (output, exitCode) = exec("devel", liveOutput = true)
 
     # Travis runs into Github API limit
     if not inLines(output.processOutput, "unavailable"):
@@ -241,7 +244,7 @@ test "can install and update nightlies":
 
       block:
         # Update nightly
-        let (output, exitCode) = exec(@["update", "devel"], liveOutput=true)
+        let (output, exitCode) = exec(@["update", "devel"], liveOutput = true)
 
         # Travis runs into Github API limit
         if not inLines(output.processOutput, "unavailable"):
@@ -261,7 +264,33 @@ test "can update self":
   beginTest()
   let testExePath = choosenimDir / extractFilename(exePath)
   copyFileWithPermissions(exePath, testExePath)
-  block :
-    let (output, exitCode) = exec(["update", "self", "--debug", "--force"], exe=testExePath, liveOutput=true)
+  block:
+    let (output, exitCode) = exec(["update", "self", "--debug", "--force"],
+        exe = testExePath, liveOutput = true)
     check exitCode == QuitSuccess
     check inLines(output.processOutput, "Info: Updated choosenim to version")
+
+test "can show general informations":
+  beginTest()
+  block:
+    let (_, exitCode) = exec(@["stable"])
+    check exitCode == QuitSuccess
+  block:
+    let (output, exitCode) = exec(@["show", ])
+    check exitCode == QuitSuccess
+    check inLines(output.processOutput, "Selected:")
+    check inLines(output.processOutput, "Channel: stable")
+    check inLines(output.processOutput, "Path: " & choosenimDir)
+
+test "can show path":
+  beginTest()
+  block:
+    let (_, exitCode) = exec(@["stable"])
+    check exitCode == QuitSuccess
+  block:
+    let (output, exitCode) = exec(@["show", "path"])
+    check exitCode == QuitSuccess
+    echo output.processOutput
+    check inLines(output.processOutput, choosenimDir)
+
+
