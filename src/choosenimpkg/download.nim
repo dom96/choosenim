@@ -188,9 +188,9 @@ when defined(windows):
       )
     )
     if data.code == 404:
-        raise newException(HttpRequestError)
+        raise newException(HttpRequestError, "Version not found")
     else:
-        writeFile(outputPath, data)
+        writeFile(outputPath, data.body)
 
 proc downloadFile*(url, outputPath: string, params: CliParams) =
   # For debugging.
