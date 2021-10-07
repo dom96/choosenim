@@ -265,3 +265,11 @@ test "can update self":
     let (output, exitCode) = exec(["update", "self", "--debug", "--force"], exe=testExePath, liveOutput=true)
     check exitCode == QuitSuccess
     check inLines(output.processOutput, "Info: Updated choosenim to version")
+
+test "fails with invalid version":
+  beginTest()
+  block:
+    let (output, exitCode) = exec("\"#version-1.6\"")
+    check exitCode == QuitFailure
+    check inLines(output.processOutput, "Version")
+    check inLines(output.processOutput, "does not exist")
