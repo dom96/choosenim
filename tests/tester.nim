@@ -265,3 +265,27 @@ test "can update self":
     let (output, exitCode) = exec(["update", "self", "--debug", "--force"], exe=testExePath, liveOutput=true)
     check exitCode == QuitSuccess
     check inLines(output.processOutput, "Info: Updated choosenim to version")
+
+    
+test "can show general informations":
+  beginTest()
+  block:
+    let (_, exitCode) = exec(@["stable"])
+    check exitCode == QuitSuccess
+  block:
+    let (output, exitCode) = exec(@["show"])
+    check exitCode == QuitSuccess
+    check inLines(output.processOutput, "Selected:")
+    check inLines(output.processOutput, "Channel: stable")
+    check inLines(output.processOutput, "Path: " & choosenimDir)
+
+test "can show path":
+  beginTest()
+  block:
+    let (_, exitCode) = exec(@["stable"])
+    check exitCode == QuitSuccess
+  block:
+    let (output, exitCode) = exec(@["show", "path"])
+    check exitCode == QuitSuccess
+    echo output.processOutput
+    check inLines(output.processOutput, choosenimDir)
