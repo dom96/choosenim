@@ -181,11 +181,16 @@ when defined(windows):
   import puppy
   proc downloadFilePuppy(url, outputPath: string) =
     displayDebug("Downloading using Puppy")
-    let data = fetch(
-      url,
-      headers = @[Header(key: "User-Agent", value: userAgent)]
+    let data = fetch(Request(
+      url: parseUrl(url),
+      verb: "get",
+      headers: @[Header(key: "User-Agent", value: userAgent)]
+      )
     )
-    writeFile(outputPath, data)
+    if data.code == 404:
+        raise newException(HttpRequestError)
+    else:
+        writeFile(outputPath, data)
 
 proc downloadFile*(url, outputPath: string, params: CliParams) =
   # For debugging.
