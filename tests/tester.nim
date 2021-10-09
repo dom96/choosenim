@@ -273,3 +273,26 @@ test "fails with invalid version":
     check exitCode == QuitFailure
     check inLines(output.processOutput, "Version")
     check inLines(output.processOutput, "does not exist")
+    
+test "can show general informations":
+  beginTest()
+  block:
+    let (_, exitCode) = exec(@["stable"])
+    check exitCode == QuitSuccess
+  block:
+    let (output, exitCode) = exec(@["show"])
+    check exitCode == QuitSuccess
+    check inLines(output.processOutput, "Selected:")
+    check inLines(output.processOutput, "Channel: stable")
+    check inLines(output.processOutput, "Path: " & choosenimDir)
+
+test "can show path":
+  beginTest()
+  block:
+    let (_, exitCode) = exec(@["stable"])
+    check exitCode == QuitSuccess
+  block:
+    let (output, exitCode) = exec(@["show", "path"])
+    check exitCode == QuitSuccess
+    echo output.processOutput
+    check inLines(output.processOutput, choosenimDir)
