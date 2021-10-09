@@ -266,6 +266,13 @@ test "can update self":
     check exitCode == QuitSuccess
     check inLines(output.processOutput, "Info: Updated choosenim to version")
 
+test "fails with invalid version":
+  beginTest()
+  block:
+    let (output, exitCode) = exec("\"#version-1.6\"")
+    check exitCode == QuitFailure
+    check inLines(output.processOutput, "Version")
+    check inLines(output.processOutput, "does not exist")
     
 test "can show general informations":
   beginTest()
