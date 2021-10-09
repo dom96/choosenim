@@ -190,7 +190,8 @@ when defined(windows):
     if req.code == 200:
       writeFile(outputPath, req.body)
     else:
-      raise newException(HttpRequestError, "Version not found")
+      raise newException(HTTPRequestError,
+                   "Expected HTTP code $1 got $2" % [$200, $req.code])
 
 proc downloadFile*(url, outputPath: string, params: CliParams) =
   # For debugging.
