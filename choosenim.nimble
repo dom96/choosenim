@@ -13,7 +13,8 @@ skipExt = @["nim"]
 
 # Dependencies
 
-requires "nim >= 1.2.6", "nimble#8f7af86"
+# Note: https://github.com/dom96/choosenim/issues/233 (need to resolve when updating Nimble)
+requires "nim >= 1.2.6", "nimble#8f7af86" 
 when defined(macosx):
   requires "libcurl >= 1.0.0"
 requires "analytics >= 0.3.0"
