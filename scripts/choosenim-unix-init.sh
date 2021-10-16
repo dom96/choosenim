@@ -30,7 +30,6 @@ install() {
   get_platform || return 1
   local platform=$RET_VAL
   local stable_version=
-
   if has_curl; then
     stable_version=`curl -sSfL https://nim-lang.org/choosenim/stable`
   elif has_wget; then
