@@ -30,6 +30,7 @@ install() {
   get_platform || return 1
   local platform=$RET_VAL
   local stable_version=
+
   if has_curl; then
     stable_version=`curl -sSfL https://nim-lang.org/choosenim/stable`
   elif has_wget; then
@@ -63,6 +64,9 @@ install() {
     wget -qO "$temp_prefix/$filename" "$url"
   fi
   chmod +x "$temp_prefix/$filename"
+
+  # Update any existing local stable version to the latest nim stable version.
+  "$temp_prefix/$filename" update stable
 
   if [ "$need_tty" = "yes" ]; then
     # The installer is going to want to ask for confirmation by
