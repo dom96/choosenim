@@ -64,9 +64,6 @@ install() {
   fi
   chmod +x "$temp_prefix/$filename"
 
-  # Update any existing local stable version to the latest nim stable version.
-  "$temp_prefix/$filename" update stable
-
   if [ "$need_tty" = "yes" ]; then
     # The installer is going to want to ask for confirmation by
     # reading stdin.  This script was piped into `sh` though and
@@ -76,6 +73,8 @@ install() {
       err "Unable to run interactively. Run with -y to accept defaults."
     fi
 
+    # Update any existing local version.
+    "$temp_prefix/$filename" update $CHOOSE_VERSION < /dev/tty
     # Install Nim from desired channel.
     "$temp_prefix/$filename" $CHOOSE_VERSION --firstInstall ${debug} < /dev/tty
   else
