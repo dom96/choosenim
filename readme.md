@@ -49,6 +49,15 @@ curl https://nim-lang.org/choosenim/init.sh -sSf | sh
 wget -qO - https://nim-lang.org/choosenim/init.sh | sh
 ```
 
+### Apple Silicon
+
+```
+curl https://nim-lang.org/choosenim/init.sh -sSf | arch -x86_64 sh
+```
+```
+wget -qO - https://nim-lang.org/choosenim/init.sh | arch -x86_64 sh
+```
+
 **Optional:** You can specify the initial version you would like the `init.sh`
               script to install by specifying the ``CHOOSENIM_CHOOSE_VERSION``
               environment variable.
