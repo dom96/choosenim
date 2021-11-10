@@ -78,6 +78,7 @@ install() {
     # Install Nim from desired channel.
     "$temp_prefix/$filename" $CHOOSE_VERSION --firstInstall ${debug} < /dev/tty
   else
+    "$temp_prefix/$filename" update $CHOOSE_VERSION -y
     "$temp_prefix/$filename" $CHOOSE_VERSION --firstInstall -y ${debug}
   fi
 
