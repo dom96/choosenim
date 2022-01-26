@@ -30,14 +30,25 @@ proc parseVersion*(versionStr: string): Version =
 
   result = newVersion(versionStr)
 
+proc isRosetta(): bool =
+  let res = execCmdEx("sysctl -in sysctl.proc_translated")
+  if res.exitCode == 0:
+    return res.output.strip() == "1"
+  return false
+
 proc doCmdRaw*(cmd: string) =
+  var command = cmd
   # To keep output in sequence
   stdout.flushFile()
   stderr.flushFile()
 
-  displayDebug("Executing", cmd)
+  if defined(macosx) and isRosetta():
+    command = "arch -arm64 " & cmd
+
+  displayDebug("Executing", command)
   displayDebug("Work Dir", getCurrentDir())
-  let (output, exitCode) = execCmdEx(cmd)
+
+  let (output, exitCode) = execCmdEx(command)
   displayDebug("Finished", "with exit code " & $exitCode)
   displayDebug("Output", output)
 
