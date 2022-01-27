@@ -3,10 +3,13 @@ os:
   - osx
   - windows
 
+dist: bionic
+osx_image: xcode12.3
+
 language: c
 
 env:
-  - BRANCH=1.2.8
+  - BRANCH=1.4.4
 
 cache:
   directories:
