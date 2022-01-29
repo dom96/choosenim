@@ -21,7 +21,7 @@ requires "analytics >= 0.3.0"
 requires "osinfo >= 0.3.0"
 requires "zippy >= 0.7.2"
 when defined(windows):
-  requires "puppy 1.2.1"
+  requires "puppy 1.5.3"
 
 task release, "Build a release binary":
   exec "nimble build -d:release"
