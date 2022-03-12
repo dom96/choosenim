@@ -41,6 +41,14 @@ jobs:
           cd $CHOOSENIM_DIR
           nimble install -y
           nimble build
+      - name: Upload binaries to release
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          overwrite: true    
+          tag: ${{ github.ref }}
+          asset_name: choosenim-manylinux2014
+          file: bin/choosenim*   
 
   # ----------------------------------------------------------------------------
   build-win32:
@@ -52,6 +60,15 @@ jobs:
         run: |
           nimble install -y
           nimble build
+          
+      - name: Upload binaries to release
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          overwrite: true    
+          tag: ${{ github.ref }}
+          asset_name: choosenim-windows
+          file: bin/choosenim*     
 
   # ----------------------------------------------------------------------------
   build-macos:
@@ -63,3 +80,11 @@ jobs:
         run: |
           nimble install -y
           nimble build
+      - name: Upload binaries to release
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          overwrite: true    
+          tag: ${{ github.ref }}
+          asset_name: choosenim-macos
+          file: bin/choosenim*      
