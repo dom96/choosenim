@@ -26,6 +26,9 @@ jobs:
       - uses: actions/checkout@v2
       - name: Build binary
         run: |
+          echo `pwd`
+          echo ${{ runner.workspace }}
+          exit -1
           CHOOSENIM_DIR=`pwd`
           # checking out and compiling nim version-1-6 from git
           mkdir -p nimDir
@@ -48,7 +51,7 @@ jobs:
           overwrite: true    
           tag: ${{ github.ref }}
           asset_name: choosenim-manylinux2014
-          file: ${{ runner.workspace }}/bin/choosenim*   
+          file: bin/choosenim*   
 
   # ----------------------------------------------------------------------------
   build-win32:
@@ -68,7 +71,7 @@ jobs:
           overwrite: true    
           tag: ${{ github.ref }}
           asset_name: choosenim-windows
-          file: ${{ runner.workspace }}/bin/choosenim*     
+          file: bin/choosenim*     
 
   # ----------------------------------------------------------------------------
   build-macos:
@@ -87,4 +90,4 @@ jobs:
           overwrite: true    
           tag: ${{ github.ref }}
           asset_name: choosenim-macos
-          file: ${{ runner.workspace }}/bin/choosenim*      
+          file: bin/choosenim*      
