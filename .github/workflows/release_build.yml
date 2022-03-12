@@ -26,9 +26,6 @@ jobs:
       - uses: actions/checkout@v2
       - name: Build binary
         run: |
-          echo `pwd`
-          echo ${{ runner.workspace }}
-          exit -1
           CHOOSENIM_DIR=`pwd`
           # checking out and compiling nim version-1-6 from git
           mkdir -p nimDir
@@ -44,6 +41,8 @@ jobs:
           cd $CHOOSENIM_DIR
           nimble install -y
           nimble build
+          ls bin/*
+          
       - name: Upload binaries to release
         uses: svenstaro/upload-release-action@v2
         with:
@@ -51,7 +50,7 @@ jobs:
           overwrite: true    
           tag: ${{ github.ref }}
           asset_name: choosenim-manylinux2014
-          file: bin/choosenim*   
+          file: ${{ runner.workspace }}/choosenim/bin/choosenim*   
 
   # ----------------------------------------------------------------------------
   build-win32:
@@ -63,8 +62,7 @@ jobs:
         run: |
           nimble install -y
           nimble build
-          dir
-          dir bin/choosenim.exe
+          dir bin/*
           
       - name: Upload binaries to release
         uses: svenstaro/upload-release-action@v2
@@ -73,7 +71,7 @@ jobs:
           overwrite: true    
           tag: ${{ github.ref }}
           asset_name: choosenim-windows
-          file: ${{ runner.workspace }}/bin/choosenim.exe     
+          file: ${{ runner.workspace }}/choosenim/bin/choosenim.exe     
 
   # ----------------------------------------------------------------------------
   build-macos:
@@ -85,8 +83,7 @@ jobs:
         run: |
           nimble install -y
           nimble build
-          ls
-          ls bin
+          ls bin/*
           
       - name: Upload binaries to release
         uses: svenstaro/upload-release-action@v2
@@ -95,4 +92,4 @@ jobs:
           overwrite: true    
           tag: ${{ github.ref }}
           asset_name: choosenim-macos
-          file: ${{ runner.workspace }}/bin/choosenim      
+          file: ${{ runner.workspace }}/choosenim/bin/choosenim      
