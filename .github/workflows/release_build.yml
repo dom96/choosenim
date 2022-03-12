@@ -50,7 +50,7 @@ jobs:
           overwrite: true    
           tag: ${{ github.ref }}
           asset_name: choosenim-manylinux2014
-          file: ${{ runner.workspace }}/choosenim/bin/choosenim*   
+          file: ${{ runner.workspace }}/choosenim/bin/choosenim
 
   # ----------------------------------------------------------------------------
   build-win32:
