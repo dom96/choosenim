@@ -24,7 +24,6 @@ jobs:
       image: quay.io/pypa/manylinux2014_x86_64
     steps:
       - uses: actions/checkout@v2
-        # - uses: iffy/install-nim@v4.0.1
       - name: Build binary
         run: |
           CHOOSENIM_DIR=`pwd`
