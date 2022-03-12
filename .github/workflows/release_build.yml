@@ -63,6 +63,8 @@ jobs:
         run: |
           nimble install -y
           nimble build
+          dir
+          dir bin/choosenim.exe
           
       - name: Upload binaries to release
         uses: svenstaro/upload-release-action@v2
@@ -71,7 +73,7 @@ jobs:
           overwrite: true    
           tag: ${{ github.ref }}
           asset_name: choosenim-windows
-          file: bin/choosenim*     
+          file: ${{ runner.workspace }}/bin/choosenim.exe     
 
   # ----------------------------------------------------------------------------
   build-macos:
@@ -83,6 +85,9 @@ jobs:
         run: |
           nimble install -y
           nimble build
+          ls
+          ls bin
+          
       - name: Upload binaries to release
         uses: svenstaro/upload-release-action@v2
         with:
@@ -90,4 +95,4 @@ jobs:
           overwrite: true    
           tag: ${{ github.ref }}
           asset_name: choosenim-macos
-          file: bin/choosenim*      
+          file: ${{ runner.workspace }}/bin/choosenim      
