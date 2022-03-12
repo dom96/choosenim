@@ -27,7 +27,7 @@ jobs:
       - name: Build binary
         run: |
           CHOOSENIM_DIR=`pwd`
-        # checking out and compiling nim version-1-6 from git
+          # checking out and compiling nim version-1-6 from git
           mkdir -p nimDir
           git clone -n https://github.com/nim-lang/Nim.git nimDir
           cd nimDir
@@ -37,7 +37,7 @@ jobs:
           ./koch boot -d:release
           ./koch tools
           PATH=$PATH:`pwd`/bin
-        # compile choosenim
+          # compile choosenim
           cd $CHOOSENIM_DIR
           nimble install -y
           nimble build
