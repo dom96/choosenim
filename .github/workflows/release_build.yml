@@ -1,0 +1,53 @@
+# This workflow will upload a Python Package using Twine when a release is created
+# For more information see: https://help.github.com/en/actions/language-and-framework-guides/using-python-with-github-actions#publishing-to-package-registries
+
+# This workflow uses actions that are not certified by GitHub.
+# They are provided by a third-party and are governed by
+# separate terms of service, privacy policy, and support
+# documentation.
+
+name: Build and upload binary
+
+on:  
+  workflow_dispatch:
+  push:
+    paths:
+      - 'choosenim.nimble'
+    branches:
+      - main
+
+jobs:
+ # ----------------------------------------------------------------------------
+  build-linux:
+    runs-on: ubuntu-latest
+    container:
+      image: quay.io/pypa/manylinux2014_x86_64
+    steps:
+      - uses: actions/checkout@v2
+      - uses: iffy/install-nim@v4.0.1
+      - name: Build binary
+        run: |
+          nimble install -y
+          nimble build
+
+  # ----------------------------------------------------------------------------
+  build-win32:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: iffy/install-nim@v4.0.1
+      - name: Build binary
+        run: |
+          nimble install -y
+          nimble build
+
+  # ----------------------------------------------------------------------------
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: iffy/install-nim@v4.0.1
+      - name: Build binary
+        run: |
+          nimble install -y
+          nimble build
