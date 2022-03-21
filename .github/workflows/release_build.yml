@@ -1,23 +1,19 @@
-# This workflow will upload a Python Package using Twine when a release is created
-# For more information see: https://help.github.com/en/actions/language-and-framework-guides/using-python-with-github-actions#publishing-to-package-registries
-
-# This workflow uses actions that are not certified by GitHub.
-# They are provided by a third-party and are governed by
-# separate terms of service, privacy policy, and support
-# documentation.
-
+# This workflow will automatically upload a binary artifact when a release/tag  is created
 name: Build and upload binary
 
 on:  
+  # allow to build manually 
   workflow_dispatch:
+  # build automatically when pushing a tag 
   push:
-    paths:
-      - 'choosenim.nimble'
     branches:
-      - main
+      - "!*"
+    tags:
+      - "v*"
 
 jobs:
- # ----------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
+  # this will checkout and build nim stable from gh repository on manylinux2014 / CentOS 7 
   build-linux:
     runs-on: ubuntu-latest
     container:
@@ -27,11 +23,11 @@ jobs:
       - name: Build binary
         run: |
           CHOOSENIM_DIR=`pwd`
-          # checking out and compiling nim version-1-6 from git
+          # checking out and compiling nim last stable from git tag
           mkdir -p nimDir
-          git clone -n https://github.com/nim-lang/Nim.git nimDir
+          STABLE_NIM=`wget -qO- http://nim-lang.org/channels/stable | xargs`
+          git clone --depth 1 --branch v$STABLE_NIM https://github.com/nim-lang/Nim.git nimDir
           cd nimDir
-          git checkout version-1-6
           sh build_all.sh
           bin/nim c koch
           ./koch boot -d:release
@@ -43,7 +39,7 @@ jobs:
           nimble build
           ls bin/*
           
-      - name: Upload binaries to release
+      - name: Upload binaries to release/tag
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
@@ -53,6 +49,7 @@ jobs:
           file: ${{ runner.workspace }}/choosenim/bin/choosenim
 
   # ----------------------------------------------------------------------------
+  # this uses choosenim by itself - you may need to build manually if you break choosenim
   build-win32:
     runs-on: windows-latest
     steps:
@@ -64,7 +61,7 @@ jobs:
           nimble build
           dir bin/*
           
-      - name: Upload binaries to release
+      - name: Upload binaries to release/tag
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
@@ -74,6 +71,7 @@ jobs:
           file: ${{ runner.workspace }}/choosenim/bin/choosenim.exe     
 
   # ----------------------------------------------------------------------------
+  # this uses choosenim by itself - you may need to build manually if you break choosenim
   build-macos:
     runs-on: macos-latest
     steps:
@@ -85,7 +83,7 @@ jobs:
           nimble build
           ls bin/*
           
-      - name: Upload binaries to release
+      - name: Upload binaries to release/tag
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
