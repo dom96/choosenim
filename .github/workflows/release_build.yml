@@ -25,7 +25,7 @@ jobs:
           CHOOSENIM_DIR=`pwd`
           # checking out and compiling nim last stable from git tag
           mkdir -p nimDir
-          STABLE_NIM=`wget -qO- http://nim-lang.org/channels/stable | xargs`
+          STABLE_NIM=`curl -sSL http://nim-lang.org/channels/stable | xargs`
           git clone --depth 1 --branch v$STABLE_NIM https://github.com/nim-lang/Nim.git nimDir
           cd nimDir
           sh build_all.sh
