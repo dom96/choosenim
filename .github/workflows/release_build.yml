@@ -1,0 +1,93 @@
+# This workflow will automatically upload a binary artifact when a release/tag  is created
+name: Build and upload binary
+
+on:  
+  # allow to build manually 
+  workflow_dispatch:
+  # build automatically when pushing a tag 
+  push:
+    branches:
+      - "!*"
+    tags:
+      - "v*"
+
+jobs:
+  # ----------------------------------------------------------------------------
+  # this will checkout and build nim stable from gh repository on manylinux2014 / CentOS 7 
+  build-linux:
+    runs-on: ubuntu-latest
+    container:
+      image: quay.io/pypa/manylinux2014_x86_64
+    steps:
+      - uses: actions/checkout@v2
+      - name: Build binary
+        run: |
+          CHOOSENIM_DIR=`pwd`
+          # checking out and compiling nim last stable from git tag
+          mkdir -p nimDir
+          STABLE_NIM=`curl -sSL http://nim-lang.org/channels/stable | xargs`
+          git clone --depth 1 --branch v$STABLE_NIM https://github.com/nim-lang/Nim.git nimDir
+          cd nimDir
+          sh build_all.sh
+          bin/nim c koch
+          ./koch boot -d:release
+          ./koch tools
+          PATH=$PATH:`pwd`/bin
+          # compile choosenim
+          cd $CHOOSENIM_DIR
+          nimble install -y
+          nimble build
+          ls bin/*
+          
+      - name: Upload binaries to release/tag
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          overwrite: true    
+          tag: ${{ github.ref }}
+          asset_name: choosenim-manylinux2014
+          file: ${{ runner.workspace }}/choosenim/bin/choosenim
+
+  # ----------------------------------------------------------------------------
+  # this uses choosenim by itself - you may need to build manually if you break choosenim
+  build-win32:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: iffy/install-nim@v4.0.1
+      - name: Build binary
+        run: |
+          nimble install -y
+          nimble build
+          dir bin/*
+          
+      - name: Upload binaries to release/tag
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          overwrite: true    
+          tag: ${{ github.ref }}
+          asset_name: choosenim-windows
+          file: ${{ runner.workspace }}/choosenim/bin/choosenim.exe     
+
+  # ----------------------------------------------------------------------------
+  # this uses choosenim by itself - you may need to build manually if you break choosenim
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: iffy/install-nim@v4.0.1
+      - name: Build binary
+        run: |
+          nimble install -y
+          nimble build
+          ls bin/*
+          
+      - name: Upload binaries to release/tag
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          overwrite: true    
+          tag: ${{ github.ref }}
+          asset_name: choosenim-macos
+          file: ${{ runner.workspace }}/choosenim/bin/choosenim      
