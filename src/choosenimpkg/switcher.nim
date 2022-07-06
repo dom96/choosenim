@@ -201,7 +201,7 @@ proc switchToPath(filepath: string, params: CliParams): bool =
 
   # Return early if this version is already selected.
   let selectedPath = params.getSelectedPath()
-  let proxiesInstalled = params.areProxiesInstalled(proxies)
+  let proxiesInstalled = params.areProxiesInstalled(proxiesToInstall)
   if selectedPath == filepath and proxiesInstalled:
     return false
   else:
