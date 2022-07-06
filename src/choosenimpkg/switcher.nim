@@ -66,12 +66,19 @@ proc isDefaultCCInPath*(params: CliParams): bool =
 proc needsCCInstall*(params: CliParams): bool =
   ## Determines whether the system needs a C compiler to be installed.
   let inPath = isDefaultCCInPath(params)
-  let inMingwDir =
-    when defined(windows):
-      fileExists(params.getMingwBin() / "gcc".addFileExt(ExeExt))
-    else: false
-  let isInstalled = inPath or inMingwDir
-  return not isInstalled
+
+  when defined(windows):
+    let inMingwDir =
+      when defined(windows):
+        fileExists(params.getMingwBin() / "gcc".addFileExt(ExeExt))
+      else: false
+
+    # Check whether the `gcc` we have in PATH is actually choosenim's proxy exe.
+    # If so and toolchain mingw dir doesn't exit then we need to install.
+    if inPath and findExe("gcc") == params.getProxyPath("gcc"):
+      return not inMingwDir
+
+  return not inPath
 
 proc needsDLLInstall*(params: CliParams): bool =
   ## Determines whether DLLs need to be installed (Windows-only).
