@@ -59,6 +59,10 @@ proc extract*(path: string, extractDir: string) =
     else:
       let tarFile = path.changeFileExt("")
       removeFile(tarFile) # just in case it exists, if it does `unxz` fails.
+      if findExe("unxz") == "":
+        raise newException(
+          ChooseNimError, "Unable to extract. Need `unxz` to extract .tar.xz file. See https://github.com/dom96/choosenim/issues/290."
+        )
       doCmdRaw("unxz " & quoteShell(path))
       extract(tarFile, extractDir) # We remove the .xz extension
       return

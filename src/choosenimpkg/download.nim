@@ -13,7 +13,8 @@ const
   githubTagReleasesUrl = "https://api.github.com/repos/nim-lang/Nim/tags"
   githubNightliesReleasesUrl = "https://api.github.com/repos/nim-lang/nightlies/releases"
   githubUrl = "https://github.com/nim-lang/Nim"
-  websiteUrl = "http://nim-lang.org/download/nim-$1.tar.xz"
+  websiteUrlXz = "http://nim-lang.org/download/nim-$1.tar.xz"
+  websiteUrlGz = "http://nim-lang.org/download/nim-$1.tar.gz"
   csourcesUrl = "https://github.com/nim-lang/csources"
   dlArchive = "archive/$1.tar.gz"
   binaryUrl = "http://nim-lang.org/download/nim-$1$2_x$3" & getBinArchiveFormat()
@@ -299,7 +300,8 @@ proc downloadImpl(version: Version, params: CliParams): string =
         display("Info:", "Binary build unavailable, building from source",
                 priority = HighPriority)
 
-    let url = websiteUrl % $version
+    let hasUnxz = findExe("unxz") != ""
+    let url = (if hasUnxz: websiteUrlXz else: websiteUrlGz) % $version
     if not needsDownload(params, url, outputPath): return outputPath
 
     downloadFile(url, outputPath, params)

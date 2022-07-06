@@ -91,7 +91,8 @@ install them accordingly.
    a C compiler however. More information on dependencies is available
    [here](https://nim-lang.org/install_unix.html).
 
-Git is required when installing #HEAD or a specific commit of Nim.
+Git is required when installing #HEAD or a specific commit of Nim. The `unxz`
+binary is optional but will allow choosenim to download the smallest tarballs.
 
 ## Usage
 
