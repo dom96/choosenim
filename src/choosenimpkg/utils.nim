@@ -144,7 +144,12 @@ proc getGccArch*(params: CliParams): int =
     (outp, errC) = execCmdEx("echo \"int main() { return sizeof(void *); }\" | gcc -xc - -o archtest && ./archtest")
 
   removeFile("archtest".addFileExt(ExeExt))
-  return errC * 8
+
+  if errC in [4, 8]:
+    return errC * 8
+  else:
+    # Fallback when arch detection fails. See https://github.com/dom96/choosenim/issues/284
+    return when defined(windows): 32 else: 64
 
 proc getLatestCommit*(repo, branch: string): string =
   ## Get latest commit for remote Git repo with ls-remote

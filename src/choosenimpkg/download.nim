@@ -244,6 +244,7 @@ proc needsDownload(params: CliParams, downloadUrl: string,
 proc retrieveUrl*(url: string): string
 proc downloadImpl(version: Version, params: CliParams): string =
   let arch = getGccArch(params)
+  displayDebug("Detected", "arch as " & $arch & "bit")
   if version.isSpecial():
     var reference, url = ""
     if $version in ["#devel", "#head"] and not params.latest:

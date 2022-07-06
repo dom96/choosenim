@@ -11,6 +11,7 @@ when defined(windows):
 proc buildFromCSources(params: CliParams) =
   when defined(windows):
     let arch = getGccArch(params)
+    displayDebug("Detected", "arch as " & $arch & "bit")
     if arch == 32:
       doCmdRaw("build.bat")
     elif arch == 64:
