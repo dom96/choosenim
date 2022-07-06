@@ -1,5 +1,13 @@
 # Choosenim changelog
 
+## 0.8.4 - 06/07/2022
+
+This is minor release to resolve issues with OpenSSL on newer Linux distributions.
+
+See the full list of changes here:
+
+https://github.com/dom96/choosenim/compare/v0.8.2...0.8.4
+
 ## 0.8.2 - 05/10/2021
 
 This is mainly a bug fix release to resolve a few regressions and other bugs in
