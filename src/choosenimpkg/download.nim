@@ -1,6 +1,6 @@
 import httpclient, strutils, os, osproc, terminal, times, json, uri
 
-when defined(macosx):
+when defined(curl):
   import math
 
 import nimblepkg/[version, cli]

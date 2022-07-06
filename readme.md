@@ -37,7 +37,7 @@ prompts and enjoy your new Nim and choosenim installation.
 ----
 
 There is also a third-party project to provide an installer for choosenim,
-you can find it [here](https://gitlab.com/ArMour85/choosenim-setup) (note that 
+you can find it [here](https://gitlab.com/ArMour85/choosenim-setup) (note that
 this isn't vetted by the Nim team so you do so at your own risk).
 
 ### Unix
@@ -84,18 +84,14 @@ install them accordingly.
 |            |           Windows             |        Linux       |        macOS (*)      |
 |------------|:-----------------------------:|:------------------:|:---------------------:|
 | C compiler | *Downloaded automatically*    |      gcc/clang     |      gcc/clang        |
-| OpenSSL    |          >= 1.0.2k            |      >= 1.0.2k     |         N/A           |
-| curl       |             N/A               |         N/A        | Any recent version    |
-| wget       |             N/A               |      >= 1.20.1     |      >= 1.20.1        |
+| OpenSSL    |             N/A               |         N/A        |         N/A           |
+| curl       |             N/A               | Any recent version | Any recent version    |
 
 \* Many macOS dependencies should already be installed. You may need to install
    a C compiler however. More information on dependencies is available
    [here](https://nim-lang.org/install_unix.html).
 
-OpenSSL version can be checked by executing ``openssl version``.
-
-Git is required when installing release versions on platforms other than Windows
-and Linux, or when installing #HEAD or a specific commit of Nim.
+Git is required when installing #HEAD or a specific commit of Nim.
 
 ## Usage
 
@@ -109,7 +105,7 @@ Usage:
   choosenim <version/path/channel>
 
 Example:
-  choosenim 0.16.0
+  choosenim 1.0.0
     Installs (if necessary) and selects version 0.16.0 of Nim.
   choosenim stable
     Installs (if necessary) Nim from the stable channel (latest stable release)
