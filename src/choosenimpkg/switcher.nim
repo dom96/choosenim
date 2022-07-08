@@ -12,6 +12,8 @@ proc compileProxyexe() =
   var cmd =
     when defined(windows):
       "cmd /C \"cd ../../ && nimble c"
+    elif defined(macosx):
+      "cd ../../ && nimble c --passC:'-arch arm64 -arch x86_64' --passL:'-arch arm64 -arch x86_64'"
     else:
       "cd ../../ && nimble c"
   when defined(release):
