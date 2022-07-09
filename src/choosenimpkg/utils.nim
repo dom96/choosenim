@@ -198,7 +198,9 @@ proc getNightliesUrl*(parsedContents: JsonNode, arch: int): (string, string) =
             if "x" & $arch in aname:
               result = (url, tagName)
           else:
-            result = (url, tagName)
+            # when choosenim become arm64, isRosetta will be false, so, we have to guard that hostCPU is amd64 to use nightlies
+            if not isRosetta() and hostCPU == "amd64":
+              result = (url, tagName)
         if result[0].len != 0:
           break
     if result[0].len != 0:
