@@ -3,19 +3,22 @@ import os, strutils, osproc, pegs
 import nimblepkg/[cli, version, options]
 from nimblepkg/packageinfo import getNameVersion
 
-import cliparams, common
+import cliparams, common, utils
 
 when defined(windows):
   import env
 
-proc compileProxyexe() =
+proc compileProxyexe(additionalMacOSFlag: string = "", proxyName = "proxyexe") =
   var cmd =
     when defined(windows):
       "cmd /C \"cd ../../ && nimble c"
     elif defined(macosx):
-      "cd ../../ && nimble c --passC:'-arch arm64 -arch x86_64' --passL:'-arch arm64 -arch x86_64'"
+      "cd ../../ && nimble c " & additionalMacOSFlag 
     else:
       "cd ../../ && nimble c"
+
+  cmd.add " --out:src/choosenimpkg/" & proxyName
+
   when defined(release):
     cmd.add " -d:release"
   when defined(staticBuild):
@@ -26,10 +29,61 @@ proc compileProxyexe() =
   let (output, exitCode) = gorgeEx(cmd)
   doAssert exitCode == 0, $(output, cmd)
 
-static: compileProxyexe()
+proc isMacOSBelowBigSurCompileTime(): bool =
+  const (versionOutput, _) = gorgeEx("sw_vers -productVersion")
+  const currentVersion = versionOutput.split(".")
 
-const
-  proxyExe = staticRead("proxyexe".addFileExt(ExeExt))
+  if currentVersion.len() < 1: return false # version should be at least 11, like this
+  let twoVersion = parseFloat(
+    if currentVersion.len() == 1:
+      currentVersion[0].strip()
+    else: currentVersion[0..1].join(".").strip())
+
+  return twoVersion < 11
+
+proc isMacOSBelowBigSur(): bool =
+  let (versionOutput, _) = execCmdEx("sw_vers -productVersion")
+  let currentVersion = versionOutput.split(".")
+
+  if currentVersion.len() < 1:
+    return false # version should be at least 11 like this
+  let twoVersion = parseFloat(
+    if currentVersion.len() == 1:
+      currentVersion[0].strip()
+    else: currentVersion[0..1].join(".").strip())
+
+  return twoVersion < 11
+
+proc isAppleSilicon(): bool =
+  let (output, exitCode) = execCmdEx("uname -m")  # arch -x86_64 uname -m returns x86_64 on M1 🥲
+  assert exitCode == 0, output
+  return output == "arm64" or isRosetta()
+
+static:
+  when defined(macosx):
+    compileProxyexe("--cpu:amd64 --passC:'-arch x86_64' --passL:'-arch x86_64'", "proxyexe-amd64")
+    # if CI or building machine is below macOS Big Sur, don't compile cross-compile arm64 proxyexe
+    when not isMacOSBelowBigSurCompileTime():
+      compileProxyexe("--cpu:arm64 --passC:'-arch arm64' --passL:'-arch arm64'", "proxyexe-arm64")
+  else:
+    compileProxyexe()
+
+when defined(macosx):
+  when not isMacOSBelowBigSurCompileTime():
+    const embeddedProxyExeArm: string = staticRead("proxyexe-arm64".addFileExt(ExeExt))
+  const embeddedProxyExe = staticRead("proxyexe-amd64".addFileExt(ExeExt))
+else:
+  const embeddedproxyExe: string = staticRead("proxyexe".addFileExt(ExeExt))
+
+proc proxyToUse(): string =
+  result = embeddedProxyExe
+  when defined(macosx):
+    if not isMacOSBelowBigSur():
+      when declared(embeddedProxyExeArm):
+        result = (if isAppleSilicon(): embeddedProxyExeArm else: embeddedProxyExe)
+      else:
+        # result is already embeddedProxyExe
+        {.warning: "Since choosenim is compiled on macOS that doesn't support arm64, choosenim proxies won't be able to produce arm64 result.".}
 
 proc getInstallationDir*(params: CliParams, version: Version): string =
   return params.getInstallDir() / ("nim-$1" % $version)
@@ -47,6 +101,7 @@ proc getProxyPath(params: CliParams, bin: string): string =
 
 proc areProxiesInstalled(params: CliParams, proxies: openarray[string]): bool =
   result = true
+  let proxyExe = proxyToUse()
   for proxy in proxies:
     # Verify that proxy exists.
     let path = params.getProxyPath(proxy)
@@ -135,6 +190,7 @@ proc writeProxy(bin: string, params: CliParams) =
     display("Removed", "symlink pointing to $1" % symlinkPath,
             priority = HighPriority)
 
+  let proxyExe = proxyToUse()
   # Don't write the file again if it already exists.
   if fileExists(proxyPath) and readFile(proxyPath) == proxyExe: return
 

@@ -30,7 +30,7 @@ proc parseVersion*(versionStr: string): Version =
 
   result = newVersion(versionStr)
 
-proc isRosetta(): bool =
+proc isRosetta*(): bool =
   let res = execCmdEx("sysctl -in sysctl.proc_translated")
   if res.exitCode == 0:
     return res.output.strip() == "1"
