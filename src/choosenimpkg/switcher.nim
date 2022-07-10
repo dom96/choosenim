@@ -71,19 +71,21 @@ static:
 when defined(macosx):
   when not isMacOSBelowBigSurCompileTime():
     const embeddedProxyExeArm: string = staticRead("proxyexe-arm64".addFileExt(ExeExt))
+  else:
+    {.warning: "Since choosenim is compiled on macOS that doesn't support arm64, choosenim proxies won't be able to produce arm64 result.".}
   const embeddedProxyExe = staticRead("proxyexe-amd64".addFileExt(ExeExt))
 else:
   const embeddedproxyExe: string = staticRead("proxyexe".addFileExt(ExeExt))
 
 proc proxyToUse(): string =
-  result = embeddedProxyExe
   when defined(macosx):
-    if not isMacOSBelowBigSur():
-      when declared(embeddedProxyExeArm):
-        result = (if isAppleSilicon(): embeddedProxyExeArm else: embeddedProxyExe)
-      else:
-        # result is already embeddedProxyExe
-        {.warning: "Since choosenim is compiled on macOS that doesn't support arm64, choosenim proxies won't be able to produce arm64 result.".}
+    if not isMacOSBelowBigSur(): # it's big sur and above, so have to check Apple Silicon
+      if isAppleSilicon():
+        when declared(embeddedProxyExeArm): # embeddedProxyExeArm doesn't exist means choosenim was compiled on machine that doesn't support arm64
+          return embeddedProxyExeArm
+        display("Warning:", "Since choosenim is compiled on macOS that doesn't support arm64, choosenim proxies won't be able to install arm64 proxies.", Warning, DebugPriority)
+  # normal linux, windows build ( the same as macos amd64 )
+  return embeddedProxyExe
 
 proc getInstallationDir*(params: CliParams, version: Version): string =
   return params.getInstallDir() / ("nim-$1" % $version)
