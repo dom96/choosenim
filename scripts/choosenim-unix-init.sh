@@ -86,7 +86,7 @@ install() {
   say "You must now ensure that the Nimble bin dir is in your PATH."
   if [ "$platform" != "windows_amd64" ]; then
     say "Place the following line in the ~/.profile or ~/.bashrc file."
-    say "    export PATH=$nimbleBinDir:\$PATH"
+    say "    export PATH=\$PATH:$nimbleBinDir"
     case "${SHELL:=sh}" in
       *fish*)
       say "Running fish shell?"
