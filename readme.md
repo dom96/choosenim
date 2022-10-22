@@ -11,7 +11,9 @@ The aim of this tool is two-fold:
 
 ## Typical usage
 
-```
+To select the current `stable` release of Nim:
+
+```bash
 $ choosenim stable
   Installed component 'nim'
   Installed component 'nimble'
@@ -23,6 +25,29 @@ $ choosenim stable
 $ nim -v
 Nim Compiler Version 1.0.0 [Linux: amd64]
 ```
+
+To update to the latest `stable` release of Nim:
+
+```bash
+$ choosenim update stable
+```
+
+To display which versions are currently installed:
+
+```bash
+$ choosenim show
+  Selected: 1.6.6
+   Channel: stable
+      Path: /home/dom/.choosenim/toolchains/nim-1.6.6
+
+  Versions:
+            #devel
+          * 1.6.6
+            1.0.0
+            #v1.0.0
+```
+
+Versions can be selected via `choosenim 1.6.6` or by branch/tag name via `choosenim #devel` (note that selecting branches is likely to require Nim to be bootstrapped which may be slow).
 
 ## Installation
 
