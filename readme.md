@@ -81,15 +81,17 @@ install them accordingly.
 
 ## Dependencies
 
-|            |           Windows             |        Linux       |        macOS (*)      |
-|------------|:-----------------------------:|:------------------:|:---------------------:|
-| C compiler | *Downloaded automatically*    |      gcc/clang     |      gcc/clang        |
-| OpenSSL    |             N/A               |         N/A        |         N/A           |
-| curl       |             N/A               | Any recent version | Any recent version    |
+|            |           Windows             |        Linux            |        macOS (*)      |
+|------------|:-----------------------------:|:-----------------------:|:---------------------:|
+| C compiler | *Downloaded automatically*    |      gcc/clang          |      gcc/clang        |
+| OpenSSL    |             N/A               |         N/A             |         N/A           |
+| curl       |             N/A               | Any recent version (※) | Any recent version    |
 
 \* Many macOS dependencies should already be installed. You may need to install
    a C compiler however. More information on dependencies is available
    [here](https://nim-lang.org/install_unix.html).
+   
+※ Some users needed to install `libcurl4-gnutls-dev` (see [here](https://github.com/dom96/choosenim/issues/303))
 
 Git is required when installing #HEAD or a specific commit of Nim. The `unxz`
 binary is optional but will allow choosenim to download the smallest tarballs.
