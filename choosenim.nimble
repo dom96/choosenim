@@ -3,7 +3,7 @@
 version       = "0.8.4"
 author        = "Dominik Picheta"
 description   = "The Nim toolchain installer."
-license       = "MIT"
+license       = "BSD"
 
 srcDir = "src"
 binDir = "bin"
