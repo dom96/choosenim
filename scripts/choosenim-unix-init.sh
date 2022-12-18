@@ -73,9 +73,12 @@ install() {
       err "Unable to run interactively. Run with -y to accept defaults."
     fi
 
+    # Update any existing local version.
+    "$temp_prefix/$filename" update $CHOOSE_VERSION < /dev/tty
     # Install Nim from desired channel.
     "$temp_prefix/$filename" $CHOOSE_VERSION --firstInstall ${debug} < /dev/tty
   else
+    "$temp_prefix/$filename" update $CHOOSE_VERSION -y
     "$temp_prefix/$filename" $CHOOSE_VERSION --firstInstall -y ${debug}
   fi
 
