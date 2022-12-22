@@ -30,7 +30,7 @@ proc buildCompiler(version: Version, params: CliParams) =
     display("Warning:", "Building from latest C sources. They may not be " &
                         "compatible with the Nim version you have chosen to " &
                         "install.", Warning, HighPriority)
-    let path = downloadCSources(params)
+    let path = downloadCSources(version, params)
     let extractDir = getCurrentDir() / "csources"
     extract(path, extractDir)
 

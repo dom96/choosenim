@@ -316,11 +316,19 @@ proc download*(version: Version, params: CliParams): string =
     raise newException(ChooseNimError, "Version $1 does not exist." %
                        $version)
 
-proc downloadCSources*(params: CliParams): string =
+template useCSourcesV2(version: Version): bool =
+  $version in ["#head", "#devel", "#version-2-0"]
+
+proc downloadCSources*(version: Version, params: CliParams): string =
+  let csourcesAdaptedUrl =
+    if useCSourcesV2(version):
+      csourcesUrl & "_v2"
+    else:
+      csourcesUrl
   let
-    commit = getLatestCommit(csourcesUrl, "master")
+    commit = getLatestCommit(csourcesAdaptedUrl, "master")
     archive = if commit.len != 0: commit else: "master"
-    csourcesArchiveUrl = $(parseUri(csourcesUrl) / (dlArchive % archive))
+    csourcesArchiveUrl = $(parseUri(csourcesAdaptedUrl) / (dlArchive % archive))
 
   var outputPath: string
   if not needsDownload(params, csourcesArchiveUrl, outputPath):
