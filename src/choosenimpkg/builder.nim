@@ -105,7 +105,7 @@ proc setPermissions() =
                           fpGroupRead, fpGroupExec,
                           fpOthersRead, fpOthersExec}
       )
-      display("Info", "Settbuilding rwxr-xr-x permissions: " & path, Message, LowPriority)
+      display("Info", "Setting rwxr-xr-x permissions: " & path, Message, LowPriority)
 
 proc build*(extractDir: string, version: Version, params: CliParams) =
   # Report telemetry.
