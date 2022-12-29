@@ -74,6 +74,18 @@ curl https://nim-lang.org/choosenim/init.sh -sSf | sh
 wget -qO - https://nim-lang.org/choosenim/init.sh | sh
 ```
 
+**For Macos Apple Silicon M1 & M2 CPUs **
+You need to have ``xcode-select`` and ``rossetta`` installed.
+install xcode-select
+```bash
+xcode-select --install
+```
+
+install rosetta
+```bash
+softwareupdate --install-rosetta
+```
+
 **Optional:** You can specify the initial version you would like the `init.sh`
               script to install by specifying the ``CHOOSENIM_CHOOSE_VERSION``
               environment variable.
