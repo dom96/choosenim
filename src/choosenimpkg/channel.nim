@@ -10,7 +10,7 @@ import download, cliparams, switcher
 
 let
   channels = {
-    "stable": "http://nim-lang.org/channels/stable",
+    "stable": "https://nim-lang.org/channels/stable",
     "devel": "#devel",
     "self": "https://nim-lang.org/choosenim/stable"
   }.toTable()

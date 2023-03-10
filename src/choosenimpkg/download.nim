@@ -13,16 +13,16 @@ const
   githubTagReleasesUrl = "https://api.github.com/repos/nim-lang/Nim/tags"
   githubNightliesReleasesUrl = "https://api.github.com/repos/nim-lang/nightlies/releases"
   githubUrl = "https://github.com/nim-lang/Nim"
-  websiteUrlXz = "http://nim-lang.org/download/nim-$1.tar.xz"
-  websiteUrlGz = "http://nim-lang.org/download/nim-$1.tar.gz"
+  websiteUrlXz = "https://nim-lang.org/download/nim-$1.tar.xz"
+  websiteUrlGz = "https://nim-lang.org/download/nim-$1.tar.gz"
   csourcesUrl = "https://github.com/nim-lang/csources"
   dlArchive = "archive/$1.tar.gz"
-  binaryUrl = "http://nim-lang.org/download/nim-$1$2_x$3" & getBinArchiveFormat()
+  binaryUrl = "https://nim-lang.org/download/nim-$1$2_x$3" & getBinArchiveFormat()
   userAgent = "choosenim/" & chooseNimVersion
 
 const # Windows-only
-  mingwUrl = "http://nim-lang.org/download/mingw$1.zip"
-  dllsUrl = "http://nim-lang.org/download/dlls.zip"
+  mingwUrl = "https://nim-lang.org/download/mingw$1.zip"
+  dllsUrl = "https://nim-lang.org/download/dlls.zip"
 
 const
   progressBarLength = 50
