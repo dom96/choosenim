@@ -1,6 +1,8 @@
 nimcache
 bin/choosenim
 src/choosenimpkg/proxyexe
+src/choosenimpkg/proxyexe-amd64
+src/choosenimpkg/proxyexe-arm64
 *.exe
 
 tests/nimcache

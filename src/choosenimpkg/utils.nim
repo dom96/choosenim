@@ -30,21 +30,31 @@ proc parseVersion*(versionStr: string): Version =
 
   result = newVersion(versionStr)
 
+proc isRosetta*(): bool =
+  let res = execCmdEx("sysctl -in sysctl.proc_translated")
+  if res.exitCode == 0:
+    return res.output.strip() == "1"
+  return false
+
 proc doCmdRaw*(cmd: string) =
+  var command = cmd
   # To keep output in sequence
   stdout.flushFile()
   stderr.flushFile()
 
-  displayDebug("Executing", cmd)
+  if defined(macosx) and isRosetta():
+    command = "arch -arm64 " & command
+
+  displayDebug("Executing", command)
   displayDebug("Work Dir", getCurrentDir())
-  let (output, exitCode) = execCmdEx(cmd)
+  let (output, exitCode) = execCmdEx(command)
   displayDebug("Finished", "with exit code " & $exitCode)
   displayDebug("Output", output)
 
   if exitCode != QuitSuccess:
     raise newException(ChooseNimError,
         "Execution failed with exit code $1\nCommand: $2\nOutput: $3" %
-        [$exitCode, cmd, output])
+        [$exitCode, command, output])
 
 proc extract*(path: string, extractDir: string) =
   display("Extracting", path.extractFilename(), priority = HighPriority)
@@ -188,7 +198,9 @@ proc getNightliesUrl*(parsedContents: JsonNode, arch: int): (string, string) =
             if "x" & $arch in aname:
               result = (url, tagName)
           else:
-            result = (url, tagName)
+            # when choosenim become arm64, isRosetta will be false, so, we have to guard that hostCPU is amd64 to use nightlies
+            if not isRosetta() and hostCPU == "amd64":
+              result = (url, tagName)
         if result[0].len != 0:
           break
     if result[0].len != 0:
