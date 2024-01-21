@@ -181,12 +181,6 @@ Options:
   --firstInstall        Used by install script.
 ```
 
-## Analytics
-
-Check out the
-[analytics](https://github.com/dom96/choosenim/blob/master/analytics.md)
-document for details.
-
 ## License
 
 MIT

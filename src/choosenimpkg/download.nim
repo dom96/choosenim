@@ -7,7 +7,7 @@ import nimblepkg/[version, cli]
 when defined(curl):
   import libcurl except Version
 
-import cliparams, common, telemetry, utils
+import cliparams, common, utils
 
 const
   githubTagReleasesUrl = "https://api.github.com/repos/nim-lang/Nim/tags"
@@ -218,15 +218,12 @@ proc downloadFile*(url, outputPath: string, params: CliParams) =
     let msg = "Couldn't download file from $1.\nResponse was: $2" %
               [url, getCurrentExceptionMsg()]
     display("Info:", msg, Warning, MediumPriority)
-    report(initTiming(DownloadTime, url, startTime, $LabelFailure), params)
     raise
 
   moveFile(tempOutputPath, outputPath)
 
   showBar(1, 0)
   echo("")
-
-  report(initTiming(DownloadTime, url, startTime, $LabelSuccess), params)
 
 proc needsDownload(params: CliParams, downloadUrl: string,
                    outputPath: var string): bool =

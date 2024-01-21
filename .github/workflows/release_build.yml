@@ -11,6 +11,9 @@ on:
     tags:
       - "v*"
 
+env:
+  ZIG_SYSTEM_LINKER_HACK: 1
+
 jobs:
   build:
     timeout-minutes: 45
@@ -39,11 +42,11 @@ jobs:
           # MacOS builds
           - os: macos-latest
             target: aarch64-macos-none
-            suffix: macos_arm64
+            suffix: macosx_arm64
             cpu: arm64
           - os: macos-latest
             target: x86_64-macos-none
-            suffix: macos_amd64
+            suffix: macosx_amd64
             cpu: amd64
     runs-on: ${{ matrix.os }}
     name: Build ${{ matrix.target }}
@@ -68,7 +71,7 @@ jobs:
             nimble -y build -d:noBuildProxy -d:zig.target="${{ matrix.target }}" --cpu:"${{ matrix.cpu }}" -d:release --opt:size
 
       - name: Update file name
-        if: ${{ matrix.os == 'ubuntu-latest' || matrix == 'macos-latest' }}
+        if: ${{ matrix.os == 'ubuntu-latest' || matrix.os == 'macos-latest' }}
         run: mv bin/choosenim bin/choosenim-${{ github.ref_name }}_${{ matrix.suffix }}
       - name: Update file name
         if: ${{ matrix.os == 'windows-latest' }}
@@ -104,21 +107,13 @@ jobs:
         with:
           path: site/
 
-      # https://stackoverflow.com/questions/1500204/how-do-i-remove-specific-characters-from-file-names-using-bash
-      - name: Remove enclosing folder and fix names
-        working-directory: site
-        run: |
-          for file in *; do
-            mv "${file}/${file}" "${file/${{ github.ref_name }}/latest}";
-          done
-
       - name: Add latest version
         run: echo "${{ github.ref_name }}" >> site/stable
 
       - name: Setup Nim
         uses: jiro4989/setup-nim-action@v1
         with:
-          version: devel
+          nim-version: devel
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Create index

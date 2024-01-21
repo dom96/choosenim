@@ -2,7 +2,6 @@ import parseopt, strutils, os
 
 import nimblepkg/[cli, options, config]
 import nimblepkg/common as nimble_common
-import analytics
 
 import common
 
@@ -13,7 +12,6 @@ type
     choosenimDir*: string
     firstInstall*: bool
     nimbleOptions*: Options
-    analytics*: PuppyAnalytics
     pendingReports*: int ## Count of pending telemetry reports.
     force*: bool
     latest*: bool

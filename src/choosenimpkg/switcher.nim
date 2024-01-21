@@ -29,7 +29,8 @@ proc compileProxyexe() =
   let (output, exitCode) = gorgeEx(cmd)
   doAssert exitCode == 0, $(output, cmd)
 
-static: compileProxyexe()
+when not defined(noBuildProxy):
+  static: compileProxyexe()
 
 const
   proxyExe = staticRead("proxyexe".addFileExt(ExeExt))

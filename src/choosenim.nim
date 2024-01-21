@@ -7,7 +7,7 @@ import nimblepkg/common as nimbleCommon
 from nimblepkg/packageinfo import getNameVersion
 
 import choosenimpkg/[download, builder, switcher, common, cliparams, versions]
-import choosenimpkg/[utils, channel, telemetry]
+import choosenimpkg/[utils, channel]
 
 when defined(windows):
   import choosenimpkg/env
@@ -55,8 +55,6 @@ proc safeSwitchTo(version: Version, params: CliParams, wasInstalled: bool) =
       except Exception as exc:
         display("Warning:", "Cleaning failed: " & exc.msg, Warning)
 
-    # Report telemetry.
-    report(initEvent(ErrorEvent, label=exc.msg), params)
     raise newException(ChooseNimError, "Installation failed")
 
 proc chooseVersion(version: string, params: CliParams) =
@@ -328,8 +326,6 @@ proc remove(params: CliParams) =
 
 
 proc performAction(params: CliParams) =
-  # Report telemetry.
-  report(initEvent(ActionEvent), params)
 
   case params.command.normalize
   of "update":
@@ -350,14 +346,10 @@ when isMainModule:
   try:
     parseCliParams(params)
     createDir(params.chooseNimDir)
-    discard loadAnalytics(params)
     performAction(params)
   except NimbleError:
     let currentExc = (ref NimbleError)(getCurrentException())
     (error, hint) = getOutputInfo(currentExc)
-    # Report telemetry.
-    report(currentExc, params)
-    report(initEvent(ErrorEvent, label=currentExc.msg), params)
 
   if error.len > 0:
     displayTip()
