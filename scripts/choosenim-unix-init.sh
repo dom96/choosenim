@@ -9,7 +9,7 @@
 set -u
 set -e
 
-url_prefix="https://github.com/dom96/choosenim/releases/download/"
+url_prefix="https://github.com/ire4ever1190/choosenim/releases/download/"
 
 temp_prefix="${TMPDIR:-/tmp}"
 
@@ -31,16 +31,16 @@ install() {
   local platform=$RET_VAL
   local stable_version=
   if has_curl; then
-    stable_version=`curl -sSfL https://nim-lang.org/choosenim/stable`
+    stable_version=`curl -sSfL https://choosenim.leahy.dev/stable`
   elif has_wget; then
-    stable_version=`wget -qO - https://nim-lang.org/choosenim/stable`
+    stable_version=`wget -qO - https://choosenim.leahy.dev/stable`
   fi
   local filename="choosenim-$stable_version"_"$platform"
-  local url="$url_prefix"v"$stable_version/$filename"
+  local url="$url_prefix$stable_version/$filename"
   local ext=""
 
   case $platform in
-    *macosx_amd64* | *linux_amd64* )
+    *macosx_amd64* | *linux_amd64* | *linux_arm*)
       ;;
     *windows_amd64* )
       # Download ZIP for Windows

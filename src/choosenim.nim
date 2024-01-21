@@ -61,8 +61,12 @@ proc safeSwitchTo(version: Version, params: CliParams, wasInstalled: bool) =
 
 proc chooseVersion(version: string, params: CliParams) =
   # Command is a version.
-  let version = parseVersion(version)
+  var parsedVer = parseVersion(version)
 
+  # We need to build for ARM from source for normal releases
+  # TODO: Figure out who controls the website and ask if they could upload ARM builds
+  if getArch().startsWith("arm") and not (parsedVer.isSpecial or parsedVer.isDevel):
+    parsedVer = newVersion("#v" & version)
   # Verify that C compiler is installed.
   if params.needsCCInstall():
     when defined(windows):
@@ -106,11 +110,11 @@ proc chooseVersion(version: string, params: CliParams) =
     else:
       display("Info:", "DLLs already installed", priority = MediumPriority)
 
-  var wasInstalled = params.isVersionInstalled(version)
+  var wasInstalled = params.isVersionInstalled(parsedVer)
   if not wasInstalled:
-    installVersion(version, params)
+    installVersion(parsedVer, params)
 
-  safeSwitchTo(version, params, wasInstalled)
+  safeSwitchTo(parsedVer, params, wasInstalled)
 
 proc choose(params: CliParams) =
   if dirExists(params.command):

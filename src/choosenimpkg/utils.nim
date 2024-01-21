@@ -171,12 +171,24 @@ proc getLatestCommit*(repo, branch: string): string =
     else:
       display("Warning", outp & "\ngit ls-remote failed", Warning, HighPriority)
 
-proc getNightliesUrl*(parsedContents: JsonNode, arch: int): (string, string) =
+func getArch*(): string =
+  ## Gets CPU arch. This is based on what system choosenim was compiled for.
+  ## See https://github.com/nim-lang/nightlies/releases for why we need to map this
+  case hostCPU
+  of "i386": "x32"
+  of "amd64": "x64"
+  of "arm": "arm7vl"
+  of "arm64": "arm64"
+  else:
+    raise (ref Defect)(msg: "Unsupported architecture")
+
+proc getNightliesUrl*(parsedContents: JsonNode): (string, string) =
   let os =
     when defined(windows): "windows"
     elif defined(linux): "linux"
     elif defined(macosx): "osx"
     elif defined(freebsd): "freebsd"
+  const arch = getArch()
   for jn in parsedContents.getElems():
     if jn["name"].getStr().contains("devel"):
       let tagName = jn{"tag_name"}.getStr("")
@@ -185,7 +197,7 @@ proc getNightliesUrl*(parsedContents: JsonNode, arch: int): (string, string) =
         let url = asset{"browser_download_url"}.getStr("")
         if os in aname:
           when not defined(macosx):
-            if "x" & $arch in aname:
+            if $arch in aname:
               result = (url, tagName)
           else:
             result = (url, tagName)

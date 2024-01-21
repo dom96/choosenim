@@ -69,7 +69,7 @@ proc addGithubAuthentication(url: string): string =
 when defined(curl):
   proc checkCurl(code: Code) =
     if code != E_OK:
-      raise newException(AssertionError, "CURL failed: " & $easy_strerror(code))
+      raise newException(CatchableError, "CURL failed: " & $easy_strerror(code))
 
   proc downloadFileCurl(url, outputPath: string) =
     displayDebug("Downloading using Curl")
@@ -252,7 +252,7 @@ proc downloadImpl(version: Version, params: CliParams): string =
       try:
         let rawContents = retrieveUrl(githubNightliesReleasesUrl.addGithubAuthentication())
         let parsedContents = parseJson(rawContents)
-        (url, reference) = getNightliesUrl(parsedContents, arch)
+        (url, reference) = getNightliesUrl(parsedContents)
         if url.len == 0:
           display(
             "Warning", "Recent nightly release not found, installing latest devel commit.",
