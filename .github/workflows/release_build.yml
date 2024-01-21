@@ -13,19 +13,20 @@ on:
 
 jobs:
   build:
-    timeout-minutes: 15
+    timeout-minutes: 45
     strategy:
       fail-fast: false
       matrix:
         include:
           # Windows builds
-          # - os: windows-latest
-          #   target: x86_64-windows-gnu
-          #   suffix: windows_amd64
-          # - os: windows-latest
-          #   target: aarch64-windows-gnu
-          #   suffix: windows_arm64
-          #   cpu: arm64
+          - os: windows-latest
+            target: x86_64-windows-gnu
+            suffix: windows_amd64
+            cpu: amd64
+          - os: windows-latest
+            target: aarch64-windows-gnu
+            suffix: windows_arm64
+            cpu: arm64
           # Linux builds
           - os: ubuntu-latest
             target: aarch64-linux-gnu
@@ -35,7 +36,15 @@ jobs:
             target: x86_64-linux-gnu
             suffix: linux_amd64
             cpu: amd64
-
+          # MacOS builds
+          - os: macos-latest
+            target: aarch64-macos-none
+            suffix: macos_arm64
+            cpu: arm64
+          - os: macos-latest
+            target: x86_64-macos-none
+            suffix: macos_amd64
+            cpu: amd64
     runs-on: ${{ matrix.os }}
     name: Build ${{ matrix.target }}
     steps:
@@ -51,22 +60,33 @@ jobs:
       - name: Install dependencies
         run: |
           nimble install -y zigcc
+      - name: Build proxy
+        run: |
+            nimble -y c src/choosenimpkg/proxyexe -d:zig.target="${{ matrix.target }}" --cpu:"${{ matrix.cpu }}" -d:release --opt:size
       - name: Build binary
         run: |
-            nimble -y build -d:zig.target="${{ matrix.target }}" --cpu:"${{ matrix.cpu }}" -d:release --opt:size
-            mv bin/choosenim bin/choosenim-${{ github.ref_name }}_${{ matrix.suffix }}
+            nimble -y build -d:noBuildProxy -d:zig.target="${{ matrix.target }}" --cpu:"${{ matrix.cpu }}" -d:release --opt:size
+
+      - name: Update file name
+        if: ${{ matrix.os == 'ubuntu-latest' || matrix == 'macos-latest' }}
+        run: mv bin/choosenim bin/choosenim-${{ github.ref_name }}_${{ matrix.suffix }}
+      - name: Update file name
+        if: ${{ matrix.os == 'windows-latest' }}
+        run: mv bin\choosenim.exe bin\choosenim-${{ github.ref_name }}_${{ matrix.suffix }}.exe
+
       - name: Upload binaries to release/tag
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           overwrite: true
+          file_glob: true
           tag: ${{ github.ref }}
-          file: bin/choosenim-${{ github.ref_name }}_${{ matrix.suffix }}
+          file: bin/choosenim-${{ github.ref_name }}_${{ matrix.suffix }}*
       - name: Upload artefacts
         uses: actions/upload-artifact@v4
         with:
           name: choosenim-${{ github.ref_name }}_${{ matrix.suffix }}
-          path: bin/choosenim-${{ github.ref_name }}_${{ matrix.suffix }}
+          path: bin/choosenim-${{ github.ref_name }}_${{ matrix.suffix }}*
           retention-days: 1
 
   deploy-site:
