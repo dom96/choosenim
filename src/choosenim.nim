@@ -7,7 +7,7 @@ import nimblepkg/common as nimbleCommon
 from nimblepkg/packageinfo import getNameVersion
 
 import choosenimpkg/[download, builder, switcher, common, cliparams, versions]
-import choosenimpkg/[utils, channel, telemetry]
+import choosenimpkg/[utils, channel]
 
 when defined(windows):
   import choosenimpkg/env
@@ -55,14 +55,16 @@ proc safeSwitchTo(version: Version, params: CliParams, wasInstalled: bool) =
       except Exception as exc:
         display("Warning:", "Cleaning failed: " & exc.msg, Warning)
 
-    # Report telemetry.
-    report(initEvent(ErrorEvent, label=exc.msg), params)
     raise newException(ChooseNimError, "Installation failed")
 
 proc chooseVersion(version: string, params: CliParams) =
   # Command is a version.
-  let version = parseVersion(version)
+  var parsedVer = parseVersion(version)
 
+  # We need to build for ARM from source for normal releases
+  # TODO: Figure out who controls the website and ask if they could upload ARM builds
+  if getArch().startsWith("arm") and not (parsedVer.isSpecial or parsedVer.isDevel):
+    parsedVer = newVersion("#v" & version)
   # Verify that C compiler is installed.
   if params.needsCCInstall():
     when defined(windows):
@@ -106,11 +108,11 @@ proc chooseVersion(version: string, params: CliParams) =
     else:
       display("Info:", "DLLs already installed", priority = MediumPriority)
 
-  var wasInstalled = params.isVersionInstalled(version)
+  var wasInstalled = params.isVersionInstalled(parsedVer)
   if not wasInstalled:
-    installVersion(version, params)
+    installVersion(parsedVer, params)
 
-  safeSwitchTo(version, params, wasInstalled)
+  safeSwitchTo(parsedVer, params, wasInstalled)
 
 proc choose(params: CliParams) =
   if dirExists(params.command):
@@ -324,8 +326,6 @@ proc remove(params: CliParams) =
 
 
 proc performAction(params: CliParams) =
-  # Report telemetry.
-  report(initEvent(ActionEvent), params)
 
   case params.command.normalize
   of "update":
@@ -346,14 +346,10 @@ when isMainModule:
   try:
     parseCliParams(params)
     createDir(params.chooseNimDir)
-    discard loadAnalytics(params)
     performAction(params)
   except NimbleError:
     let currentExc = (ref NimbleError)(getCurrentException())
     (error, hint) = getOutputInfo(currentExc)
-    # Report telemetry.
-    report(currentExc, params)
-    report(initEvent(ErrorEvent, label=currentExc.msg), params)
 
   if error.len > 0:
     displayTip()

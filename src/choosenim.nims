@@ -5,3 +5,6 @@ elif not defined(windows):
 
 when defined(staticBuild):
   import "choosenimpkg/proxyexe.nims"
+
+# We don't need it, but nimble does for SslError import
+switch("define", "ssl")

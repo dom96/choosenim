@@ -3,7 +3,7 @@ import os, times
 import nimblepkg/[version, cli]
 import nimblepkg/common as nimble_common
 
-import cliparams, download, utils, common, telemetry
+import cliparams, download, utils, common
 
 when defined(windows):
   import switcher
@@ -109,7 +109,6 @@ proc setPermissions() =
 
 proc build*(extractDir: string, version: Version, params: CliParams) =
   # Report telemetry.
-  report(initEvent(BuildEvent), params)
   let startTime = epochTime()
 
   let currentDir = getCurrentDir()
@@ -161,10 +160,6 @@ proc build*(extractDir: string, version: Version, params: CliParams) =
       except Exception as exc:
         display("Warning:", "Cleaning c_code failed: " & exc.msg, Warning)
 
-      # Report telemetry.
-      report(initEvent(BuildSuccessEvent), params)
-      report(initTiming(BuildTime, $version, startTime, $LabelSuccess), params)
-
     if not success and not params.skipClean:
       # Perform clean up.
       display("Cleaning", "failed build", priority = HighPriority)
@@ -174,7 +169,3 @@ proc build*(extractDir: string, version: Version, params: CliParams) =
         removeDir(extractDir)
       except Exception as exc:
         display("Warning:", "Cleaning failed: " & exc.msg, Warning)
-
-      # Report telemetry.
-      report(initEvent(BuildFailureEvent), params)
-      report(initTiming(BuildTime, $version, startTime, $LabelFailure), params)

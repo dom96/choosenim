@@ -1,0 +1,52 @@
+name: Run tests
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
+jobs:
+  nim-tests:
+    name: Nim tests
+    timeout-minutes: 60
+    strategy:
+      matrix:
+        os:
+          - ubuntu-latest
+          - windows-latest
+          - macos-latest
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Nim
+        uses: jiro4989/setup-nim-action@v1
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Can build
+        run: nimble -y build
+
+      - name: Run tests
+        run: nimble -y test
+
+  unix-test:
+    name: Install script test (Unix like)
+    strategy:
+      matrix:
+        os:
+          - ubuntu-latest
+          - macos-latest
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run script
+        run: bash scripts/choosenim-unix-init.sh -y
+
+      - name: Update path
+        run: echo "~/.nimble/bin" >> $GITHUB_PATH
+
+      - name: Test Nim works
+        run: nim --version

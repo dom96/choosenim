@@ -8,23 +8,29 @@ import cliparams, common
 when defined(windows):
   import env
 
+const target {.strdefine: "zig.target".} = ""
+
 proc compileProxyexe() =
   var cmd =
     when defined(windows):
       "cmd /C \"cd ../../ && nimble c"
     else:
       "cd ../../ && nimble c"
+  cmd &= " -y"
   when defined(release):
     cmd.add " -d:release"
   when defined(staticBuild):
     cmd.add " -d:staticBuild"
+  when target != "":
+    cmd.add " -d:zig.target=" & target
   cmd.add " src/choosenimpkg/proxyexe"
   when defined(windows):
     cmd.add("\"")
   let (output, exitCode) = gorgeEx(cmd)
   doAssert exitCode == 0, $(output, cmd)
 
-static: compileProxyexe()
+when not defined(noBuildProxy):
+  static: compileProxyexe()
 
 const
   proxyExe = staticRead("proxyexe".addFileExt(ExeExt))

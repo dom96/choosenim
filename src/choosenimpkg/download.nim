@@ -7,7 +7,7 @@ import nimblepkg/[version, cli]
 when defined(curl):
   import libcurl except Version
 
-import cliparams, common, telemetry, utils
+import cliparams, common, utils
 
 const
   githubTagReleasesUrl = "https://api.github.com/repos/nim-lang/Nim/tags"
@@ -69,7 +69,7 @@ proc addGithubAuthentication(url: string): string =
 when defined(curl):
   proc checkCurl(code: Code) =
     if code != E_OK:
-      raise newException(AssertionError, "CURL failed: " & $easy_strerror(code))
+      raise newException(CatchableError, "CURL failed: " & $easy_strerror(code))
 
   proc downloadFileCurl(url, outputPath: string) =
     displayDebug("Downloading using Curl")
@@ -218,15 +218,12 @@ proc downloadFile*(url, outputPath: string, params: CliParams) =
     let msg = "Couldn't download file from $1.\nResponse was: $2" %
               [url, getCurrentExceptionMsg()]
     display("Info:", msg, Warning, MediumPriority)
-    report(initTiming(DownloadTime, url, startTime, $LabelFailure), params)
     raise
 
   moveFile(tempOutputPath, outputPath)
 
   showBar(1, 0)
   echo("")
-
-  report(initTiming(DownloadTime, url, startTime, $LabelSuccess), params)
 
 proc needsDownload(params: CliParams, downloadUrl: string,
                    outputPath: var string): bool =
@@ -252,7 +249,7 @@ proc downloadImpl(version: Version, params: CliParams): string =
       try:
         let rawContents = retrieveUrl(githubNightliesReleasesUrl.addGithubAuthentication())
         let parsedContents = parseJson(rawContents)
-        (url, reference) = getNightliesUrl(parsedContents, arch)
+        (url, reference) = getNightliesUrl(parsedContents)
         if url.len == 0:
           display(
             "Warning", "Recent nightly release not found, installing latest devel commit.",
